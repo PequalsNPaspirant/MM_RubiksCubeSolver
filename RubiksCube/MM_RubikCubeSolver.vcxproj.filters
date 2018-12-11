@@ -18,19 +18,10 @@
     <ClCompile Include="Camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Globals.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MessageHandling.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Vector3.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="RubikCubeSolverMain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="RubiksCubeSolver_v1.cpp">
@@ -39,18 +30,18 @@
     <ClCompile Include="RubiksCubeSimulator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="RubiksCubeModel_v1.cpp">
+    <ClCompile Include="RubiksCubeRenderingModel_v1.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RubiksCubeSolverUI.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RubiksCubeSolverTest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Globals.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MessageHandling.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Resource.h">
@@ -68,7 +59,13 @@
     <ClInclude Include="RubiksCubeSimulator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="RubiksCubeModel_v1.h">
+    <ClInclude Include="RubiksCubeRenderingModel_v1.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RubiksCubeSolverUI.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RubiksCubeSolverTest.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

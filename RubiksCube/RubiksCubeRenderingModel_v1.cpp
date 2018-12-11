@@ -1,8 +1,19 @@
 #include "StdAfx.h"
-#include "RubiksCubeModel_v1.h"
+#include "RubiksCubeRenderingModel_v1.h"
 #include <time.h>
 
 const int FACE_COUNT = 6;
+
+const CColor CColor::RED{ 255, 0, 0 };
+const CColor CColor::ORANGE{ 255, 165, 0 };
+
+const CColor CColor::BLUE{ 0, 0, 255 };
+const CColor CColor::GREEN{ 0, 255, 0 };
+
+const CColor CColor::YELLOW{ 255, 255, 0 };
+const CColor CColor::WHITE{ 255, 255, 255 };
+
+const CColor CColor::BLACK{ 0, 0, 0 };
 
 CCubeState::CCubeState(CColor cTop, CColor cBottom, CColor cLeft,
 	CColor cRight, CColor cFront, CColor cBack)

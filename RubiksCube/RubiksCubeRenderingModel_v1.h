@@ -41,6 +41,17 @@ struct CColor
 	{
 		return !((r == c.r) && (g == c.g) && (b == c.b));
 	}
+
+	static const CColor RED;
+	static const CColor ORANGE;
+
+	static const CColor BLUE;
+	static const CColor GREEN;
+
+	static const CColor YELLOW;
+	static const CColor WHITE;
+
+	static const CColor BLACK;
 };
 
 class CCubeState
