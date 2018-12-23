@@ -1,98 +1,142 @@
 #pragma once
 
-const int RUBIKS_CUBE_SIZE = 3;
-typedef unsigned char byte;
-typedef byte BYTE;
+#include <string>
+#include <vector>
+using namespace std;
 
-enum Face
-{
-	Top = 0,
-	Bottom,
-	Left,
-	Right,
-	Front,
-	Back,
-};
+#include "Vector3.h"
 
-struct CColor
-{
-	CColor(byte red, byte green, byte blue)
+namespace mm {
+
+	typedef unsigned char byte;
+	//typedef byte BYTE;
+
+	enum Face
 	{
-		r = red;
-		g = green;
-		b = blue;
-	}
+		Top = 0,
+		Bottom = 1,
+		Left = 2,
+		Right = 3,
+		Front = 4,
+		Back = 5
+	};
 
-	CColor()
+	enum Color
 	{
-		r = g = b = 0;
-	}
+		Yellow = 0,
+		Red = 1,
+		Blue = 2,
+		Green = 3,
+		Orange = 4,
+		White = 5,
+		Black = 6
+	};
 
-	byte r;
-	byte g;
-	byte b;
-
-	BOOL operator==(const CColor& c)
+	struct ColorRGB
 	{
-		return (r == c.r) && (g == c.g) && (b == c.b);
-	}
+		ColorRGB(byte red, byte green, byte blue)
+		{
+			r = red;
+			g = green;
+			b = blue;
+		}
 
-	BOOL operator!=(const CColor& c)
+		ColorRGB()
+		{
+			r = g = b = 0;
+		}
+
+		byte r;
+		byte g;
+		byte b;
+
+		bool operator==(const ColorRGB& c)
+		{
+			return (r == c.r) && (g == c.g) && (b == c.b);
+		}
+
+		bool operator!=(const ColorRGB& c)
+		{
+			return !((r == c.r) && (g == c.g) && (b == c.b));
+		}
+
+		static const ColorRGB RED;
+		static const ColorRGB ORANGE;
+
+		static const ColorRGB BLUE;
+		static const ColorRGB GREEN;
+
+		static const ColorRGB YELLOW;
+		static const ColorRGB WHITE;
+
+		static const ColorRGB BLACK;
+	};
+
+	class Cube
 	{
-		return !((r == c.r) && (g == c.g) && (b == c.b));
-	}
-
-	static const CColor RED;
-	static const CColor ORANGE;
-
-	static const CColor BLUE;
-	static const CColor GREEN;
-
-	static const CColor YELLOW;
-	static const CColor WHITE;
-
-	static const CColor BLACK;
-};
-
-class CCubeState
-{
-public:
-	CCubeState(CColor cTop, CColor cBottom, CColor cLeft,
-		CColor cRight, CColor cFront, CColor cBack);
-	~CCubeState(void);
-	CColor GetFaceColor(Face eFace);
-	void TiltUp();
-	void TiltDown();
-	void TurnLeft();
-	void TurnRight();
-	void TiltLeft();
-	void TiltRight();
+	public:
+		Cube() {}
+		Cube(const Cube& copy) : faces_(copy.faces_) {}
+		Cube(Color cTop, Color cBottom, Color cLeft,
+			Color cRight, Color cFront, Color cBack);
+		~Cube(void);
+		Color GetFaceColor(Face eFace) const;
+		ColorRGB GetFaceColorRGB(Face eFace) const;
+		void TiltUp();
+		void TiltDown();
+		void TurnLeft();
+		void TurnRight();
+		void TiltLeft();
+		void TiltRight();
 
 
-protected:
-	CColor * m_pFaces;
-};
+	protected:
+		vector<Color> faces_;
+	};
 
+	class RubiksCubeSolverUI;
 
-class CRubiksCube
-{
-public:
-	CRubiksCube(void);
-	~CRubiksCube(void);
-	CCubeState* GetCube(int x, int y, int z);
-	void Rotate(int section, int turns);	// around y axis
-	void Tilt(int section, int turns);	// around x axis
-	void Turn(int section, int turns);	// around z axis
-	void Randomize();
-	BOOL IsSolved();
+	class CRubiksCube
+	{
+	public:
+		CRubiksCube(int size);
+		~CRubiksCube();
+		CRubiksCube(const CRubiksCube& copy);
 
-	VOID RotateWholeRubiksCube(int axis, int turns);
+		void ResetCube();
+		const Cube& GetCube(int x, int y, int z);
+		void Rotate(int section, int turns);	// around y axis
+		void Tilt(int section, int turns);	// around x axis
+		void Turn(int section, int turns);	// around z axis
+		void Randomize();
+		bool IsSolved();
 
-protected:
-	CCubeState*** *m_pCubes;
-	BOOL IsValidCube(int x, int y, int z);
+		void RotateWholeRubiksCube(int axis, int turns);
 
-private:
-	CCubeState* CreateCube(int x, int y, int z);
-	BOOL IsFaceSolved(Face face);
-};	
+		//Apply algorithm
+		void applyAlgorithm(const string& algorithm, bool animate = false, int steps = 0, RubiksCubeSolverUI* ui = nullptr);
+
+		bool g_bRotating;
+		bool g_bFlipRotation;
+		CVector3 g_vRotationAxis;
+		int g_nRotatingSection;
+		int g_nRotationAngle;
+
+		int getSize() { return size_; }
+
+	private:
+		void applyStep(const char& face, bool isPrime, int numRotations, bool animate = false, int steps = 0, RubiksCubeSolverUI* ui = nullptr);
+		void fixRubiksCubeFaces();
+
+	private:
+		//Cube*** *m_pCubes;
+		vector< vector< vector<Cube> > > cubes_;
+		int size_;
+
+	private:
+		bool IsValidCube(int x, int y, int z);
+		Cube CreateCube(int x, int y, int z);
+		bool IsFaceSolved(Face face);
+	};
+
+}

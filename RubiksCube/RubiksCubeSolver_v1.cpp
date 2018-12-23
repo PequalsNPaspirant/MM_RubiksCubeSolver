@@ -1,47 +1,74 @@
 #include "stdafx.h"
 #include <iostream>
 
-#include "RubiksCubeSolverUI.h"
+//#include "RubiksCubeSolverUI.h"
+#include "RubiksCubeRenderingModel_v1.h"
 #include "RubiksCubeSolver_v1.h"
 #include "RubiksCubeSimulator.h"
 //#include "Globals.h"
-#include "RubiksCubeRenderingModel_v1.h"
+
 
 namespace mm {
 
-	void RubiksCubeSolver_v1::solve()
+	RubiksCubeSolver_v1::RubiksCubeSolver_v1(CRubiksCube& rubiksCube, bool animate /*= false*/, int steps /*= 0*/, RubiksCubeSolverUI* ui /*= nullptr*/)
+		: rubiksCube_(rubiksCube),
+		animate_(animate),
+		steps_(steps),
+		ui_(ui)
+	{
+	}
+
+	string RubiksCubeSolver_v1::solve()
 	{
 		RubiksCubeSolver_v1::positionTheCube();
 		RubiksCubeSolver_v1::buildCross();
 		RubiksCubeSolver_v1::buildF2L();
 		RubiksCubeSolver_v1::buildOLL();
 		RubiksCubeSolver_v1::buildPLL();
+
+		//verify
+		if (!rubiksCube_.IsSolved())
+		{
+			int i = 0;
+			++i;
+			i = 10 / 5;
+			i += 4;
+		}
+
+		return solution_;
 	}
 
-	bool isEdgeCube(CCubeState* currentCube, const CColor& first, const CColor& second)
+	void RubiksCubeSolver_v1::applyAlgorithm(const string& step)
+	{
+		solution_ += step;
+		rubiksCube_.applyAlgorithm(step, animate_, steps_, ui_);
+	}
+
+	bool isEdgeCube(const Cube& currentCube, const Color& first, const Color& second)
 	{
 		int firstCount = 0;
 		int secondCount = 0;
 		for (int i = 0; i < 6; ++i)
 		{
-			if (currentCube->GetFaceColor(Face(i)) == first)
+			if (currentCube.GetFaceColor(Face(i)) == first)
 				++firstCount;
-			else if (currentCube->GetFaceColor(Face(i)) == second)
+			else if (currentCube.GetFaceColor(Face(i)) == second)
 				++secondCount;
-			else if (currentCube->GetFaceColor(Face(i)) != CColor::BLACK)
+			else if (currentCube.GetFaceColor(Face(i)) != Color::Black)
 				return false;
 		}
 
 		return firstCount == 1 && secondCount == 1;
 	}
-	void buildCross_PlaceEdgePiece(const CColor& targetColorFront, const CColor& targetColorBottom)
+
+	void RubiksCubeSolver_v1::buildCross_PlaceEdgePiece(const Color& targetColorFront, const Color& targetColorBottom)
 	{
-		CCubeState* currentCube = nullptr;
+		//Cube* currentCube = nullptr;
 
 		// Bring it from bottom later (y = 0) to top layer
-		currentCube = Scene::getInstance().g_cCube.GetCube(1, 0, 2);
-		CColor c1 = currentCube->GetFaceColor(Face::Front);
-		CColor c2 = currentCube->GetFaceColor(Face::Bottom);
+		Cube currentCube = rubiksCube_.GetCube(1, 0, 2);
+		Color c1 = currentCube.GetFaceColor(Face::Front);
+		Color c2 = currentCube.GetFaceColor(Face::Bottom);
 
 		if (c1 == targetColorFront && c2 == targetColorBottom)
 		{
@@ -49,117 +76,117 @@ namespace mm {
 		}
 		if (c1 == targetColorBottom && c2 == targetColorFront)
 		{
-			RubiksCubeSimulator::executeAlgorithm("F2");
+			applyAlgorithm("F2");
 		}
-		currentCube = Scene::getInstance().g_cCube.GetCube(2, 0, 1);
-		c1 = currentCube->GetFaceColor(Face::Right);
-		c2 = currentCube->GetFaceColor(Face::Bottom);
+		currentCube = rubiksCube_.GetCube(2, 0, 1);
+		c1 = currentCube.GetFaceColor(Face::Right);
+		c2 = currentCube.GetFaceColor(Face::Bottom);
 		if ((c1 == targetColorFront && c2 == targetColorBottom) || (c1 == targetColorBottom && c2 == targetColorFront))
 		{
-			RubiksCubeSimulator::executeAlgorithm("R2");
+			applyAlgorithm("R2");
 		}
-		currentCube = Scene::getInstance().g_cCube.GetCube(1, 0, 0);
-		c1 = currentCube->GetFaceColor(Face::Back);
-		c2 = currentCube->GetFaceColor(Face::Bottom);
+		currentCube = rubiksCube_.GetCube(1, 0, 0);
+		c1 = currentCube.GetFaceColor(Face::Back);
+		c2 = currentCube.GetFaceColor(Face::Bottom);
 		if ((c1 == targetColorFront && c2 == targetColorBottom) || (c1 == targetColorBottom && c2 == targetColorFront))
 		{
-			RubiksCubeSimulator::executeAlgorithm("B2");
+			applyAlgorithm("B2");
 		}
-		currentCube = Scene::getInstance().g_cCube.GetCube(0, 0, 1);
-		c1 = currentCube->GetFaceColor(Face::Left);
-		c2 = currentCube->GetFaceColor(Face::Bottom);
+		currentCube = rubiksCube_.GetCube(0, 0, 1);
+		c1 = currentCube.GetFaceColor(Face::Left);
+		c2 = currentCube.GetFaceColor(Face::Bottom);
 		if ((c1 == targetColorFront && c2 == targetColorBottom) || (c1 == targetColorBottom && c2 == targetColorFront))
 		{
-			RubiksCubeSimulator::executeAlgorithm("L2");
+			applyAlgorithm("L2");
 			//RubiksCubeAlgoExecuter::executeAlgorithm("L'F'");
 		}
 
 		// Bring it from middle later (y = 1) to top layer
-		currentCube = Scene::getInstance().g_cCube.GetCube(0, 1, 0);
-		c1 = currentCube->GetFaceColor(Face::Left);
-		c2 = currentCube->GetFaceColor(Face::Back);
+		currentCube = rubiksCube_.GetCube(0, 1, 0);
+		c1 = currentCube.GetFaceColor(Face::Left);
+		c2 = currentCube.GetFaceColor(Face::Back);
 		if ((c1 == targetColorFront && c2 == targetColorBottom) || (c1 == targetColorBottom && c2 == targetColorFront))
 		{
-			RubiksCubeSimulator::executeAlgorithm("LU'L'");
+			applyAlgorithm("LU'L'");
 		}
-		currentCube = Scene::getInstance().g_cCube.GetCube(0, 1, 2);
-		c1 = currentCube->GetFaceColor(Face::Left);
-		c2 = currentCube->GetFaceColor(Face::Front);
+		currentCube = rubiksCube_.GetCube(0, 1, 2);
+		c1 = currentCube.GetFaceColor(Face::Left);
+		c2 = currentCube.GetFaceColor(Face::Front);
 		if (c1 == targetColorBottom && c2 == targetColorFront)
 		{
-			RubiksCubeSimulator::executeAlgorithm("F'");
+			applyAlgorithm("F'");	
 		}
 		else if (c1 == targetColorFront && c2 == targetColorBottom)
 		{
-			RubiksCubeSimulator::executeAlgorithm("F");
+			applyAlgorithm("F");	
 		}
-		currentCube = Scene::getInstance().g_cCube.GetCube(2, 1, 2);
-		c1 = currentCube->GetFaceColor(Face::Front);
-		c2 = currentCube->GetFaceColor(Face::Right);
+		currentCube = rubiksCube_.GetCube(2, 1, 2);
+		c1 = currentCube.GetFaceColor(Face::Front);
+		c2 = currentCube.GetFaceColor(Face::Right);
 		if (c1 == targetColorFront && c2 == targetColorBottom)
 		{
-			RubiksCubeSimulator::executeAlgorithm("F");
+			applyAlgorithm("F");	
 		}
 		else if (c1 == targetColorBottom && c2 == targetColorFront)
 		{
-			RubiksCubeSimulator::executeAlgorithm("F'");
+			applyAlgorithm("F'");	
 		}
-		currentCube = Scene::getInstance().g_cCube.GetCube(2, 1, 0);
-		c1 = currentCube->GetFaceColor(Face::Back);
-		c2 = currentCube->GetFaceColor(Face::Right);
+		currentCube = rubiksCube_.GetCube(2, 1, 0);
+		c1 = currentCube.GetFaceColor(Face::Back);
+		c2 = currentCube.GetFaceColor(Face::Right);
 		if ((c1 == targetColorFront && c2 == targetColorBottom) || (c1 == targetColorBottom && c2 == targetColorFront))
 		{
-			RubiksCubeSimulator::executeAlgorithm("R'UR");
+			applyAlgorithm("R'UR");		
 		}
 
 		// Bring it from top later (y = 2) to bottom layer at appropriate position
-		currentCube = Scene::getInstance().g_cCube.GetCube(1, 2, 0);
-		c1 = currentCube->GetFaceColor(Face::Top);
-		c2 = currentCube->GetFaceColor(Face::Back);
+		currentCube = rubiksCube_.GetCube(1, 2, 0);
+		c1 = currentCube.GetFaceColor(Face::Top);
+		c2 = currentCube.GetFaceColor(Face::Back);
 		if (c1 == targetColorFront && c2 == targetColorBottom)
 		{
-			RubiksCubeSimulator::executeAlgorithm("B'R'URBF2");
+			applyAlgorithm("B'R'URBF2");	
 		}
 		else if (c1 == targetColorBottom && c2 == targetColorFront)
 		{
-			RubiksCubeSimulator::executeAlgorithm("U2F2");
+			applyAlgorithm("U2F2");	
 		}
 
-		currentCube = Scene::getInstance().g_cCube.GetCube(0, 2, 1);
-		c1 = currentCube->GetFaceColor(Face::Top);
-		c2 = currentCube->GetFaceColor(Face::Left);
+		currentCube = rubiksCube_.GetCube(0, 2, 1);
+		c1 = currentCube.GetFaceColor(Face::Top);
+		c2 = currentCube.GetFaceColor(Face::Left);
 		if (c1 == targetColorFront && c2 == targetColorBottom)
 		{
 			//RubiksCubeAlgoExecuter::executeAlgorithm("LR'L'F2");
-			RubiksCubeSimulator::executeAlgorithm("LF'L'");
+			applyAlgorithm("LF'L'");	
 		}
 		else if (c1 == targetColorBottom && c2 == targetColorFront)
 		{
 			//RubiksCubeAlgoExecuter::executeAlgorithm("LF'L'");
-			RubiksCubeSimulator::executeAlgorithm("U'F2");
+			applyAlgorithm("U'F2");	
 		}
 
-		currentCube = Scene::getInstance().g_cCube.GetCube(1, 2, 2);
-		c1 = currentCube->GetFaceColor(Face::Top);
-		c2 = currentCube->GetFaceColor(Face::Front);
+		currentCube = rubiksCube_.GetCube(1, 2, 2);
+		c1 = currentCube.GetFaceColor(Face::Top);
+		c2 = currentCube.GetFaceColor(Face::Front);
 		if (c1 == targetColorFront && c2 == targetColorBottom)
 		{
-			RubiksCubeSimulator::executeAlgorithm("FRUR'F2");
+			applyAlgorithm("FRUR'F2");	
 		}
 		else if (c1 == targetColorBottom && c2 == targetColorFront)
 		{
-			RubiksCubeSimulator::executeAlgorithm("F2");
+			applyAlgorithm("F2");	
 		}
-		currentCube = Scene::getInstance().g_cCube.GetCube(2, 2, 1);
-		c1 = currentCube->GetFaceColor(Face::Top);
-		c2 = currentCube->GetFaceColor(Face::Right);
+		currentCube = rubiksCube_.GetCube(2, 2, 1);
+		c1 = currentCube.GetFaceColor(Face::Top);
+		c2 = currentCube.GetFaceColor(Face::Right);
 		if (c1 == targetColorFront && c2 == targetColorBottom)
 		{
-			RubiksCubeSimulator::executeAlgorithm("R'FR");
+			applyAlgorithm("R'FR");
 		}
 		else if (c1 == targetColorBottom && c2 == targetColorFront)
 		{
-			RubiksCubeSimulator::executeAlgorithm("UF2");
+			applyAlgorithm("UF2");
 		}
 	}
 
@@ -182,113 +209,113 @@ namespace mm {
 		*/
 
 		// At the most 3 out of below 3 if clauses are executed
-		CCubeState* currentCube = nullptr;
-		CColor c;
+		Cube currentCube;
+		Color c;
 
 		// Check front face has blue center cube
-		currentCube = Scene::getInstance().g_cCube.GetCube(1, 1, 2);
-		c = currentCube->GetFaceColor(Face::Front);
-		if (c != CColor::BLUE)
+		currentCube = rubiksCube_.GetCube(1, 1, 2);
+		c = currentCube.GetFaceColor(Face::Front);
+		if (c != Color::Blue)
 		{
-			if (c == CColor::GREEN)
-				RubiksCubeSimulator::executeAlgorithm("Y2");
-			else if (c == CColor::ORANGE)
-				RubiksCubeSimulator::executeAlgorithm("Y'");
-			else if (c == CColor::RED)
-				RubiksCubeSimulator::executeAlgorithm("Y");
-			else if (c == CColor::WHITE)
-				RubiksCubeSimulator::executeAlgorithm("X");
-			else if (c == CColor::CColor::YELLOW)
-				RubiksCubeSimulator::executeAlgorithm("X'");
+			if (c == Color::Green)
+				applyAlgorithm("Y2");
+			else if (c == Color::Orange)
+				applyAlgorithm("Y'");
+			else if (c == Color::Red)
+				applyAlgorithm("Y");
+			else if (c == Color::White)
+				applyAlgorithm("X");
+			else if (c == Color::Yellow)
+				applyAlgorithm("X'");
 		}
 
 		//Check right face
 		// Do not disturb front face, so rotate around only z axis
-		currentCube = Scene::getInstance().g_cCube.GetCube(2, 1, 1);
-		c = currentCube->GetFaceColor(Face::Right);
-		if (c != CColor::RED)
+		currentCube = rubiksCube_.GetCube(2, 1, 1);
+		c = currentCube.GetFaceColor(Face::Right);
+		if (c != Color::Red)
 		{
-			if (c == CColor::ORANGE)
-				RubiksCubeSimulator::executeAlgorithm("Z2");
-			else if (c == CColor::GREEN)
-				RubiksCubeSimulator::executeAlgorithm("Y");
-			else if (c == CColor::BLUE)
-				RubiksCubeSimulator::executeAlgorithm("Y'");
-			else if (c == CColor::WHITE)
-				RubiksCubeSimulator::executeAlgorithm("Z'");
-			else if (c == CColor::CColor::YELLOW)
-				RubiksCubeSimulator::executeAlgorithm("Z");
+			if (c == Color::Orange)
+				applyAlgorithm("Z2");
+			else if (c == Color::Green)
+				applyAlgorithm("Y");
+			else if (c == Color::Blue)
+				applyAlgorithm("Y'");
+			else if (c == Color::White)
+				applyAlgorithm("Z'");
+			else if (c == Color::Yellow)
+				applyAlgorithm("Z");
 		}
 
 		//Check top face
-		currentCube = Scene::getInstance().g_cCube.GetCube(1, 2, 1);
-		c = currentCube->GetFaceColor(Face::Top);
-		if (c != CColor::CColor::YELLOW)
+		currentCube = rubiksCube_.GetCube(1, 2, 1);
+		c = currentCube.GetFaceColor(Face::Top);
+		if (c != Color::Yellow)
 		{
-			if (c == CColor::WHITE)
-				RubiksCubeSimulator::executeAlgorithm("X2");
-			else if (c == CColor::GREEN)
-				RubiksCubeSimulator::executeAlgorithm("X'");
-			else if (c == CColor::BLUE)
-				RubiksCubeSimulator::executeAlgorithm("X");
-			else if (c == CColor::ORANGE)
-				RubiksCubeSimulator::executeAlgorithm("Z");
-			else if (c == CColor::RED)
-				RubiksCubeSimulator::executeAlgorithm("Z'");
+			if (c == Color::White)
+				applyAlgorithm("X2");
+			else if (c == Color::Green)
+				applyAlgorithm("X'");
+			else if (c == Color::Blue)
+				applyAlgorithm("X");
+			else if (c == Color::Orange)
+				applyAlgorithm("Z");
+			else if (c == Color::Red)
+				applyAlgorithm("Z'");	
 		}
 	}
 
 	void RubiksCubeSolver_v1::buildCross()
 	{
 		// Place blue-white at right position
-		buildCross_PlaceEdgePiece(CColor::BLUE, CColor::WHITE);
+		buildCross_PlaceEdgePiece(Color::Blue, Color::White);
 
 		// Place red at right position
-		RubiksCubeSimulator::executeAlgorithm("UY'D'");
-		buildCross_PlaceEdgePiece(CColor::RED, CColor::WHITE);
+		applyAlgorithm("UY'D'");
+		buildCross_PlaceEdgePiece(Color::Red, Color::White);
 
 		// Place green at right position
-		RubiksCubeSimulator::executeAlgorithm("UY'D'");
-		buildCross_PlaceEdgePiece(CColor::GREEN, CColor::WHITE);
+		applyAlgorithm("UY'D'");
+		buildCross_PlaceEdgePiece(Color::Green, Color::White);
 
 		// Place orange at right position
-		RubiksCubeSimulator::executeAlgorithm("UY'D'");
-		buildCross_PlaceEdgePiece(CColor::ORANGE, CColor::WHITE);
+		applyAlgorithm("UY'D'");
+		buildCross_PlaceEdgePiece(Color::Orange, Color::White);
 
-		RubiksCubeSimulator::executeAlgorithm("UY'D'");
+		applyAlgorithm("UY'D'");
 	}
 
-	void buildF2L_PositionCornerPieces(const CColor& targetColorFront, const CColor& targetColorRight, const CColor& targetColorBottom = CColor::WHITE)
+	void RubiksCubeSolver_v1::buildF2L_PositionCornerPieces(const Color& targetColorFront, const Color& targetColorRight, const Color& targetColorBottom /*= Color::White*/)
 	{
-		CCubeState* currentCube = nullptr;
-		CColor c1, c2, c3;
+		Cube currentCube;
+		Color c1, c2, c3;
 
 		// Check bottom layer and bring target to top layer at (2, 2, 2)
-		currentCube = Scene::getInstance().g_cCube.GetCube(0, 0, 0);
-		c1 = currentCube->GetFaceColor(Face::Back);
-		c2 = currentCube->GetFaceColor(Face::Left);
-		c3 = currentCube->GetFaceColor(Face::Bottom);
+		currentCube = rubiksCube_.GetCube(0, 0, 0);
+		c1 = currentCube.GetFaceColor(Face::Back);
+		c2 = currentCube.GetFaceColor(Face::Left);
+		c3 = currentCube.GetFaceColor(Face::Bottom);
 		if ((c1 == targetColorFront || c2 == targetColorFront || c3 == targetColorFront)
 			&& (c1 == targetColorRight || c2 == targetColorRight || c3 == targetColorRight)
 			&& (c1 == targetColorBottom || c2 == targetColorBottom || c3 == targetColorBottom)
 			)
-			RubiksCubeSimulator::executeAlgorithm("LU2L'");
+			applyAlgorithm("LU2L'");
 
 
-		currentCube = Scene::getInstance().g_cCube.GetCube(0, 0, 2);
-		c1 = currentCube->GetFaceColor(Face::Front);
-		c2 = currentCube->GetFaceColor(Face::Left);
-		c3 = currentCube->GetFaceColor(Face::Bottom);
+		currentCube = rubiksCube_.GetCube(0, 0, 2);
+		c1 = currentCube.GetFaceColor(Face::Front);
+		c2 = currentCube.GetFaceColor(Face::Left);
+		c3 = currentCube.GetFaceColor(Face::Bottom);
 		if ((c1 == targetColorFront || c2 == targetColorFront || c3 == targetColorFront)
 			&& (c1 == targetColorRight || c2 == targetColorRight || c3 == targetColorRight)
 			&& (c1 == targetColorBottom || c2 == targetColorBottom || c3 == targetColorBottom)
 			)
-			RubiksCubeSimulator::executeAlgorithm("FU'F'U'");
+			applyAlgorithm("FU'F'U'");
 
-		currentCube = Scene::getInstance().g_cCube.GetCube(2, 0, 2);
-		c1 = currentCube->GetFaceColor(Face::Front);
-		c2 = currentCube->GetFaceColor(Face::Right);
-		c3 = currentCube->GetFaceColor(Face::Bottom);
+		currentCube = rubiksCube_.GetCube(2, 0, 2);
+		c1 = currentCube.GetFaceColor(Face::Front);
+		c2 = currentCube.GetFaceColor(Face::Right);
+		c3 = currentCube.GetFaceColor(Face::Bottom);
 		if (c1 == targetColorFront || c2 == targetColorRight || c3 == targetColorBottom)
 		{
 			//do nothing
@@ -297,62 +324,62 @@ namespace mm {
 			&& (c1 == targetColorRight || c2 == targetColorRight || c3 == targetColorRight)
 			&& (c1 == targetColorBottom || c2 == targetColorBottom || c3 == targetColorBottom)
 			)
-			RubiksCubeSimulator::executeAlgorithm("F'UF");
+			applyAlgorithm("F'UF");
 
 
-		currentCube = Scene::getInstance().g_cCube.GetCube(2, 0, 0);
-		c1 = currentCube->GetFaceColor(Face::Back);
-		c2 = currentCube->GetFaceColor(Face::Right);
-		c3 = currentCube->GetFaceColor(Face::Bottom);
+		currentCube = rubiksCube_.GetCube(2, 0, 0);
+		c1 = currentCube.GetFaceColor(Face::Back);
+		c2 = currentCube.GetFaceColor(Face::Right);
+		c3 = currentCube.GetFaceColor(Face::Bottom);
 		if ((c1 == targetColorFront || c2 == targetColorFront || c3 == targetColorFront)
 			&& (c1 == targetColorRight || c2 == targetColorRight || c3 == targetColorRight)
 			&& (c1 == targetColorBottom || c2 == targetColorBottom || c3 == targetColorBottom)
 			)
-			RubiksCubeSimulator::executeAlgorithm("R'URU");
+			applyAlgorithm("R'URU");
 
 		// Check top layer and bring target to (2, 2, 2)
-		currentCube = Scene::getInstance().g_cCube.GetCube(0, 2, 0);
-		c1 = currentCube->GetFaceColor(Face::Top);
-		c2 = currentCube->GetFaceColor(Face::Left);
-		c3 = currentCube->GetFaceColor(Face::Back);
+		currentCube = rubiksCube_.GetCube(0, 2, 0);
+		c1 = currentCube.GetFaceColor(Face::Top);
+		c2 = currentCube.GetFaceColor(Face::Left);
+		c3 = currentCube.GetFaceColor(Face::Back);
 		if ((c1 == targetColorFront || c2 == targetColorFront || c3 == targetColorFront)
 			&& (c1 == targetColorRight || c2 == targetColorRight || c3 == targetColorRight)
 			&& (c1 == targetColorBottom || c2 == targetColorBottom || c3 == targetColorBottom)
 			)
-			RubiksCubeSimulator::executeAlgorithm("U2");
+			applyAlgorithm("U2");
 
-		currentCube = Scene::getInstance().g_cCube.GetCube(0, 2, 2);
-		c1 = currentCube->GetFaceColor(Face::Top);
-		c2 = currentCube->GetFaceColor(Face::Left);
-		c3 = currentCube->GetFaceColor(Face::Front);
+		currentCube = rubiksCube_.GetCube(0, 2, 2);
+		c1 = currentCube.GetFaceColor(Face::Top);
+		c2 = currentCube.GetFaceColor(Face::Left);
+		c3 = currentCube.GetFaceColor(Face::Front);
 		if ((c1 == targetColorFront || c2 == targetColorFront || c3 == targetColorFront)
 			&& (c1 == targetColorRight || c2 == targetColorRight || c3 == targetColorRight)
 			&& (c1 == targetColorBottom || c2 == targetColorBottom || c3 == targetColorBottom)
 			)
-			RubiksCubeSimulator::executeAlgorithm("U'");
+			applyAlgorithm("U'");
 
-		currentCube = Scene::getInstance().g_cCube.GetCube(2, 2, 0);
-		c1 = currentCube->GetFaceColor(Face::Top);
-		c2 = currentCube->GetFaceColor(Face::Back);
-		c3 = currentCube->GetFaceColor(Face::Right);
+		currentCube = rubiksCube_.GetCube(2, 2, 0);
+		c1 = currentCube.GetFaceColor(Face::Top);
+		c2 = currentCube.GetFaceColor(Face::Back);
+		c3 = currentCube.GetFaceColor(Face::Right);
 		if ((c1 == targetColorFront || c2 == targetColorFront || c3 == targetColorFront)
 			&& (c1 == targetColorRight || c2 == targetColorRight || c3 == targetColorRight)
 			&& (c1 == targetColorBottom || c2 == targetColorBottom || c3 == targetColorBottom)
 			)
-			RubiksCubeSimulator::executeAlgorithm("U");
+			applyAlgorithm("U");
 
 		// Target is now in top layer at (2, 2, 2)
-		currentCube = Scene::getInstance().g_cCube.GetCube(2, 2, 2);
-		c1 = currentCube->GetFaceColor(Face::Top);
-		c2 = currentCube->GetFaceColor(Face::Front);
-		c3 = currentCube->GetFaceColor(Face::Right);
+		currentCube = rubiksCube_.GetCube(2, 2, 2);
+		c1 = currentCube.GetFaceColor(Face::Top);
+		c2 = currentCube.GetFaceColor(Face::Front);
+		c3 = currentCube.GetFaceColor(Face::Right);
 
 		if (c1 == targetColorFront && c2 == targetColorBottom && c3 == targetColorRight)
-			RubiksCubeSimulator::executeAlgorithm("F'U'F");
+			applyAlgorithm("F'U'F");
 		else if (c1 == targetColorRight && c2 == targetColorFront && c3 == targetColorBottom)
-			RubiksCubeSimulator::executeAlgorithm("RUR'");
+			applyAlgorithm("RUR'");
 		else if (c1 == targetColorBottom && c2 == targetColorRight && c3 == targetColorFront)
-			RubiksCubeSimulator::executeAlgorithm("RUUR'U'RUR'");
+			applyAlgorithm("RUUR'U'RUR'");
 		else
 		{
 			//assert
@@ -361,46 +388,47 @@ namespace mm {
 		}
 	}
 
-	bool buildF2L_PositionEdgePieces(const CColor& targetColorFront, const CColor& targetColorRight)
+	bool RubiksCubeSolver_v1::buildF2L_PositionEdgePieces(const Color& targetColorFront, const Color& targetColorRight)
 	{
-		CCubeState* currentCube = nullptr;
-		CColor c1, c2;
+		Cube currentCube;
+		Color c1, c2;
 		bool retVal = true;
 		string algo1("URU'R'U'F'UF");
 		string algo2("U'F'UFURU'R'");
 
 		//Check if aleady at position
-		currentCube = Scene::getInstance().g_cCube.GetCube(2, 1, 2);
-		c1 = currentCube->GetFaceColor(Face::Front);
-		c2 = currentCube->GetFaceColor(Face::Right);
+		currentCube = rubiksCube_.GetCube(2, 1, 2);
+		c1 = currentCube.GetFaceColor(Face::Front);
+		c2 = currentCube.GetFaceColor(Face::Right);
 		if (c1 == targetColorFront && c2 == targetColorRight)
 			return true;
 		else if (c1 == targetColorRight && c2 == targetColorFront) // If piece is stuck at right position but in wrong orientation
-			RubiksCubeSimulator::executeAlgorithm(algo1);
+			applyAlgorithm(algo1);
 
 		// Check top layer
-		currentCube = Scene::getInstance().g_cCube.GetCube(1, 2, 0);
-		c1 = currentCube->GetFaceColor(Face::Top);
-		c2 = currentCube->GetFaceColor(Face::Back);
+		currentCube = rubiksCube_.GetCube(1, 2, 0);
+		c1 = currentCube.GetFaceColor(Face::Top);
+		c2 = currentCube.GetFaceColor(Face::Back);
 		if ((c1 == targetColorFront || c2 == targetColorFront)
 			&& (c1 == targetColorRight || c2 == targetColorRight))
-			RubiksCubeSimulator::executeAlgorithm("U");
+			applyAlgorithm("U");
 
-		currentCube = Scene::getInstance().g_cCube.GetCube(0, 2, 1);
-		c1 = currentCube->GetFaceColor(Face::Top);
-		c2 = currentCube->GetFaceColor(Face::Left);
+		currentCube = rubiksCube_.GetCube(0, 2, 1);
+		c1 = currentCube.GetFaceColor(Face::Top);
+		c2 = currentCube.GetFaceColor(Face::Left);
 		if ((c1 == targetColorFront || c2 == targetColorFront)
 			&& (c1 == targetColorRight || c2 == targetColorRight))
-			RubiksCubeSimulator::executeAlgorithm("U'");
+			applyAlgorithm("U'");
 
 
-		currentCube = Scene::getInstance().g_cCube.GetCube(1, 2, 2);
-		c1 = currentCube->GetFaceColor(Face::Top);
-		c2 = currentCube->GetFaceColor(Face::Front);
+		currentCube = rubiksCube_.GetCube(1, 2, 2);
+		c1 = currentCube.GetFaceColor(Face::Top);
+		c2 = currentCube.GetFaceColor(Face::Front);
 		if (c1 == targetColorRight && c2 == targetColorFront)
-			RubiksCubeSimulator::executeAlgorithm(algo1);
+			applyAlgorithm(algo1);
+
 		else if (c1 == targetColorFront && c2 == targetColorRight)
-			RubiksCubeSimulator::executeAlgorithm("U'" + algo2);
+			applyAlgorithm("U'" + algo2);
 		else
 			retVal = false;
 
@@ -408,24 +436,24 @@ namespace mm {
 			return retVal;
 
 		retVal = true;
-		currentCube = Scene::getInstance().g_cCube.GetCube(2, 2, 1);
-		c1 = currentCube->GetFaceColor(Face::Top);
-		c2 = currentCube->GetFaceColor(Face::Right);
+		currentCube = rubiksCube_.GetCube(2, 2, 1);
+		c1 = currentCube.GetFaceColor(Face::Top);
+		c2 = currentCube.GetFaceColor(Face::Right);
 		if (c1 == targetColorFront && c2 == targetColorRight)
-			RubiksCubeSimulator::executeAlgorithm(algo2);
+			applyAlgorithm(algo2);
 		else if (c1 == targetColorRight && c2 == targetColorFront)
-			RubiksCubeSimulator::executeAlgorithm("U" + algo1);
+			applyAlgorithm("U" + algo1);
 		else
 			retVal = false;
 
 		//If we fail, check if any edge piece is stuck in second layer
 		if (!retVal)
 		{
-			currentCube = Scene::getInstance().g_cCube.GetCube(2, 1, 2);
-			c1 = currentCube->GetFaceColor(Face::Front);
-			c2 = currentCube->GetFaceColor(Face::Right);
-			if (c1 != CColor::CColor::YELLOW && c2 != CColor::CColor::YELLOW)
-				RubiksCubeSimulator::executeAlgorithm(algo1);
+			currentCube = rubiksCube_.GetCube(2, 1, 2);
+			c1 = currentCube.GetFaceColor(Face::Front);
+			c2 = currentCube.GetFaceColor(Face::Right);
+			if (c1 != Color::Yellow && c2 != Color::Yellow)
+				applyAlgorithm(algo1);
 		}
 
 		return retVal;
@@ -434,39 +462,42 @@ namespace mm {
 	void RubiksCubeSolver_v1::buildF2L()
 	{
 		//position corner pieces
-		buildF2L_PositionCornerPieces(CColor::BLUE, CColor::RED, CColor::WHITE);
+		buildF2L_PositionCornerPieces(Color::Blue, Color::Red, Color::White);
 
-		RubiksCubeSimulator::executeAlgorithm("UY'D'");
-		buildF2L_PositionCornerPieces(CColor::RED, CColor::GREEN, CColor::WHITE);
+		applyAlgorithm("UY'D'");
+		buildF2L_PositionCornerPieces(Color::Red, Color::Green, Color::White);
 
-		RubiksCubeSimulator::executeAlgorithm("UY'D'");
-		buildF2L_PositionCornerPieces(CColor::GREEN, CColor::ORANGE, CColor::WHITE);
+		applyAlgorithm("UY'D'");
+		buildF2L_PositionCornerPieces(Color::Green, Color::Orange, Color::White);
 
-		RubiksCubeSimulator::executeAlgorithm("UY'D'");
-		buildF2L_PositionCornerPieces(CColor::ORANGE, CColor::BLUE, CColor::WHITE);
+		applyAlgorithm("UY'D'");
+		buildF2L_PositionCornerPieces(Color::Orange, Color::Blue, Color::White);
 
-		RubiksCubeSimulator::executeAlgorithm("UY'D'");
+		applyAlgorithm("UY'D'");
 
 		//position edge pieces
+		int numIterations = 0;
 		int done = 0;
 		while (done != 15)
 		{
-			if (buildF2L_PositionEdgePieces(CColor::BLUE, CColor::RED))
+			++numIterations;
+
+			if (buildF2L_PositionEdgePieces(Color::Blue, Color::Red))
 				done |= 1;
 
-			RubiksCubeSimulator::executeAlgorithm("UY'D'");
-			if (buildF2L_PositionEdgePieces(CColor::RED, CColor::GREEN))
+			applyAlgorithm("UY'D'");
+			if (buildF2L_PositionEdgePieces(Color::Red, Color::Green))
 				done |= 2;
 
-			RubiksCubeSimulator::executeAlgorithm("UY'D'");
-			if (buildF2L_PositionEdgePieces(CColor::GREEN, CColor::ORANGE))
+			applyAlgorithm("UY'D'");
+			if (buildF2L_PositionEdgePieces(Color::Green, Color::Orange))
 				done |= 4;
 
-			RubiksCubeSimulator::executeAlgorithm("UY'D'");
-			if (buildF2L_PositionEdgePieces(CColor::ORANGE, CColor::BLUE))
+			applyAlgorithm("UY'D'");
+			if (buildF2L_PositionEdgePieces(Color::Orange, Color::Blue))
 				done |= 8;
 
-			RubiksCubeSimulator::executeAlgorithm("UY'D'");
+			applyAlgorithm("UY'D'");
 		}
 	}
 
@@ -476,8 +507,8 @@ namespace mm {
 
 		while (true)
 		{
-			CCubeState* currentCube = nullptr;
-			CColor c, c1, c2, c3, c4;
+			Cube currentCube;
+			Color c, c1, c2, c3, c4;
 			string algo("FRUR'U'F'");
 
 			/*
@@ -489,54 +520,54 @@ namespace mm {
 			*/
 
 			//Check if aleady at position
-			currentCube = Scene::getInstance().g_cCube.GetCube(1, 2, 1);
-			c = currentCube->GetFaceColor(Face::Top);
-			currentCube = Scene::getInstance().g_cCube.GetCube(1, 2, 0);
-			c1 = currentCube->GetFaceColor(Face::Top);
-			currentCube = Scene::getInstance().g_cCube.GetCube(2, 2, 1);
-			c2 = currentCube->GetFaceColor(Face::Top);
-			currentCube = Scene::getInstance().g_cCube.GetCube(1, 2, 2);
-			c3 = currentCube->GetFaceColor(Face::Top);
-			currentCube = Scene::getInstance().g_cCube.GetCube(0, 2, 1);
-			c4 = currentCube->GetFaceColor(Face::Top);
-			if (c1 == CColor::YELLOW
-				&& c2 == CColor::YELLOW
-				&& c3 == CColor::YELLOW
-				&& c4 == CColor::YELLOW) // We are sure that c is CColor::YELLOW
+			currentCube = rubiksCube_.GetCube(1, 2, 1);
+			c = currentCube.GetFaceColor(Face::Top);
+			currentCube = rubiksCube_.GetCube(1, 2, 0);
+			c1 = currentCube.GetFaceColor(Face::Top);
+			currentCube = rubiksCube_.GetCube(2, 2, 1);
+			c2 = currentCube.GetFaceColor(Face::Top);
+			currentCube = rubiksCube_.GetCube(1, 2, 2);
+			c3 = currentCube.GetFaceColor(Face::Top);
+			currentCube = rubiksCube_.GetCube(0, 2, 1);
+			c4 = currentCube.GetFaceColor(Face::Top);
+			if (c1 == Color::Yellow
+				&& c2 == Color::Yellow
+				&& c3 == Color::Yellow
+				&& c4 == Color::Yellow) // We are sure that c is Color::Yellow
 				break;
 
-			if (c1 == CColor::YELLOW && c3 == CColor::YELLOW)
-				RubiksCubeSimulator::executeAlgorithm("U");
+			if (c1 == Color::Yellow && c3 == Color::Yellow)
+				applyAlgorithm("U");
 
-			if (c2 == CColor::YELLOW && c4 == CColor::YELLOW)
+			if (c2 == Color::Yellow && c4 == Color::Yellow)
 			{
-				RubiksCubeSimulator::executeAlgorithm(algo);
+				applyAlgorithm(algo);
 				continue;
 			}
 
-			if (c1 == CColor::YELLOW && c2 == CColor::YELLOW)
-				RubiksCubeSimulator::executeAlgorithm("U'");
-			else if (c2 == CColor::YELLOW && c3 == CColor::YELLOW)
-				RubiksCubeSimulator::executeAlgorithm("U2");
-			else if (c3 == CColor::YELLOW && c4 == CColor::YELLOW)
-				RubiksCubeSimulator::executeAlgorithm("U");
+			if (c1 == Color::Yellow && c2 == Color::Yellow)
+				applyAlgorithm("U'");
+			else if (c2 == Color::Yellow && c3 == Color::Yellow)
+				applyAlgorithm("U2");
+			else if (c3 == Color::Yellow && c4 == Color::Yellow)
+				applyAlgorithm("U");
 
-			if (c1 == CColor::YELLOW && c4 == CColor::YELLOW)
+			if (c1 == Color::Yellow && c4 == Color::Yellow)
 			{
-				RubiksCubeSimulator::executeAlgorithm(algo + algo);
+				applyAlgorithm(algo + algo);
 				continue;
 			}
 
 			// Do the sequence once if none of above was executed
-			RubiksCubeSimulator::executeAlgorithm(algo);
+			applyAlgorithm(algo);
 		}
 
 		// Step 2
 		while (true)
 		{
-			CCubeState* currentCube = nullptr;
-			CColor c1, c2, c3, c4, c5, c6, c7, c8, c9;
-			CColor s1, s2, s3, s4, s5, s6, s7, s8;
+			Cube currentCube;
+			Color c1, c2, c3, c4, c5, c6, c7, c8, c9;
+			Color s1, s2, s3, s4, s5, s6, s7, s8;
 			string algo("RUR'URUUR'");
 
 			/*
@@ -549,65 +580,65 @@ namespace mm {
 			*/
 
 			//Check if aleady at position
-			currentCube = Scene::getInstance().g_cCube.GetCube(0, 2, 0);
-			c1 = currentCube->GetFaceColor(Face::Top);
-			s1 = currentCube->GetFaceColor(Face::Left);
-			s2 = currentCube->GetFaceColor(Face::Back);
-			currentCube = Scene::getInstance().g_cCube.GetCube(1, 2, 0);
-			c2 = currentCube->GetFaceColor(Face::Top);
-			currentCube = Scene::getInstance().g_cCube.GetCube(2, 2, 0);
-			c3 = currentCube->GetFaceColor(Face::Top);
-			s3 = currentCube->GetFaceColor(Face::Back);
-			s4 = currentCube->GetFaceColor(Face::Right);
-			currentCube = Scene::getInstance().g_cCube.GetCube(0, 2, 1);
-			c4 = currentCube->GetFaceColor(Face::Top);
-			currentCube = Scene::getInstance().g_cCube.GetCube(1, 2, 1);
-			c5 = currentCube->GetFaceColor(Face::Top);
-			currentCube = Scene::getInstance().g_cCube.GetCube(2, 2, 1);
-			c6 = currentCube->GetFaceColor(Face::Top);
-			currentCube = Scene::getInstance().g_cCube.GetCube(0, 2, 2);
-			c7 = currentCube->GetFaceColor(Face::Top);
-			s7 = currentCube->GetFaceColor(Face::Front);
-			s8 = currentCube->GetFaceColor(Face::Left);
-			currentCube = Scene::getInstance().g_cCube.GetCube(1, 2, 2);
-			c8 = currentCube->GetFaceColor(Face::Top);
-			currentCube = Scene::getInstance().g_cCube.GetCube(2, 2, 2);
-			c9 = currentCube->GetFaceColor(Face::Top);
-			s5 = currentCube->GetFaceColor(Face::Right);
-			s6 = currentCube->GetFaceColor(Face::Front);
-			if (c1 == CColor::YELLOW
-				&& c2 == CColor::YELLOW
-				&& c3 == CColor::YELLOW
-				&& c4 == CColor::YELLOW
-				&& c5 == CColor::YELLOW
-				&& c6 == CColor::YELLOW
-				&& c7 == CColor::YELLOW
-				&& c8 == CColor::YELLOW
-				&& c9 == CColor::YELLOW)
+			currentCube = rubiksCube_.GetCube(0, 2, 0);
+			c1 = currentCube.GetFaceColor(Face::Top);
+			s1 = currentCube.GetFaceColor(Face::Left);
+			s2 = currentCube.GetFaceColor(Face::Back);
+			currentCube = rubiksCube_.GetCube(1, 2, 0);
+			c2 = currentCube.GetFaceColor(Face::Top);
+			currentCube = rubiksCube_.GetCube(2, 2, 0);
+			c3 = currentCube.GetFaceColor(Face::Top);
+			s3 = currentCube.GetFaceColor(Face::Back);
+			s4 = currentCube.GetFaceColor(Face::Right);
+			currentCube = rubiksCube_.GetCube(0, 2, 1);
+			c4 = currentCube.GetFaceColor(Face::Top);
+			currentCube = rubiksCube_.GetCube(1, 2, 1);
+			c5 = currentCube.GetFaceColor(Face::Top);
+			currentCube = rubiksCube_.GetCube(2, 2, 1);
+			c6 = currentCube.GetFaceColor(Face::Top);
+			currentCube = rubiksCube_.GetCube(0, 2, 2);
+			c7 = currentCube.GetFaceColor(Face::Top);
+			s7 = currentCube.GetFaceColor(Face::Front);
+			s8 = currentCube.GetFaceColor(Face::Left);
+			currentCube = rubiksCube_.GetCube(1, 2, 2);
+			c8 = currentCube.GetFaceColor(Face::Top);
+			currentCube = rubiksCube_.GetCube(2, 2, 2);
+			c9 = currentCube.GetFaceColor(Face::Top);
+			s5 = currentCube.GetFaceColor(Face::Right);
+			s6 = currentCube.GetFaceColor(Face::Front);
+			if (c1 == Color::Yellow
+				&& c2 == Color::Yellow
+				&& c3 == Color::Yellow
+				&& c4 == Color::Yellow
+				&& c5 == Color::Yellow
+				&& c6 == Color::Yellow
+				&& c7 == Color::Yellow
+				&& c8 == Color::Yellow
+				&& c9 == Color::Yellow)
 				break;
 
 			int numYellowCorners = 0;
-			if (c1 == CColor::YELLOW)
+			if (c1 == Color::Yellow)
 				++numYellowCorners;
-			if (c3 == CColor::YELLOW)
+			if (c3 == Color::Yellow)
 				++numYellowCorners;
-			if (c7 == CColor::YELLOW)
+			if (c7 == Color::Yellow)
 				++numYellowCorners;
-			if (c9 == CColor::YELLOW)
+			if (c9 == Color::Yellow)
 				++numYellowCorners;
 
 			int* n1 = nullptr;
 			switch (numYellowCorners)
 			{
 			case 0:
-				if (s6 == CColor::YELLOW)
-					RubiksCubeSimulator::executeAlgorithm("U");
-				else if (s4 == CColor::YELLOW)
-					RubiksCubeSimulator::executeAlgorithm("U2");
-				else if (s2 == CColor::YELLOW)
-					RubiksCubeSimulator::executeAlgorithm("U'");
-				else if (s8 == CColor::YELLOW)
-					RubiksCubeSimulator::executeAlgorithm(""); // do nothing
+				if (s6 == Color::Yellow)
+					applyAlgorithm("U");
+				else if (s4 == Color::Yellow)
+					applyAlgorithm("U2");
+				else if (s2 == Color::Yellow)
+					applyAlgorithm("U'");
+				else if (s8 == Color::Yellow)
+					applyAlgorithm(""); // do nothing
 				else
 				{
 					int* n = nullptr;
@@ -615,14 +646,14 @@ namespace mm {
 				}
 				break;
 			case 1: // After this you will go to case 1 again or you would be done
-				if (c9 == CColor::YELLOW)
-					RubiksCubeSimulator::executeAlgorithm("U");
-				else if (c3 == CColor::YELLOW)
-					RubiksCubeSimulator::executeAlgorithm("U2");
-				else if (c1 == CColor::YELLOW)
-					RubiksCubeSimulator::executeAlgorithm("U'");
-				else if (c7 == CColor::YELLOW)
-					RubiksCubeSimulator::executeAlgorithm(""); // do nothing
+				if (c9 == Color::Yellow)
+					applyAlgorithm("U");
+				else if (c3 == Color::Yellow)
+					applyAlgorithm("U2");
+				else if (c1 == Color::Yellow)
+					applyAlgorithm("U'");
+				else if (c7 == Color::Yellow)
+					applyAlgorithm(""); // do nothing
 				else
 				{
 					int* n = nullptr;
@@ -630,14 +661,14 @@ namespace mm {
 				}
 				break;
 			case 2: // After this you will go to case 1 
-				if (s5 == CColor::YELLOW)
-					RubiksCubeSimulator::executeAlgorithm("U");
-				else if (s3 == CColor::YELLOW)
-					RubiksCubeSimulator::executeAlgorithm("U2");
-				else if (s2 == CColor::YELLOW)
-					RubiksCubeSimulator::executeAlgorithm("U'");
-				else if (s7 == CColor::YELLOW)
-					RubiksCubeSimulator::executeAlgorithm(""); // do nothing
+				if (s5 == Color::Yellow)
+					applyAlgorithm("U");
+				else if (s3 == Color::Yellow)
+					applyAlgorithm("U2");
+				else if (s2 == Color::Yellow)
+					applyAlgorithm("U'");
+				else if (s7 == Color::Yellow)
+					applyAlgorithm(""); // do nothing
 				else
 				{
 					int* n = nullptr;
@@ -653,7 +684,7 @@ namespace mm {
 			}
 
 			// Do the sequence once and continue
-			RubiksCubeSimulator::executeAlgorithm(algo);
+			applyAlgorithm(algo);
 		}
 	}
 
@@ -662,9 +693,9 @@ namespace mm {
 		//Step 1
 		while (true)
 		{
-			CCubeState* currentCube = nullptr;
-			//CColor c1, c2, c3, c4, c5, c6, c7, c8, c9;
-			CColor s1, s2, s3, s4, s5, s6, s7, s8;
+			Cube currentCube;
+			//Color c1, c2, c3, c4, c5, c6, c7, c8, c9;
+			Color s1, s2, s3, s4, s5, s6, s7, s8;
 			string algo("RB'RFFR'BRFFRR");
 
 			/*
@@ -677,32 +708,32 @@ namespace mm {
 			*/
 
 			//Check if aleady at position
-			currentCube = Scene::getInstance().g_cCube.GetCube(0, 2, 0);
-			//c1 = currentCube->GetFaceColor(Face::Top);
-			s1 = currentCube->GetFaceColor(Face::Left);
-			s2 = currentCube->GetFaceColor(Face::Back);
+			currentCube = rubiksCube_.GetCube(0, 2, 0);
+			//c1 = currentCube.GetFaceColor(Face::Top);
+			s1 = currentCube.GetFaceColor(Face::Left);
+			s2 = currentCube.GetFaceColor(Face::Back);
 			//currentCube = Scene::getInstance().g_cCube.GetCube(1, 2, 0);
-			//c2 = currentCube->GetFaceColor(Face::Top);
-			currentCube = Scene::getInstance().g_cCube.GetCube(2, 2, 0);
-			//c3 = currentCube->GetFaceColor(Face::Top);
-			s3 = currentCube->GetFaceColor(Face::Back);
-			s4 = currentCube->GetFaceColor(Face::Right);
+			//c2 = currentCube.GetFaceColor(Face::Top);
+			currentCube = rubiksCube_.GetCube(2, 2, 0);
+			//c3 = currentCube.GetFaceColor(Face::Top);
+			s3 = currentCube.GetFaceColor(Face::Back);
+			s4 = currentCube.GetFaceColor(Face::Right);
 			//currentCube = Scene::getInstance().g_cCube.GetCube(0, 2, 1);
-			//c4 = currentCube->GetFaceColor(Face::Top);
+			//c4 = currentCube.GetFaceColor(Face::Top);
 			//currentCube = Scene::getInstance().g_cCube.GetCube(1, 2, 1);
-			//c5 = currentCube->GetFaceColor(Face::Top);
+			//c5 = currentCube.GetFaceColor(Face::Top);
 			//currentCube = Scene::getInstance().g_cCube.GetCube(2, 2, 1);
-			//c6 = currentCube->GetFaceColor(Face::Top);
-			currentCube = Scene::getInstance().g_cCube.GetCube(0, 2, 2);
-			//c7 = currentCube->GetFaceColor(Face::Top);
-			s7 = currentCube->GetFaceColor(Face::Front);
-			s8 = currentCube->GetFaceColor(Face::Left);
+			//c6 = currentCube.GetFaceColor(Face::Top);
+			currentCube = rubiksCube_.GetCube(0, 2, 2);
+			//c7 = currentCube.GetFaceColor(Face::Top);
+			s7 = currentCube.GetFaceColor(Face::Front);
+			s8 = currentCube.GetFaceColor(Face::Left);
 			//currentCube = Scene::getInstance().g_cCube.GetCube(1, 2, 2);
-			//c8 = currentCube->GetFaceColor(Face::Top);
-			currentCube = Scene::getInstance().g_cCube.GetCube(2, 2, 2);
-			//c9 = currentCube->GetFaceColor(Face::Top);
-			s5 = currentCube->GetFaceColor(Face::Right);
-			s6 = currentCube->GetFaceColor(Face::Front);
+			//c8 = currentCube.GetFaceColor(Face::Top);
+			currentCube = rubiksCube_.GetCube(2, 2, 2);
+			//c9 = currentCube.GetFaceColor(Face::Top);
+			s5 = currentCube.GetFaceColor(Face::Right);
+			s6 = currentCube.GetFaceColor(Face::Front);
 			if (s2 == s3
 				&& s4 == s5
 				&& s6 == s7
@@ -710,45 +741,45 @@ namespace mm {
 			{
 				//Match centers and corners before proceeding
 				//Get centers
-				CColor o1, o2, o3, o4;
-				currentCube = Scene::getInstance().g_cCube.GetCube(1, 1, 0);
-				o1 = currentCube->GetFaceColor(Face::Back);
-				currentCube = Scene::getInstance().g_cCube.GetCube(2, 1, 1);
-				o2 = currentCube->GetFaceColor(Face::Right);
-				currentCube = Scene::getInstance().g_cCube.GetCube(1, 1, 2);
-				o3 = currentCube->GetFaceColor(Face::Front);
-				currentCube = Scene::getInstance().g_cCube.GetCube(0, 1, 1);
-				o4 = currentCube->GetFaceColor(Face::Left);
+				Color o1, o2, o3, o4;
+				currentCube = rubiksCube_.GetCube(1, 1, 0);
+				o1 = currentCube.GetFaceColor(Face::Back);
+				currentCube = rubiksCube_.GetCube(2, 1, 1);
+				o2 = currentCube.GetFaceColor(Face::Right);
+				currentCube = rubiksCube_.GetCube(1, 1, 2);
+				o3 = currentCube.GetFaceColor(Face::Front);
+				currentCube = rubiksCube_.GetCube(0, 1, 1);
+				o4 = currentCube.GetFaceColor(Face::Left);
 
 				if (o1 == s4)
-					RubiksCubeSimulator::executeAlgorithm("U'");
+					applyAlgorithm("U'");
 				else if (o1 == s6)
-					RubiksCubeSimulator::executeAlgorithm("U2");
+					applyAlgorithm("U2");
 				else if (o1 == s8)
-					RubiksCubeSimulator::executeAlgorithm("U");
+					applyAlgorithm("U");
 
 				break;
 			}
 
 			//Rotate the complete cube to set the face "having two corner piece color same" as front face
 			if (s4 == s5)
-				RubiksCubeSimulator::executeAlgorithm("UY'D'");
+				applyAlgorithm("UY'D'");
 			else if (s2 == s3)
-				RubiksCubeSimulator::executeAlgorithm("U2Y2D2");
+				applyAlgorithm("U2Y2D2");
 			else if (s1 == s8)
-				RubiksCubeSimulator::executeAlgorithm("U'YD");
+				applyAlgorithm("U'YD");
 
-			RubiksCubeSimulator::executeAlgorithm(algo);
+			applyAlgorithm(algo);
 		}
 
 		//Step 2
 		while (true)
 		{
-			CCubeState* currentCube = nullptr;
-			//CColor c1, c2, c3, c4, c5, c6, c7, c8, c9;
-			//CColor s1, s2, s3, s4, s5, s6, s7, s8;
-			CColor e1, e2, e3, e4;
-			CColor s4, s6, s8;
+			Cube currentCube;
+			//Color c1, c2, c3, c4, c5, c6, c7, c8, c9;
+			//Color s1, s2, s3, s4, s5, s6, s7, s8;
+			Color e1, e2, e3, e4;
+			Color s4, s6, s8;
 			string algo("RU'RURURU'R'U'RR");
 
 			//Get centers
@@ -761,15 +792,15 @@ namespace mm {
 				e3
 				o3
 			*/
-			CColor o1, o2, o3, o4;
-			currentCube = Scene::getInstance().g_cCube.GetCube(1, 1, 0);
-			o1 = currentCube->GetFaceColor(Face::Back);
-			currentCube = Scene::getInstance().g_cCube.GetCube(2, 1, 1);
-			o2 = currentCube->GetFaceColor(Face::Right);
-			currentCube = Scene::getInstance().g_cCube.GetCube(1, 1, 2);
-			o3 = currentCube->GetFaceColor(Face::Front);
-			currentCube = Scene::getInstance().g_cCube.GetCube(0, 1, 1);
-			o4 = currentCube->GetFaceColor(Face::Left);
+			Color o1, o2, o3, o4;
+			currentCube = rubiksCube_.GetCube(1, 1, 0);
+			o1 = currentCube.GetFaceColor(Face::Back);
+			currentCube = rubiksCube_.GetCube(2, 1, 1);
+			o2 = currentCube.GetFaceColor(Face::Right);
+			currentCube = rubiksCube_.GetCube(1, 1, 2);
+			o3 = currentCube.GetFaceColor(Face::Front);
+			currentCube = rubiksCube_.GetCube(0, 1, 1);
+			o4 = currentCube.GetFaceColor(Face::Left);
 
 			/*
 			Top Face
@@ -784,35 +815,35 @@ namespace mm {
 
 			//Check if aleady at position
 			//currentCube = Scene::getInstance().g_cCube.GetCube(0, 2, 0);
-			//c1 = currentCube->GetFaceColor(Face::Top);
-			//s1 = currentCube->GetFaceColor(Face::Left);
-			//s2 = currentCube->GetFaceColor(Face::Back);
-			currentCube = Scene::getInstance().g_cCube.GetCube(1, 2, 0);
-			//c2 = currentCube->GetFaceColor(Face::Top);
-			e1 = currentCube->GetFaceColor(Face::Back);
+			//c1 = currentCube.GetFaceColor(Face::Top);
+			//s1 = currentCube.GetFaceColor(Face::Left);
+			//s2 = currentCube.GetFaceColor(Face::Back);
+			currentCube = rubiksCube_.GetCube(1, 2, 0);
+			//c2 = currentCube.GetFaceColor(Face::Top);
+			e1 = currentCube.GetFaceColor(Face::Back);
 			//currentCube = Scene::getInstance().g_cCube.GetCube(2, 2, 0);
-			//c3 = currentCube->GetFaceColor(Face::Top);
-			//s3 = currentCube->GetFaceColor(Face::Back);
-			//s4 = currentCube->GetFaceColor(Face::Right);
-			currentCube = Scene::getInstance().g_cCube.GetCube(0, 2, 1);
-			//c4 = currentCube->GetFaceColor(Face::Top);
-			e4 = currentCube->GetFaceColor(Face::Left);
+			//c3 = currentCube.GetFaceColor(Face::Top);
+			//s3 = currentCube.GetFaceColor(Face::Back);
+			//s4 = currentCube.GetFaceColor(Face::Right);
+			currentCube = rubiksCube_.GetCube(0, 2, 1);
+			//c4 = currentCube.GetFaceColor(Face::Top);
+			e4 = currentCube.GetFaceColor(Face::Left);
 			//currentCube = Scene::getInstance().g_cCube.GetCube(1, 2, 1);
-			//c5 = currentCube->GetFaceColor(Face::Top);
-			currentCube = Scene::getInstance().g_cCube.GetCube(2, 2, 1);
-			//c6 = currentCube->GetFaceColor(Face::Top);
-			e2 = currentCube->GetFaceColor(Face::Right);
+			//c5 = currentCube.GetFaceColor(Face::Top);
+			currentCube = rubiksCube_.GetCube(2, 2, 1);
+			//c6 = currentCube.GetFaceColor(Face::Top);
+			e2 = currentCube.GetFaceColor(Face::Right);
 			//currentCube = Scene::getInstance().g_cCube.GetCube(0, 2, 2);
-			//c7 = currentCube->GetFaceColor(Face::Top);
-			//s7 = currentCube->GetFaceColor(Face::Front);
-			//s8 = currentCube->GetFaceColor(Face::Left);
-			currentCube = Scene::getInstance().g_cCube.GetCube(1, 2, 2);
-			//c8 = currentCube->GetFaceColor(Face::Top);
-			e3 = currentCube->GetFaceColor(Face::Front);
+			//c7 = currentCube.GetFaceColor(Face::Top);
+			//s7 = currentCube.GetFaceColor(Face::Front);
+			//s8 = currentCube.GetFaceColor(Face::Left);
+			currentCube = rubiksCube_.GetCube(1, 2, 2);
+			//c8 = currentCube.GetFaceColor(Face::Top);
+			e3 = currentCube.GetFaceColor(Face::Front);
 			//currentCube = Scene::getInstance().g_cCube.GetCube(2, 2, 2);
-			//c9 = currentCube->GetFaceColor(Face::Top);
-			//s5 = currentCube->GetFaceColor(Face::Right);
-			//s6 = currentCube->GetFaceColor(Face::Front);
+			//c9 = currentCube.GetFaceColor(Face::Top);
+			//s5 = currentCube.GetFaceColor(Face::Right);
+			//s6 = currentCube.GetFaceColor(Face::Front);
 
 			//Match centers with corners, they may be misaligned after few iterations of last algo
 			//if(o1 == s4)
@@ -831,13 +862,13 @@ namespace mm {
 			}
 
 			if (e2 == o2)
-				RubiksCubeSimulator::executeAlgorithm("U'YD");
+				applyAlgorithm("U'YD");
 			else if (e3 == o3)
-				RubiksCubeSimulator::executeAlgorithm("U2Y2D2");
+				applyAlgorithm("U2Y2D2");
 			else if (e4 == o4)
-				RubiksCubeSimulator::executeAlgorithm("UY'D'");
+				applyAlgorithm("UY'D'");
 
-			RubiksCubeSimulator::executeAlgorithm(algo);
+			applyAlgorithm(algo);
 		}
 	}
 

@@ -30,8 +30,10 @@ IDC_RUBIKSCUBE MENU
 BEGIN
     POPUP "&File"
     BEGIN
+        MENUITEM "Reset",                       IDM_FILE_RESET
         MENUITEM "&Scramble",                   IDM_FILE_SCRAMBLE
         MENUITEM "Solve",                       IDM_FILE_SOLVE
+        MENUITEM "Solve and Animate",           IDM_FILE_SOLVE_ANIM
         MENUITEM SEPARATOR
         MENUITEM "E&xit",                       IDM_EXIT
     END
@@ -49,7 +51,7 @@ END
 
 IDC_RUBIKSCUBE ACCELERATORS
 BEGIN
-    "S",            IDM_FILE_SCRAMBLE,       VIRTKEY, CONTROL, NOINVERT
+    "S",            IDM_FILE_SCRAMBLE,      VIRTKEY, CONTROL, NOINVERT
     "/",            IDM_ABOUT,              ASCII,  ALT, NOINVERT
     "?",            IDM_ABOUT,              ASCII,  ALT, NOINVERT
     "X",            IDM_EXIT,               VIRTKEY, CONTROL, NOINVERT

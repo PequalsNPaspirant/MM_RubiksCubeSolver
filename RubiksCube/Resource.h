@@ -22,8 +22,10 @@
 #define IDB_GREEN                       204
 #define IDB_YELLOW                      205
 #define IDB_BLACK                       206
+#define IDM_FILE_RESET                  32777
 #define IDM_FILE_SCRAMBLE               32778
 #define IDM_FILE_SOLVE                  32779
+#define IDM_FILE_SOLVE_ANIM             32780
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
@@ -32,7 +34,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        145
-#define _APS_NEXT_COMMAND_VALUE         32780
+#define _APS_NEXT_COMMAND_VALUE         32784
 #define _APS_NEXT_CONTROL_VALUE         1001
 #define _APS_NEXT_SYMED_VALUE           110
 #endif

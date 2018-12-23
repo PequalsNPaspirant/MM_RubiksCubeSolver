@@ -21,40 +21,47 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
 
-	mm::Scene& s = mm::Scene::getInstance();
-	s.createWindow(hInstance);
-	WPARAM w = s.enterMainLoop();
+	mm::RubiksCubeSolverUI& mainWindow = mm::RubiksCubeSolverUI::getInstance();
+	mainWindow.createWindow(hInstance);
+	WPARAM w = mainWindow.enterMainLoop();
 	return int(w);
 }
 
 namespace mm {
 
-	GLuint Scene::g_pSelectBuffer[Scene::SELECT_BUFFER_SIZE];
+	//GLuint RubiksCubeSolverUI::g_pSelectBuffer[RubiksCubeSolverUI::SELECT_BUFFER_SIZE];
 
-	Scene& Scene::getInstance()
+	RubiksCubeSolverUI& RubiksCubeSolverUI::getInstance()
 	{
-		static Scene s;
-		return s;
+		static RubiksCubeSolverUI mainWindow;
+		return mainWindow;
 	}
 
-	Scene::Scene()
+	RubiksCubeSolverUI::RubiksCubeSolverUI()
 		: WND_WIDTH(400),
 		WND_HEIGHT(400)
 	{
 	}
 
-	void Scene::createWindow(HINSTANCE hInstance)
+	void RubiksCubeSolverUI::createWindow(HINSTANCE hInstance)
 	{
 		LoadString(NULL, IDS_APP_TITLE, g_szTitle, MAX_LOADSTRING);
 		LoadString(NULL, IDC_RUBIKSCUBE, g_szWindowClass, MAX_LOADSTRING);
 		g_hAccelTable = LoadAccelerators(g_hInstance, MAKEINTRESOURCE(IDC_RUBIKSCUBE));
 		g_hInstance = hInstance;
 		g_hWnd = createWindow(g_szTitle, WND_WIDTH, WND_HEIGHT, 0, g_bFullScreen, g_hInstance);
-		initOpenGl(g_hWnd);
-		initScene();
+
+		GetClientRect(g_hWnd, &g_rWnd);
+		g_hDC = GetDC(g_hWnd);
+
+		g_hRC = wglCreateContext(g_hDC);
+		wglMakeCurrent(g_hDC, g_hRC);
+
+		scene_.initOpenGl(g_rWnd.right, g_rWnd.bottom);
+		scene_.initScene();
 	}
 
-	HWND Scene::createWindow(LPTSTR strTitle, int nWidth, int nHeight, DWORD dwStyle,
+	HWND RubiksCubeSolverUI::createWindow(LPTSTR strTitle, int nWidth, int nHeight, DWORD dwStyle,
 		BOOL bFullScreen, HINSTANCE hInstance)
 	{
 		HWND hWnd;
@@ -66,7 +73,7 @@ namespace mm {
 		ZeroMemory(&wndClass, sizeof(WNDCLASSEX));
 		wndClass.cbSize = sizeof(WNDCLASSEX);
 		wndClass.style = CS_HREDRAW | CS_VREDRAW;
-		wndClass.lpfnWndProc = Scene::WndProcCallback;
+		wndClass.lpfnWndProc = RubiksCubeSolverUI::WndProcCallback;
 		wndClass.hInstance = hInstance;
 		wndClass.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_RUBIKSCUBE));
 		wndClass.hCursor = g_hArrow;
@@ -118,10 +125,22 @@ namespace mm {
 
 		SetFocus(hWnd);
 
+		GetClientRect(hWnd, &g_rWnd);
+		g_hDC = GetDC(hWnd);
+
+		if (!setupPixelFormat(g_hDC))
+			PostQuitMessage(-1);
+
 		return hWnd;
 	}
 
-	bool Scene::changeToFullScreen()
+	void RubiksCubeSolverUI::redrawWindow()
+	{
+		scene_.renderScene();
+		SwapBuffers(g_hDC);
+	}
+
+	bool RubiksCubeSolverUI::changeToFullScreen()
 	{
 		DEVMODE dmSettings;									// Device Mode variable
 
@@ -148,128 +167,7 @@ namespace mm {
 		return TRUE;
 	}
 
-	void Scene::initOpenGl(HWND hWnd)
-	{
-		GetClientRect(hWnd, &g_rWnd);
-		g_hDC = GetDC(hWnd);
-
-		if (!setupPixelFormat(g_hDC))
-			PostQuitMessage(-1);
-
-		g_hRC = wglCreateContext(g_hDC);
-		wglMakeCurrent(g_hDC, g_hRC);
-
-		sizeOpenGlScreen(g_rWnd.right, g_rWnd.bottom);
-
-		glPolygonMode(GL_FRONT, GL_FILL);
-		glClearColor(0.1f, 0.2f, 0.3f, 0.0f);
-
-		//glEnable(GL_COLOR_MATERIAL);
-		//glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
-
-		glClearDepth(1.0f);											// Depth Buffer Setup
-		glEnable(GL_DEPTH_TEST);									// Enables Depth Testing
-		glDepthFunc(GL_LEQUAL);										// The Type Of Depth Testing To Do
-		glLineWidth(LINE_WIDTH);									// Set outline width
-
-		loadTexture(IDB_WHITE, &g_pTextures[0]);
-		loadTexture(IDB_BLUE, &g_pTextures[1]);
-		loadTexture(IDB_ORANGE, &g_pTextures[2]);
-		loadTexture(IDB_RED, &g_pTextures[3]);
-		loadTexture(IDB_GREEN, &g_pTextures[4]);
-		loadTexture(IDB_YELLOW, &g_pTextures[5]);
-		loadTexture(IDB_BLACK, &g_pTextures[6]);
-	}
-
-	void Scene::loadTexture(int nId, GLuint* texture)
-	{
-		// bitmap handle
-		HBITMAP hBMP;
-
-		// bitmap struct
-		BITMAP   bmp;
-
-		glGenTextures(1, texture);    // Create The Texture 
-		hBMP = (HBITMAP)LoadImage(
-			GetModuleHandle(NULL),
-			MAKEINTRESOURCE(nId),
-			IMAGE_BITMAP, 0, 0, LR_CREATEDIBSECTION);
-
-		GetObject(hBMP, sizeof(bmp), &bmp);
-
-		// Pixel Storage Mode (Word Alignment / 4 Bytes) 
-		glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-
-		// bind to the texture ID
-		glBindTexture(GL_TEXTURE_2D, *texture);
-
-		glTexImage2D(
-			GL_TEXTURE_2D,
-			0,
-			3,
-			bmp.bmWidth, bmp.bmHeight,
-			0,
-			GL_BGR_EXT,
-			GL_UNSIGNED_BYTE,
-			bmp.bmBits
-		);
-
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-		DeleteObject(hBMP);
-	}
-
-	void Scene::sizeOpenGlScreen(int nWidth, int nHeight)
-	{
-		if (nHeight == 0)
-		{
-			nHeight = 1;
-		}
-
-		glViewport(0, 0, nWidth, nHeight);
-		glMatrixMode(GL_PROJECTION);
-		//glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
-		setFrustum(nWidth, nHeight);
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
-	}
-
-	void Scene::setFrustum(int nWidth, int nHeight)
-	{
-		GLdouble left, right;
-		GLdouble top, bottom;
-
-		if (nWidth < nHeight)
-		{
-			left = -1.0;
-			right = 1.0;
-			top = (double)nHeight / (double)nWidth;
-			bottom = -top;
-
-		}
-		else
-		{
-			top = 1.0;
-			bottom = -1.0;
-			right = (double)nWidth / (double)nHeight;
-			left = -right;
-		}
-
-		glFrustum(left, right, bottom, top, 5.0, 100.0);
-	}
-
-	void Scene::initScene()
-	{
-		g_cCamera.SetDistance(45.0);
-		g_cCamera.SetPhi((float)(PI / 4));
-		g_cCamera.SetTheta((float)(PI / 4));
-
-		//g_cCube.Randomize();
-	}
-
-	bool Scene::setupPixelFormat(HDC hdc)
+	bool RubiksCubeSolverUI::setupPixelFormat(HDC hdc)
 	{
 		PIXELFORMATDESCRIPTOR pfd = { 0 };
 		int pixelformat;
@@ -296,7 +194,7 @@ namespace mm {
 		return TRUE;
 	}
 
-	WPARAM Scene::enterMainLoop()
+	WPARAM RubiksCubeSolverUI::enterMainLoop()
 	{
 		MSG msg;
 
@@ -314,7 +212,11 @@ namespace mm {
 					// render the scene first if the 
 					// cube state was changed
 					else if (msg.message == RC_CHANGED)
-						renderScene();
+					{
+						redrawWindow();
+						//scene_.renderScene();
+						//SwapBuffers(g_hDC);
+					}
 
 					// find out what the message does
 					TranslateMessage(&msg);
@@ -330,271 +232,39 @@ namespace mm {
 				// every frame, so we call our rendering function here.  Even though the scene
 				// doesn't change, it will bottle neck the message queue if we don't do something.
 				// Usually WaitMessage() is used to make sure the app doesn't eat up the CPU.
-				renderScene();
+				redrawWindow();
+				//scene_.renderScene();
+				//SwapBuffers(g_hDC);
 			}
 		}
 
 		return msg.wParam;
 	}
 
-	void Scene::renderScene()
-	{
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	// Clear The Screen And The Depth Buffer
-		glLoadIdentity();									// Reset The View
-
-		CVector3 pos = g_cCamera.GetPosition();
-		CVector3 lookAt = g_cCamera.GetLookAt();
-		CVector3 up = g_cCamera.GetUp();
-
-		gluLookAt(
-			pos.x, pos.y, pos.z,
-			lookAt.x, lookAt.y, lookAt.z,
-			up.x, up.y, up.z
-		);
-
-#ifdef _DEBUG
-		// Draw Axis
-		glBegin(GL_LINES);
-		// x
-		glColor3f(1.0f, 0.6f, 0.0f); // orange
-		glVertex3d(0.0, 0.0, 0.0);
-		glVertex3d(CUBE_SIZE * 3, 0.0, 0.0);
-		glColor3f(1.0f, 0.0f, 0.0f); // red
-		glVertex3d(CUBE_SIZE * 3, 0.0, 0.0);
-		glVertex3d(CUBE_SIZE * 4.5f, 0.0, 0.0);
-
-		// y
-		//glColor3f(0.0f, 1.0f, 0.0f);  // green
-		glColor3f(1.0f, 1.0f, 1.0f);  // white
-		glVertex3d(0.0, 0.0, 0.0);
-		glVertex3d(0.0, CUBE_SIZE * 3, 0.0);
-		glColor3f(1.0f, 1.0f, 0.0f);  // yellow
-		glVertex3d(0.0, CUBE_SIZE * 3, 0.0);
-		glVertex3d(0.0, CUBE_SIZE * 4.5f, 0.0);
-
-		// z
-		glColor3f(0.0f, 1.0f, 0.0f);  // green
-		glVertex3d(0.0, 0.0, 0.0);
-		glVertex3d(0.0, 0.0, CUBE_SIZE * 3);
-		glColor3f(0.0f, 0.0f, 1.0f); // blue
-		glVertex3d(0.0, 0.0, CUBE_SIZE * 3);
-		glVertex3d(0.0, 0.0, CUBE_SIZE * 4.5f);
-		glEnd();
-#endif
-
-		glEnable(GL_LIGHTING);
-		float color[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-		float* position = new float[4];
-
-		g_cCamera.GetPosition().ToFloatArray(position);
-
-		glLightfv(GL_LIGHT1, GL_AMBIENT, color);
-		glLightfv(GL_LIGHT1, GL_DIFFUSE, color);
-		glLightfv(GL_LIGHT1, GL_POSITION, position);
-		glLightfv(GL_LIGHT1, GL_SPECULAR, color);
-		glLightfv(GL_LIGHT1, GL_SHININESS, color);
-
-		delete[] position;
-		position = NULL;
-
-		glEnable(GL_LIGHT1);
-
-		float shininess = 5.0f;
-		glMaterialfv(GL_FRONT, GL_SPECULAR, color);
-		//glMaterialfv(GL_FRONT, GL_SHININESS, &shininess);
-
-		renderRubiksCube();
-
-		glDisable(GL_LIGHT1);
-		glDisable(GL_LIGHTING);
-
-		SwapBuffers(g_hDC);
-	}
-
-	void Scene::renderRubiksCube()
-	{
-		glInitNames();
-
-		for (int i = 0; i < RUBIKS_CUBE_SIZE; i++)
-		{
-			for (int j = 0; j < RUBIKS_CUBE_SIZE; j++)
-			{
-				for (int k = 0; k < RUBIKS_CUBE_SIZE; k++)
-				{
-					glPushMatrix();
-
-					if (g_bRotating)
-					{
-						if (g_vRotationAxis.x && i == g_nRotatingSection ||
-							g_vRotationAxis.y && j == g_nRotatingSection ||
-							g_vRotationAxis.z && k == g_nRotatingSection)
-						{
-							int angle = g_bFlipRotation ? -g_nRotationAngle : g_nRotationAngle;
-							glRotated(angle, g_vRotationAxis.x, g_vRotationAxis.y, g_vRotationAxis.z);
-						}
-					}
-
-					renderIndividualCube(g_cCube.GetCube(i, j, k), i, j, k);
-
-					glPopMatrix();
-				}
-			}
-		}
-	}
-
-	void Scene::renderIndividualCube(CCubeState* pCube, int x, int y, int z)
-	{
-		glPushName(x);
-		glPushName(y);
-		glPushName(z);
-
-		// scale to -1 to +1
-		x--;
-		y--;
-		z--;
-
-		glPushMatrix();
-
-		glTranslated(x * CUBE_SIZE, y * CUBE_SIZE, z * CUBE_SIZE);
-
-		CColor top = pCube->GetFaceColor(Top);
-		CColor bottom = pCube->GetFaceColor(Bottom);
-		CColor left = pCube->GetFaceColor(Left);
-		CColor right = pCube->GetFaceColor(Right);
-		CColor back = pCube->GetFaceColor(Back);
-		CColor front = pCube->GetFaceColor(Front);
-
-		glEnable(GL_TEXTURE_2D);
-
-		// Front Face
-		glPushName((GLuint)Front);
-		glBindTexture(GL_TEXTURE_2D, getTextureID(front));
-		glBegin(GL_QUADS);
-		glColor3ub(front.r, front.g, front.b);
-		glNormal3f(0.0f, 0.0f, 1.0f);
-		glTexCoord2d(0.0, 0.0); glVertex3f(-1.0f, -1.0f, 1.0f);	// Bottom Left Of The Texture and Quad
-		glTexCoord2d(1.0, 0.0); glVertex3f(1.0f, -1.0f, 1.0f);	// Bottom Right Of The Texture and Quad
-		glTexCoord2d(1.0, 1.0); glVertex3f(1.0f, 1.0f, 1.0f);	// Top Right Of The Texture and Quad
-		glTexCoord2d(0.0, 1.0); glVertex3f(-1.0f, 1.0f, 1.0f);	// Top Left Of The Texture and Quad
-		glEnd();
-		glPopName();
-
-		// Back Face
-		glPushName((GLuint)Back);
-		glBindTexture(GL_TEXTURE_2D, getTextureID(back));
-		glBegin(GL_QUADS);
-		glColor3ub(back.r, back.g, back.b);
-		glNormal3f(0.0f, 0.0f, -1.0f);
-		glTexCoord2d(1.0, 0.0); glVertex3f(-1.0f, -1.0f, -1.0f);	// Bottom Right Of The Texture and Quad
-		glTexCoord2d(1.0, 1.0); glVertex3f(-1.0f, 1.0f, -1.0f);	// Top Right Of The Texture and Quad
-		glTexCoord2d(0.0, 1.0); glVertex3f(1.0f, 1.0f, -1.0f);	// Top Left Of The Texture and Quad
-		glTexCoord2d(0.0, 0.0); glVertex3f(1.0f, -1.0f, -1.0f);	// Bottom Left Of The Texture and Quad
-		glEnd();
-		glPopName();
-
-		// Top Face
-		glPushName((GLuint)Top);
-		glBindTexture(GL_TEXTURE_2D, getTextureID(top));
-		glBegin(GL_QUADS);
-		glColor3ub(top.r, top.g, top.b);
-		glNormal3f(0.0f, 1.0f, 0.0f);
-		glTexCoord2d(0.0, 1.0); glVertex3f(-1.0f, 1.0f, -1.0f);	// Top Left Of The Texture and Quad
-		glTexCoord2d(0.0, 0.0); glVertex3f(-1.0f, 1.0f, 1.0f);	// Bottom Left Of The Texture and Quad
-		glTexCoord2d(1.0, 0.0); glVertex3f(1.0f, 1.0f, 1.0f);	// Bottom Right Of The Texture and Quad
-		glTexCoord2d(1.0, 1.0); glVertex3f(1.0f, 1.0f, -1.0f);	// Top Right Of The Texture and Quad
-		glEnd();
-		glPopName();
-
-		// Bottom Face
-		glPushName((GLuint)Bottom);
-		glBindTexture(GL_TEXTURE_2D, getTextureID(bottom));
-		glBegin(GL_QUADS);
-		glColor3ub(bottom.r, bottom.g, bottom.b);
-		glNormal3f(0.0f, -1.0f, 0.0f);
-		glTexCoord2d(1.0, 1.0); glVertex3f(-1.0f, -1.0f, -1.0f);	// Top Right Of The Texture and Quad
-		glTexCoord2d(0.0, 1.0); glVertex3f(1.0f, -1.0f, -1.0f);	// Top Left Of The Texture and Quad
-		glTexCoord2d(0.0, 0.0); glVertex3f(1.0f, -1.0f, 1.0f);	// Bottom Left Of The Texture and Quad
-		glTexCoord2d(1.0, 0.0); glVertex3f(-1.0f, -1.0f, 1.0f);	// Bottom Right Of The Texture and Quad
-		glEnd();
-		glPopName();
-
-		// Right face
-		glPushName((GLuint)Right);
-		glBindTexture(GL_TEXTURE_2D, getTextureID(right));
-		glBegin(GL_QUADS);
-		glColor3ub(right.r, right.g, right.b);
-		glNormal3f(1.0f, 0.0f, 0.0f);
-		glTexCoord2d(1.0, 0.0); glVertex3f(1.0f, -1.0f, -1.0f);	// Bottom Right Of The Texture and Quad
-		glTexCoord2d(1.0, 1.0); glVertex3f(1.0f, 1.0f, -1.0f);	// Top Right Of The Texture and Quad
-		glTexCoord2d(0.0, 1.0); glVertex3f(1.0f, 1.0f, 1.0f);	// Top Left Of The Texture and Quad
-		glTexCoord2d(0.0, 0.0); glVertex3f(1.0f, -1.0f, 1.0f);	// Bottom Left Of The Texture and Quad
-		glEnd();
-		glPopName();
-
-		// Left Face
-		glPushName((GLuint)Left);
-		glBindTexture(GL_TEXTURE_2D, getTextureID(left));
-		glBegin(GL_QUADS);
-		glColor3ub(left.r, left.g, left.b);
-		glNormal3f(-1.0f, 0.0f, 0.0f);
-		glTexCoord2d(0.0, 0.0); glVertex3f(-1.0f, -1.0f, -1.0f);	// Bottom Left Of The Texture and Quad
-		glTexCoord2d(1.0, 0.0); glVertex3f(-1.0f, -1.0f, 1.0f);	// Bottom Right Of The Texture and Quad
-		glTexCoord2d(1.0, 1.0); glVertex3f(-1.0f, 1.0f, 1.0f);	// Top Right Of The Texture and Quad
-		glTexCoord2d(0.0, 1.0); glVertex3f(-1.0f, 1.0f, -1.0f);	// Top Left Of The Texture and Quad
-		glEnd();
-		glPopName();
-
-		glPopName();
-		glPopName();
-		glPopName();
-
-		glDisable(GL_TEXTURE_2D);
-
-		glPopMatrix();
-	}
-
-	GLuint Scene::getTextureID(CColor color)
-	{
-		if (color == CColor(0, 0, 0))
-			return g_pTextures[6];
-		else if (color == CColor(255, 255, 255))
-			return g_pTextures[0];
-		else if (color == CColor(0, 0, 255))
-			return g_pTextures[1];
-		else if (color == CColor(255, 165, 0))
-			return g_pTextures[2];
-		else if (color == CColor(255, 0, 0))
-			return g_pTextures[3];
-		else if (color == CColor(0, 255, 0))
-			return g_pTextures[4];
-		else if (color == CColor(255, 255, 0))
-			return g_pTextures[5];
-		else
-			return g_pTextures[6];
-	}
-
 	// ======================== Callback functions ======================== //
 
-	LRESULT CALLBACK Scene::WndProcCallback(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+	LRESULT CALLBACK RubiksCubeSolverUI::WndProcCallback(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
+		RubiksCubeSolverUI& mainWindow = RubiksCubeSolverUI::getInstance();
+
 		switch (uMsg)
 		{
-			HANDLE_MSG(hWnd, WM_COMMAND, OnCommand);
-			HANDLE_MSG(hWnd, RC_CHANGED, OnRubiksCubeChanged);
-			//HANDLE_MSG(hWnd, WM_PAINT, OnPaint);
-			HANDLE_MSG(hWnd, WM_LBUTTONDOWN, OnLButtonDown);
-			HANDLE_MSG(hWnd, WM_LBUTTONUP, OnLButtonUp);
-			HANDLE_MSG(hWnd, WM_MOUSEMOVE, OnMouseMove);
-			HANDLE_MSG(hWnd, WM_SIZE, OnSize);
-			HANDLE_MSG(hWnd, WM_MOUSELEAVE, OnMouseLeave);
-			HANDLE_MSG(hWnd, WM_MOUSEWHEEL, OnMouseWheel);
-			HANDLE_MSG(hWnd, WM_DESTROY, OnDestroy);
+			HANDLE_MSG(hWnd, WM_COMMAND, mainWindow.OnCommand);
+			HANDLE_MSG(hWnd, RC_CHANGED, mainWindow.OnRubiksCubeChanged);
+			//HANDLE_MSG(hWnd, WM_PAINT, mainWindow.OnPaint);
+			HANDLE_MSG(hWnd, WM_LBUTTONDOWN, mainWindow.OnLButtonDown);
+			HANDLE_MSG(hWnd, WM_LBUTTONUP, mainWindow.OnLButtonUp);
+			HANDLE_MSG(hWnd, WM_MOUSEMOVE, mainWindow.OnMouseMove);
+			HANDLE_MSG(hWnd, WM_SIZE, mainWindow.OnSize);
+			HANDLE_MSG(hWnd, WM_MOUSELEAVE, mainWindow.OnMouseLeave);
+			HANDLE_MSG(hWnd, WM_MOUSEWHEEL, mainWindow.OnMouseWheel);
+			HANDLE_MSG(hWnd, WM_DESTROY, mainWindow.OnDestroy);
 		default:
 			return DefWindowProc(hWnd, uMsg, wParam, lParam);
 		}
 	}
 
-	LRESULT CALLBACK Scene::AboutProcCallback(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+	LRESULT CALLBACK RubiksCubeSolverUI::AboutProcCallback(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
 		switch (uMsg)
 		{
@@ -611,12 +281,7 @@ namespace mm {
 		return FALSE;
 	}
 
-
-
-
-
-
-	void Scene::deInit()
+	void RubiksCubeSolverUI::deInit()
 	{
 		if (g_hRC)
 		{
@@ -634,69 +299,15 @@ namespace mm {
 		PostQuitMessage(0);
 	}
 
-	INT Scene::getSelectedObjects(int x, int y, GLsizei buffSize, GLuint* selectBuffer)
-	{
-		GLint viewport[4];
-
-		glSelectBuffer(buffSize, selectBuffer);
-		glRenderMode(GL_SELECT);
-
-		glMatrixMode(GL_PROJECTION);
-		glPushMatrix();
-		glLoadIdentity();
-
-		glGetIntegerv(GL_VIEWPORT, viewport);
-		gluPickMatrix(x, viewport[3] - y, 1, 1, viewport);
-
-		setFrustum(g_rWnd.right, g_rWnd.bottom);
-
-		glMatrixMode(GL_MODELVIEW);
-
-		renderScene();
-
-		// restoring the original projection matrix
-		glMatrixMode(GL_PROJECTION);
-		glPopMatrix();
-		glMatrixMode(GL_MODELVIEW);
-		glFlush();
-
-		return glRenderMode(GL_RENDER);
-	}
-
-	CVector3 Scene::mapCoordinates(int x, int y)
-	{
-		GLint viewport[4];
-		GLdouble modelview[16];
-		GLdouble projection[16];
-		GLfloat winX, winY, winZ;
-		GLdouble posX, posY, posZ;
-
-		glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
-		glGetDoublev(GL_PROJECTION_MATRIX, projection);
-		glGetIntegerv(GL_VIEWPORT, viewport);
-
-		winX = (float)x;
-		winY = (float)viewport[3] - (float)y;
-		glReadPixels(x, int(winY), 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
-
-		gluUnProject(winX, winY, winZ, modelview, projection, viewport, &posX, &posY, &posZ);
-
-		return CVector3(posX, posY, posZ);
-	}
-
-
 	// ============================== Message Handling ================================= //
 
-
-	void Scene::OnRubiksCubeChanged(HWND hWnd)
+	void RubiksCubeSolverUI::OnRubiksCubeChanged(HWND hWnd)
 	{
-		mm::Scene& s = mm::Scene::getInstance();
-
 		// check for solution
-		if (s.g_cCube.IsSolved())
+		if (scene_.g_cCube.IsSolved())
 		{
 			TCHAR solvedMsg[MAX_LOADSTRING];
-			LoadString(s.g_hInstance, IDS_SOLVED, solvedMsg, MAX_LOADSTRING);
+			LoadString(g_hInstance, IDS_SOLVED, solvedMsg, MAX_LOADSTRING);
 
 			//MessageBox(g_hWnd, solvedMsg, g_szTitle, MB_OK);
 		}
@@ -705,10 +316,8 @@ namespace mm {
 	//
 	//  Process WM_LBUTTONDOWN message for window/dialog: 
 	//
-	void Scene::OnLButtonDown(HWND hWnd, BOOL fDoubleClick, int x, int y, UINT keyFlags)
+	void RubiksCubeSolverUI::OnLButtonDown(HWND hWnd, BOOL fDoubleClick, int x, int y, UINT keyFlags)
 	{
-		mm::Scene& s = mm::Scene::getInstance();
-
 		// set up tracking for when mouse leaves window
 		TRACKMOUSEEVENT tme;
 		tme.cbSize = sizeof(TRACKMOUSEEVENT);
@@ -716,23 +325,21 @@ namespace mm {
 		tme.hwndTrack = hWnd;
 		TrackMouseEvent(&tme);
 
-		s.g_bMouseDown = TRUE;
+		g_bMouseDown = TRUE;
 
-		if ((s.g_nHitCount = s.getSelectedObjects(x, y, s.SELECT_BUFFER_SIZE, s.g_pSelectBuffer)) > 0)
-			s.g_vMouseDown = s.mapCoordinates(x, y);
+		if ((g_nHitCount = scene_.getSelectedObjects(x, y, g_rWnd.right, g_rWnd.bottom)) > 0)
+			g_vMouseDown = scene_.mapCoordinates(x, y);
 
-		s.g_nPrevX = x;
-		s.g_nPrevY = y;
+		g_nPrevX = x;
+		g_nPrevY = y;
 	}
 
 	//
 	//  Process WM_LBUTTONUP message for window/dialog: 
 	//
-	void Scene::OnLButtonUp(HWND hWnd, int x, int y, UINT keyFlags)
+	void RubiksCubeSolverUI::OnLButtonUp(HWND hWnd, int x, int y, UINT keyFlags)
 	{
-		mm::Scene& s = mm::Scene::getInstance();
-
-		s.g_bMouseDown = FALSE;
+		g_bMouseDown = FALSE;
 
 		/*
 		if (g_bRotating)
@@ -768,24 +375,20 @@ namespace mm {
 	//
 	//  Process WM_DESTROY message for window/dialog: 
 	//
-	void Scene::OnDestroy(HWND hWnd)
+	void RubiksCubeSolverUI::OnDestroy(HWND hWnd)
 	{
-		mm::Scene& s = mm::Scene::getInstance();
-
-		s.deInit();
+		deInit();
 	}
 
 	//
 	//  Process WM_MOUSEMOVE message for window/dialog: 
 	//
-	void Scene::OnMouseMove(HWND hWnd, int x, int y, UINT keyFlags)
+	void RubiksCubeSolverUI::OnMouseMove(HWND hWnd, int x, int y, UINT keyFlags)
 	{
-		mm::Scene& s = mm::Scene::getInstance();
-
-		if (!s.g_bMouseDown)
+		if (!g_bMouseDown)
 		{
 			/*
-			if ((g_nHitCount = GetSelectedObjects(x, y, SELECT_BUFFER_SIZE, g_pSelectBuffer)) > 0)
+			if ((g_nHitCount = GetSelectedObjects(x, y, g_rWnd.right, g_rWnd.bottom)) > 0)
 			SetCursor(g_hHand);
 			else
 			SetCursor(g_hArrow);
@@ -793,17 +396,17 @@ namespace mm {
 		}
 
 		// moving camera
-		else if (s.g_nHitCount == 0 && s.g_bMouseDown)
+		else if (g_nHitCount == 0 && g_bMouseDown)
 		{
-			if (x < s.g_nPrevX)
-				s.g_cCamera.Rotate(-5);
-			else if (x > s.g_nPrevX)
-				s.g_cCamera.Rotate(5);
+			if (x < g_nPrevX)
+				scene_.g_cCamera.Rotate(-5);
+			else if (x > g_nPrevX)
+				scene_.g_cCamera.Rotate(5);
 
-			if (y < s.g_nPrevY)
-				s.g_cCamera.Tilt(5);
-			else if (y > s.g_nPrevY)
-				s.g_cCamera.Tilt(-5);
+			if (y < g_nPrevY)
+				scene_.g_cCamera.Tilt(5);
+			else if (y > g_nPrevY)
+				scene_.g_cCamera.Tilt(-5);
 		}
 		/*
 		// rotating section
@@ -814,7 +417,7 @@ namespace mm {
 		int i, j , k = 0;
 		Face face;
 
-		GetCubeSelection(&i, &j, &k, &face);
+		GetCubeSelection(&i, &j, &k, &face, g_nHitCount);
 
 		if (deltaX > 3 || deltaY > 3)
 		{
@@ -954,80 +557,50 @@ namespace mm {
 		g_nRotationAngle = -90;
 		}
 		*/
-		s.g_nPrevX = x;
-		s.g_nPrevY = y;
-	}
-
-	void Scene::getCubeSelection(int *x, int *y, int *z, Face *face)
-	{
-		GLuint names, *ptr, minZ, *ptrNames, numberOfNames;
-		ptr = (GLuint *)g_pSelectBuffer;
-		minZ = 0xffffffff;
-
-		for (int i = 0; i < g_nHitCount && i < SELECT_BUFFER_SIZE; i++)
-		{
-			names = *ptr;
-			ptr++;
-			if (*ptr < minZ)
-			{
-				numberOfNames = names;
-				minZ = *ptr;
-				ptrNames = ptr + 2;
-			}
-
-			ptr += names + 2;
-		}
-
-		*x = ptrNames[0];
-		*y = ptrNames[1];
-		*z = ptrNames[2];
-		*face = (Face)ptrNames[3];
+		g_nPrevX = x;
+		g_nPrevY = y;
 	}
 
 	//
 	//  Process WM_MOUSEWHEEL message for window/dialog: 
 	//
-	void Scene::OnMouseWheel(HWND hWnd, int xPos, int yPos, int zDelta, UINT fwKeys)
+	void RubiksCubeSolverUI::OnMouseWheel(HWND hWnd, int xPos, int yPos, int zDelta, UINT fwKeys)
 	{
-		mm::Scene& s = mm::Scene::getInstance();
-
 		int rotations = zDelta / WHEEL_DELTA;
 		float distance = rotations * 1.0f;
 
-		s.g_cCamera.Move(distance);
+		scene_.g_cCamera.Move(distance);
 	}
 
 	//
 	//  Process WM_SIZE message for window/dialog: 
 	//
-	void Scene::OnSize(HWND hWnd, UINT state, int cx, int cy)
+	void RubiksCubeSolverUI::OnSize(HWND hWnd, UINT state, int cx, int cy)
 	{
-		mm::Scene& s = mm::Scene::getInstance();
-
-		if (!s.g_bFullScreen)
+		if (!g_bFullScreen)
 		{
-			s.sizeOpenGlScreen(cx, cy);
-			GetClientRect(hWnd, &s.g_rWnd);
+			scene_.sizeOpenGlScreen(cx, cy);
+			GetClientRect(hWnd, &g_rWnd);
 		}
 	}
 
-	void Scene::OnMouseLeave(HWND hWnd)
+	void RubiksCubeSolverUI::OnMouseLeave(HWND hWnd)
 	{
-		mm::Scene& s = mm::Scene::getInstance();
-
-		s.g_bMouseDown = FALSE;
+		g_bMouseDown = FALSE;
 		//g_nRotationAngle = 0;
 	}
 
 	//
 	//  Process WM_COMMAND message for window/dialog: 
 	//
-	void Scene::OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
+	void RubiksCubeSolverUI::OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 	{
-		mm::Scene& s = mm::Scene::getInstance();
-
 		// menu
-		if (id == IDM_FILE_SCRAMBLE)
+		if (id == IDM_FILE_RESET)
+		{
+			Reset();
+		}
+		else if (id == IDM_FILE_SCRAMBLE)
 		{
 			//wstring str(L"Scramble using these steps? - ");
 			//TCHAR newGameMsg[MAX_LOADSTRING];
@@ -1037,7 +610,7 @@ namespace mm {
 			wstring wstr(str.begin(), str.end());
 			wstr = L"Scramble using these steps? - " + wstr;
 			if (MessageBox(hwnd, wstr.c_str(),
-				s.g_szTitle, MB_YESNO | MB_ICONQUESTION | MB_APPLMODAL) == IDYES)
+				g_szTitle, MB_YESNO | MB_ICONQUESTION | MB_APPLMODAL) == IDYES)
 			{
 				Scramble(str);
 			}
@@ -1046,30 +619,56 @@ namespace mm {
 		{
 			Solve();
 		}
-
+		else if (id == IDM_FILE_SOLVE_ANIM)
+		{
+			SolveAndAnimate();
+		}
 		else if (id == IDM_ABOUT)
 		{
-			DialogBox(s.g_hInstance, MAKEINTRESOURCE(IDD_ABOUTBOX),
-				s.g_hWnd, reinterpret_cast<DLGPROC>(Scene::AboutProcCallback));
+			DialogBox(g_hInstance, MAKEINTRESOURCE(IDD_ABOUTBOX),
+				g_hWnd, reinterpret_cast<DLGPROC>(RubiksCubeSolverUI::AboutProcCallback));
 		}
-
 		else if (id == IDM_EXIT)
 		{
 			PostQuitMessage(0);
 		}
 	}
 
-	void Scene::Scramble(const string& str)
+	void RubiksCubeSolverUI::Reset()
+	{
+		scene_.g_cCube.ResetCube();
+		redrawWindow();
+	}
+
+	void RubiksCubeSolverUI::Scramble(const string& str)
 	{
 		//RubiksCubeAlgoExecuter::test();
-		RubiksCubeSimulator::scramble(str);
+		//RubiksCubeSimulator::executeAlgorithm(str, scene_);
+		scene_.g_cCube.applyAlgorithm(str, true, 20, this);
 	}
 
-	void Scene::Solve()
+	void RubiksCubeSolverUI::Solve()
 	{
-		RubiksCubeSolver_v1::solve();
+		//First solve and then animate
+		CRubiksCube copy = scene_.g_cCube;
+		RubiksCubeSolver_v1 solver(copy);
+		string solution = solver.solve();
+
+		wstring wstr(solution.begin(), solution.end());
+		wstr = L"Solution: " + wstr + L"\nTime required: ns" + L"\nDo you want to see animation of solution?";
+		if (MessageBox(g_hWnd, wstr.c_str(),
+			g_szTitle, MB_YESNO | MB_ICONQUESTION | MB_APPLMODAL) == IDYES)
+		{
+			//RubiksCubeSimulator::executeAlgorithm(solution, scene_);
+			scene_.g_cCube.applyAlgorithm(solution, true, 20, this);
+		}		
 	}
 
-
+	void RubiksCubeSolverUI::SolveAndAnimate()
+	{
+		//Animate while solving
+		RubiksCubeSolver_v1 solver(scene_.g_cCube, true, 20, this);
+		string solution = solver.solve();
+	}
 }
 
