@@ -12,14 +12,18 @@ namespace mm {
 
 	RubiksCubeSolver_v1::RubiksCubeSolver_v1(CRubiksCube& rubiksCube, bool animate /*= false*/, int steps /*= 0*/, RubiksCubeSolverUI* ui /*= nullptr*/)
 		: rubiksCube_(rubiksCube),
+		solutionSteps_(0),
 		animate_(animate),
 		steps_(steps),
 		ui_(ui)
 	{
 	}
 
-	string RubiksCubeSolver_v1::solve()
+	string RubiksCubeSolver_v1::solve(int& solutionSteps)
 	{
+		solutionSteps_ = 0;
+		solution_ = "";
+
 		RubiksCubeSolver_v1::positionTheCube();
 		RubiksCubeSolver_v1::buildCross();
 		RubiksCubeSolver_v1::buildF2L();
@@ -35,13 +39,14 @@ namespace mm {
 			i += 4;
 		}
 
+		solutionSteps = solutionSteps_;
 		return solution_;
 	}
 
 	void RubiksCubeSolver_v1::applyAlgorithm(const string& step)
 	{
 		solution_ += step;
-		rubiksCube_.applyAlgorithm(step, animate_, steps_, ui_);
+		solutionSteps_ += rubiksCube_.applyAlgorithm(step, animate_, steps_, ui_);
 	}
 
 	bool isEdgeCube(const Cube& currentCube, const Color& first, const Color& second)

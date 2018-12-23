@@ -114,7 +114,7 @@ namespace mm {
 		void RotateWholeRubiksCube(int axis, int turns);
 
 		//Apply algorithm
-		void applyAlgorithm(const string& algorithm, bool animate = false, int steps = 0, RubiksCubeSolverUI* ui = nullptr);
+		int applyAlgorithm(const string& algorithm, bool animate = false, int steps = 0, RubiksCubeSolverUI* ui = nullptr);
 
 		bool g_bRotating;
 		bool g_bFlipRotation;

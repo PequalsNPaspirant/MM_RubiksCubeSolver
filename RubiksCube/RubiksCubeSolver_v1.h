@@ -11,7 +11,7 @@ namespace mm {
 	{
 	public:
 		RubiksCubeSolver_v1(CRubiksCube& rubiksCube, bool animate = false, int steps = 0, RubiksCubeSolverUI* ui = nullptr);
-		string solve();
+		string solve(int& solutionSteps);
 
 	private:
 		void positionTheCube();
@@ -29,6 +29,7 @@ namespace mm {
 
 		CRubiksCube& rubiksCube_;
 		string solution_;
+		int solutionSteps_;
 
 		bool animate_;
 		int steps_;

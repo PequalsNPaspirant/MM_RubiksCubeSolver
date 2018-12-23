@@ -602,8 +602,9 @@ namespace mm {
 
 
 
-	void CRubiksCube::applyAlgorithm(const string& algorithm, bool animate /*= false*/, int steps /*= 0*/, RubiksCubeSolverUI* ui /*= nullptr*/)
+	int CRubiksCube::applyAlgorithm(const string& algorithm, bool animate /*= false*/, int steps /*= 0*/, RubiksCubeSolverUI* ui /*= nullptr*/)
 	{
+		int solutionSteps = 0;
 		g_bFlipRotation = FALSE;
 
 		for (int i = 0; i < algorithm.length(); ++i)
@@ -633,8 +634,11 @@ namespace mm {
 			}
 
 			applyStep(face, isPrime, numRotations, animate, steps, ui);
+			++solutionSteps;
 		}
 		//Scene::getInstance().g_bRotating = FALSE; // TODO: Find why this resets the cube
+
+		return solutionSteps;
 	}
 
 	void CRubiksCube::applyStep(const char& face, bool isPrime, int numRotations, bool animate /*= false*/, int steps /*= 0*/, RubiksCubeSolverUI* ui /*= nullptr*/)
