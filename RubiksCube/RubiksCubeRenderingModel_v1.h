@@ -83,7 +83,7 @@ namespace mm {
 			Color cRight, Color cFront, Color cBack);
 		~Cube(void);
 		Color GetFaceColor(Face eFace) const;
-		ColorRGB GetFaceColorRGB(Face eFace) const;
+		//ColorRGB GetFaceColorRGB(Face eFace) const;
 		void TiltUp();
 		void TiltDown();
 		void TurnLeft();
@@ -93,6 +93,7 @@ namespace mm {
 
 
 	protected:
+		static const int FACE_COUNT = 6;
 		vector<Color> faces_;
 	};
 

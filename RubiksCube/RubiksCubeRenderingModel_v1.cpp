@@ -55,6 +55,7 @@ namespace mm {
 		return faces_[eFace];
 	}
 
+	/*
 	ColorRGB Cube::GetFaceColorRGB(Face eFace) const
 	{ 
 		//switch(GetFaceColor(eFace))
@@ -81,9 +82,29 @@ namespace mm {
 		Color faceCol = GetFaceColor(eFace);
 		return ColorRGB::RGBColors[faceCol];
 	}
+	*/
 
+	/*
+	Make sure Cube is positioned in right way
+
+	// Z-axis : Back -> Front // green  -> blue
+	// X-axis : Left -> Right // orange -> red
+	// Y-axis : Down -> Up    // white  -> yellow
+
+		  yellow
+			Y
+			|
+			. --> X red
+		  /
+		Z
+	 blue
+
+	*/
+
+	// Aound X axis
 	void Cube::TiltUp()
 	{
+		/*
 		Color temp1 = faces_[Top];
 		Color temp2 = faces_[Back];
 
@@ -94,10 +115,19 @@ namespace mm {
 		faces_[Bottom] = temp2;
 
 		faces_[Front] = temp1;
+		*/
+
+		Color temp1 = faces_[Top];
+		faces_[Top] = faces_[Front];
+		faces_[Front] = faces_[Bottom];
+		faces_[Bottom] = faces_[Back];
+		faces_[Back] = temp1;
 	}
 
+	// Aound X axis
 	void Cube::TiltDown()
 	{
+		/*
 		Color temp1 = faces_[Top];
 		Color temp2 = faces_[Front];
 
@@ -108,10 +138,19 @@ namespace mm {
 		faces_[Bottom] = temp2;
 
 		faces_[Back] = temp1;
+		*/
+
+		Color temp1 = faces_[Top];
+		faces_[Top] = faces_[Back];
+		faces_[Back] = faces_[Bottom];
+		faces_[Bottom] = faces_[Front];
+		faces_[Front] = temp1;
 	}
 
+	//Around Y axis
 	void Cube::TurnLeft()
 	{
+		/*
 		Color temp1 = faces_[Front];
 		Color temp2 = faces_[Left];
 
@@ -122,10 +161,19 @@ namespace mm {
 		faces_[Back] = temp2;
 
 		faces_[Right] = temp1;
+		*/
+
+		Color temp1 = faces_[Front];
+		faces_[Front] = faces_[Right];
+		faces_[Right] = faces_[Back];
+		faces_[Back] = faces_[Left];
+		faces_[Left] = temp1;
 	}
 
+	//Around Y axis
 	void Cube::TurnRight()
 	{
+		/*
 		Color temp1 = faces_[Front];
 		Color temp2 = faces_[Right];
 
@@ -136,10 +184,19 @@ namespace mm {
 		faces_[Back] = temp2;
 
 		faces_[Left] = temp1;
+		*/
+
+		Color temp1 = faces_[Front];
+		faces_[Front] = faces_[Left];
+		faces_[Left] = faces_[Back];
+		faces_[Back] = faces_[Right];
+		faces_[Right] = temp1;
 	}
 
+	//Around Z axis
 	void Cube::TiltLeft()
 	{
+		/*
 		Color temp1 = faces_[Top];
 		Color temp2 = faces_[Left];
 
@@ -150,10 +207,19 @@ namespace mm {
 		faces_[Bottom] = temp2;
 
 		faces_[Right] = temp1;
+		*/
+
+		Color temp1 = faces_[Top];
+		faces_[Top] = faces_[Right];
+		faces_[Right] = faces_[Bottom];
+		faces_[Bottom] = faces_[Left];
+		faces_[Left] = temp1;
 	}
 
+	//Around Z axis
 	void Cube::TiltRight()
 	{
+		/*
 		Color temp1 = faces_[Top];
 		Color temp2 = faces_[Right];
 
@@ -164,6 +230,13 @@ namespace mm {
 		faces_[Bottom] = temp2;
 
 		faces_[Left] = temp1;
+		*/
+
+		Color temp1 = faces_[Top];
+		faces_[Top] = faces_[Left];
+		faces_[Left] = faces_[Bottom];
+		faces_[Bottom] = faces_[Right];
+		faces_[Right] = temp1;
 	}
 
 
@@ -199,6 +272,7 @@ namespace mm {
 
 	CRubiksCube::~CRubiksCube()
 	{
+		/*
 		for (int i = 0; i < size_; i++)
 		{
 			for (int j = 0; j < size_; j++)
@@ -219,6 +293,7 @@ namespace mm {
 
 		//delete[] cubes_;
 		//cubes_ = NULL;
+		*/
 	}
 
 	CRubiksCube::CRubiksCube(const CRubiksCube& copy)
@@ -278,66 +353,50 @@ namespace mm {
 
 		if (x == 0)
 		{
-			//left = Color(255, 165, 0);	// orange
-			//right = Color(0, 0, 0);	// black
 			left = Orange;
 			right = Black;
 		}
-		else if (x == 1)
+		else if (x == size_ - 1)
 		{
-			//left = Color(0, 0, 0);		// black
-			//right = Color(0, 0, 0);	// black
-			left = Black;
-			right = Black;
-		}
-		else if (x == 2)
-		{
-			//left = Color(0, 0, 0);		// black
-			//right = Color(255, 0, 0);	// red
 			left = Black;
 			right = Red;
 		}
+		else
+		{
+			left = Black;
+			right = Black;
+		}
+
 		if (y == 0)
 		{
-			//bottom = Color(255, 255, 255);	// blue //white Color(255, 255, 255)
-			//top = Color(0, 0, 0);		// black
 			bottom = White;
 			top = Black;
 		}
-		else if (y == 1)
+		else if (y == size_ - 1)
 		{
-			//bottom = Color(0, 0, 0);	// black
-			//top = Color(0, 0, 0);		// black
-			bottom = Black;
-			top = Black;
-		}
-		else if (y == 2)
-		{
-			//bottom = Color(0, 0, 0);	  // black 
-			//top = Color(255, 255, 0);	  // white //yellow Color(255, 255, 0)
 			bottom = Black;
 			top = Yellow;
 		}
+		else
+		{
+			bottom = Black;
+			top = Black;
+		}
+
 		if (z == 0)
 		{
-			//back = Color(0, 255, 0);	// yellow //green Color(0, 255, 0)
-			//front = Color(0, 0, 0);	// black
 			back = Green;
 			front = Black;
 		}
-		else if (z == 1)
+		else if (z == size_ - 1)
 		{
-			//back = Color(0, 0, 0);		// black
-			//front = Color(0, 0, 0);	// black
-			back = Black;
-			front = Black;
-		}
-		else if (z == 2)
-		{
-			//back = Color(0, 0, 0);		// black
-			//front = Color(0, 0, 255);	// green // blue Color(0, 0, 255)
 			back = Black;
 			front = Blue;
+		}
+		else
+		{
+			back = Black;
+			front = Black;
 		}
 
 		return Cube(top, bottom, left, right, front, back);
