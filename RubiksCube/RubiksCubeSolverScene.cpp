@@ -38,13 +38,13 @@ namespace mm {
 		glDepthFunc(GL_LEQUAL);										// The Type Of Depth Testing To Do
 		glLineWidth(LINE_WIDTH);									// Set outline width
 
-		loadTexture(IDB_WHITE, &g_pTextures[0]);
-		loadTexture(IDB_BLUE, &g_pTextures[1]);
-		loadTexture(IDB_ORANGE, &g_pTextures[2]);
-		loadTexture(IDB_RED, &g_pTextures[3]);
-		loadTexture(IDB_GREEN, &g_pTextures[4]);
-		loadTexture(IDB_YELLOW, &g_pTextures[5]);
-		loadTexture(IDB_BLACK, &g_pTextures[6]);
+		loadTexture(IDB_WHITE, &g_pTextures[Color::White]);
+		loadTexture(IDB_BLUE, &g_pTextures[Color::Blue]);
+		loadTexture(IDB_ORANGE, &g_pTextures[Color::Orange]);
+		loadTexture(IDB_RED, &g_pTextures[Color::Red]);
+		loadTexture(IDB_GREEN, &g_pTextures[Color::Green]);
+		loadTexture(IDB_YELLOW, &g_pTextures[Color::Yellow]);
+		loadTexture(IDB_BLACK, &g_pTextures[Color::Black]);
 	}
 
 	void RubiksCubeSolverScene::loadTexture(int nId, GLuint* texture)
@@ -255,12 +255,19 @@ namespace mm {
 
 		glTranslated(x * CUBE_SIZE, y * CUBE_SIZE, z * CUBE_SIZE);
 
-		ColorRGB top = pCube.GetFaceColorRGB(Top);
-		ColorRGB bottom = pCube.GetFaceColorRGB(Bottom);
-		ColorRGB left = pCube.GetFaceColorRGB(Left);
-		ColorRGB right = pCube.GetFaceColorRGB(Right);
-		ColorRGB back = pCube.GetFaceColorRGB(Back);
-		ColorRGB front = pCube.GetFaceColorRGB(Front);
+		//ColorRGB top = pCube.GetFaceColorRGB(Top);
+		//ColorRGB bottom = pCube.GetFaceColorRGB(Bottom);
+		//ColorRGB left = pCube.GetFaceColorRGB(Left);
+		//ColorRGB right = pCube.GetFaceColorRGB(Right);
+		//ColorRGB back = pCube.GetFaceColorRGB(Back);
+		//ColorRGB front = pCube.GetFaceColorRGB(Front);
+
+		Color top = pCube.GetFaceColor(Top);
+		Color bottom = pCube.GetFaceColor(Bottom);
+		Color left = pCube.GetFaceColor(Left);
+		Color right = pCube.GetFaceColor(Right);
+		Color back = pCube.GetFaceColor(Back);
+		Color front = pCube.GetFaceColor(Front);
 
 		glEnable(GL_TEXTURE_2D);
 
@@ -268,7 +275,8 @@ namespace mm {
 		glPushName((GLuint)Front);
 		glBindTexture(GL_TEXTURE_2D, getTextureID(front));
 		glBegin(GL_QUADS);
-		glColor3ub(front.r, front.g, front.b);
+		ColorRGB colRgb = ColorRGB::RGBColors[front];
+		glColor3ub(colRgb.r, colRgb.g, colRgb.b);
 		glNormal3f(0.0f, 0.0f, 1.0f);
 		glTexCoord2d(0.0, 0.0); glVertex3f(-1.0f, -1.0f, 1.0f);	// Bottom Left Of The Texture and Quad
 		glTexCoord2d(1.0, 0.0); glVertex3f(1.0f, -1.0f, 1.0f);	// Bottom Right Of The Texture and Quad
@@ -281,7 +289,8 @@ namespace mm {
 		glPushName((GLuint)Back);
 		glBindTexture(GL_TEXTURE_2D, getTextureID(back));
 		glBegin(GL_QUADS);
-		glColor3ub(back.r, back.g, back.b);
+		colRgb = ColorRGB::RGBColors[back];
+		glColor3ub(colRgb.r, colRgb.g, colRgb.b);
 		glNormal3f(0.0f, 0.0f, -1.0f);
 		glTexCoord2d(1.0, 0.0); glVertex3f(-1.0f, -1.0f, -1.0f);	// Bottom Right Of The Texture and Quad
 		glTexCoord2d(1.0, 1.0); glVertex3f(-1.0f, 1.0f, -1.0f);	// Top Right Of The Texture and Quad
@@ -294,7 +303,8 @@ namespace mm {
 		glPushName((GLuint)Top);
 		glBindTexture(GL_TEXTURE_2D, getTextureID(top));
 		glBegin(GL_QUADS);
-		glColor3ub(top.r, top.g, top.b);
+		colRgb = ColorRGB::RGBColors[top];
+		glColor3ub(colRgb.r, colRgb.g, colRgb.b);
 		glNormal3f(0.0f, 1.0f, 0.0f);
 		glTexCoord2d(0.0, 1.0); glVertex3f(-1.0f, 1.0f, -1.0f);	// Top Left Of The Texture and Quad
 		glTexCoord2d(0.0, 0.0); glVertex3f(-1.0f, 1.0f, 1.0f);	// Bottom Left Of The Texture and Quad
@@ -307,7 +317,8 @@ namespace mm {
 		glPushName((GLuint)Bottom);
 		glBindTexture(GL_TEXTURE_2D, getTextureID(bottom));
 		glBegin(GL_QUADS);
-		glColor3ub(bottom.r, bottom.g, bottom.b);
+		colRgb = ColorRGB::RGBColors[bottom];
+		glColor3ub(colRgb.r, colRgb.g, colRgb.b);
 		glNormal3f(0.0f, -1.0f, 0.0f);
 		glTexCoord2d(1.0, 1.0); glVertex3f(-1.0f, -1.0f, -1.0f);	// Top Right Of The Texture and Quad
 		glTexCoord2d(0.0, 1.0); glVertex3f(1.0f, -1.0f, -1.0f);	// Top Left Of The Texture and Quad
@@ -320,7 +331,8 @@ namespace mm {
 		glPushName((GLuint)Right);
 		glBindTexture(GL_TEXTURE_2D, getTextureID(right));
 		glBegin(GL_QUADS);
-		glColor3ub(right.r, right.g, right.b);
+		colRgb = ColorRGB::RGBColors[right];
+		glColor3ub(colRgb.r, colRgb.g, colRgb.b);
 		glNormal3f(1.0f, 0.0f, 0.0f);
 		glTexCoord2d(1.0, 0.0); glVertex3f(1.0f, -1.0f, -1.0f);	// Bottom Right Of The Texture and Quad
 		glTexCoord2d(1.0, 1.0); glVertex3f(1.0f, 1.0f, -1.0f);	// Top Right Of The Texture and Quad
@@ -333,7 +345,8 @@ namespace mm {
 		glPushName((GLuint)Left);
 		glBindTexture(GL_TEXTURE_2D, getTextureID(left));
 		glBegin(GL_QUADS);
-		glColor3ub(left.r, left.g, left.b);
+		colRgb = ColorRGB::RGBColors[left];
+		glColor3ub(colRgb.r, colRgb.g, colRgb.b);
 		glNormal3f(-1.0f, 0.0f, 0.0f);
 		glTexCoord2d(0.0, 0.0); glVertex3f(-1.0f, -1.0f, -1.0f);	// Bottom Left Of The Texture and Quad
 		glTexCoord2d(1.0, 0.0); glVertex3f(-1.0f, -1.0f, 1.0f);	// Bottom Right Of The Texture and Quad
@@ -351,24 +364,29 @@ namespace mm {
 		glPopMatrix();
 	}
 
-	GLuint RubiksCubeSolverScene::getTextureID(ColorRGB color)
+	//GLuint RubiksCubeSolverScene::getTextureID(ColorRGB color)
+	//{
+	//	if (color == ColorRGB::BLACK) 
+	//		return g_pTextures[6];
+	//	else if (color == ColorRGB::WHITE) // TODO: replace colours by static objects like above
+	//		return g_pTextures[0];
+	//	else if (color == ColorRGB::BLUE)
+	//		return g_pTextures[1];
+	//	else if (color == ColorRGB::ORANGE)
+	//		return g_pTextures[2];
+	//	else if (color == ColorRGB::RED)
+	//		return g_pTextures[3];
+	//	else if (color == ColorRGB::GREEN)
+	//		return g_pTextures[4];
+	//	else if (color == ColorRGB::YELLOW)
+	//		return g_pTextures[5];
+	//	else
+	//		return g_pTextures[6];
+	//}
+
+	GLuint RubiksCubeSolverScene::getTextureID(Color color)
 	{
-		if (color == ColorRGB::BLACK) 
-			return g_pTextures[6];
-		else if (color == ColorRGB(255, 255, 255)) // TODO: replace colours by static objects like above
-			return g_pTextures[0];
-		else if (color == ColorRGB(0, 0, 255))
-			return g_pTextures[1];
-		else if (color == ColorRGB(255, 165, 0))
-			return g_pTextures[2];
-		else if (color == ColorRGB(255, 0, 0))
-			return g_pTextures[3];
-		else if (color == ColorRGB(0, 255, 0))
-			return g_pTextures[4];
-		else if (color == ColorRGB(255, 255, 0))
-			return g_pTextures[5];
-		else
-			return g_pTextures[6];
+		return g_pTextures[color];
 	}
 
 	INT RubiksCubeSolverScene::getSelectedObjects(int x, int y, int nWidth, int nHeight)

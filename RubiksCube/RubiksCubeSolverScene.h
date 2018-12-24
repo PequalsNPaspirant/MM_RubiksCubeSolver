@@ -34,7 +34,7 @@ namespace mm {
 	public:
 		/**//**/void renderRubiksCube();
 		/**//**//**/void renderIndividualCube(const Cube& pCube, int x, int y, int z);
-		/**//**//**//**/GLuint getTextureID(ColorRGB color);
+		/**//**//**//**/GLuint getTextureID(Color color);
 	
 	public:
 		INT getSelectedObjects(int x, int y, int nWidth, int nHeight);

@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include <iostream>
+#include <cassert>
 
 //#include "RubiksCubeSolverUI.h"
 #include "RubiksCubeRenderingModel_v1.h"
@@ -31,13 +32,7 @@ namespace mm {
 		RubiksCubeSolver_v1::buildPLL();
 
 		//verify
-		if (!rubiksCube_.IsSolved())
-		{
-			int i = 0;
-			++i;
-			i = 10 / 5;
-			i += 4;
-		}
+		assert(rubiksCube_.IsSolved());
 
 		solutionSteps = solutionSteps_;
 		return solution_;

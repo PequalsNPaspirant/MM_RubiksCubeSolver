@@ -107,7 +107,7 @@ namespace mm {
 		rWnd.top = 0;
 		rWnd.bottom = nHeight;
 
-		AdjustWindowRectEx(&rWnd, dwStyle, TRUE, 0);
+		AdjustWindowRectEx(&rWnd, dwStyle, true, 0);
 
 		HMENU hMenu = LoadMenu(hInstance, MAKEINTRESOURCE(IDC_RUBIKSCUBE));
 
@@ -152,7 +152,7 @@ namespace mm {
 															// Get current settings -- This function fills our the settings
 															// This makes sure NT and Win98 machines change correctly
 		if (!EnumDisplaySettings(NULL, ENUM_CURRENT_SETTINGS, &dmSettings))
-			return FALSE;
+			return false;
 
 		// selected screen width and height
 		dmSettings.dmPelsWidth = WND_WIDTH;
@@ -165,9 +165,9 @@ namespace mm {
 
 		// Check if we didn't recieved a good return message From the function
 		if (result != DISP_CHANGE_SUCCESSFUL)
-			return FALSE;
+			return false;
 
-		return TRUE;
+		return true;
 	}
 
 	bool RubiksCubeSolverUI::setupPixelFormat(HDC hdc)
@@ -187,14 +187,14 @@ namespace mm {
 		pfd.cStencilBits = 0;								// We desire no stencil bits
 
 															// This gets us a pixel format that best matches the one passed in from the device
-		if ((pixelformat = ChoosePixelFormat(hdc, &pfd)) == FALSE)
-			return FALSE;
+		if ((pixelformat = ChoosePixelFormat(hdc, &pfd)) == false)
+			return false;
 
 		// This sets the pixel format that we extracted from above
-		if (SetPixelFormat(hdc, pixelformat, &pfd) == FALSE)
-			return FALSE;
+		if (SetPixelFormat(hdc, pixelformat, &pfd) == false)
+			return false;
 
-		return TRUE;
+		return true;
 	}
 
 	WPARAM RubiksCubeSolverUI::enterMainLoop()
@@ -276,12 +276,12 @@ namespace mm {
 			{
 			case IDOK:
 				EndDialog(hwndDlg, 0);
-				return TRUE;
+				return true;
 			}
 			break;
 		}
 
-		return FALSE;
+		return false;
 	}
 
 	void RubiksCubeSolverUI::deInit()
@@ -328,7 +328,7 @@ namespace mm {
 		tme.hwndTrack = hWnd;
 		TrackMouseEvent(&tme);
 
-		g_bMouseDown = TRUE;
+		g_bMouseDown = true;
 
 		if ((g_nHitCount = scene_.getSelectedObjects(x, y, g_rWnd.right, g_rWnd.bottom)) > 0)
 			g_vMouseDown = scene_.mapCoordinates(x, y);
@@ -342,7 +342,7 @@ namespace mm {
 	//
 	void RubiksCubeSolverUI::OnLButtonUp(HWND hWnd, int x, int y, UINT keyFlags)
 	{
-		g_bMouseDown = FALSE;
+		g_bMouseDown = false;
 
 		/*
 		if (g_bRotating)
@@ -367,8 +367,8 @@ namespace mm {
 		g_cCube.Turn(g_nRotatingSection, turns);
 		}
 
-		g_bRotating = FALSE;
-		g_bFlipRotation = FALSE;
+		g_bRotating = false;
+		g_bFlipRotation = false;
 
 		PostMessage(g_hWnd, RC_CHANGED, 0, 0);
 		}
@@ -535,7 +535,7 @@ namespace mm {
 		if (g_cCamera.GetPhi() >= 90 && g_cCamera.GetPhi() <= 270 && (face == Top || face == Bottom))
 		g_bFlipRotation = !g_bFlipRotation;
 
-		g_bRotating = TRUE;
+		g_bRotating = true;
 		}
 		}
 
@@ -589,7 +589,7 @@ namespace mm {
 
 	void RubiksCubeSolverUI::OnMouseLeave(HWND hWnd)
 	{
-		g_bMouseDown = FALSE;
+		g_bMouseDown = false;
 		//g_nRotationAngle = 0;
 	}
 

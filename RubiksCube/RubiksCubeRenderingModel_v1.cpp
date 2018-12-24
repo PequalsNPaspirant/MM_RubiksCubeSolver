@@ -10,16 +10,26 @@ namespace mm {
 
 	const int FACE_COUNT = 6;
 
-	const ColorRGB ColorRGB::RED{ 255, 0, 0 };
-	const ColorRGB ColorRGB::ORANGE{ 255, 165, 0 };
+	//const ColorRGB ColorRGB::RED{ 255, 0, 0 };
+	//const ColorRGB ColorRGB::ORANGE{ 255, 165, 0 };
 
-	const ColorRGB ColorRGB::BLUE{ 0, 0, 255 };
-	const ColorRGB ColorRGB::GREEN{ 0, 255, 0 };
+	//const ColorRGB ColorRGB::BLUE{ 0, 0, 255 };
+	//const ColorRGB ColorRGB::GREEN{ 0, 255, 0 };
 
-	const ColorRGB ColorRGB::YELLOW{ 255, 255, 0 };
-	const ColorRGB ColorRGB::WHITE{ 255, 255, 255 };
+	//const ColorRGB ColorRGB::YELLOW{ 255, 255, 0 };
+	//const ColorRGB ColorRGB::WHITE{ 255, 255, 255 };
 
-	const ColorRGB ColorRGB::BLACK{ 0, 0, 0 };
+	//const ColorRGB ColorRGB::BLACK{ 0, 0, 0 };
+
+	const ColorRGB ColorRGB::RGBColors[7] = {
+		ColorRGB{ 255, 255, 0 },
+		ColorRGB{ 255, 0, 0 },
+		ColorRGB{ 0, 0, 255 },
+		ColorRGB{ 0, 255, 0 },
+		ColorRGB{ 255, 165, 0 },
+		ColorRGB{ 255, 255, 255 },
+		ColorRGB{ 0, 0, 0 }
+	};
 
 	Cube::Cube(Color cTop, Color cBottom, Color cLeft, Color cRight, Color cFront, Color cBack)
 		: faces_(FACE_COUNT)
@@ -46,27 +56,30 @@ namespace mm {
 	}
 
 	ColorRGB Cube::GetFaceColorRGB(Face eFace) const
-	{
-		switch(GetFaceColor(eFace))
-		{
-		case Yellow:
-			return ColorRGB::YELLOW;
-		case Red:
-			return ColorRGB::RED;
-		case Blue:
-			return ColorRGB::BLUE;
-		case Green:
-			return ColorRGB::GREEN;
-		case Orange:
-			return ColorRGB::ORANGE;
-		case White:
-			return ColorRGB::WHITE;
-		case Black :
-			return ColorRGB::BLACK;
-		default:
-			//Assert
-			return ColorRGB::BLACK;
-		}
+	{ 
+		//switch(GetFaceColor(eFace))
+		//{
+		//case Yellow:
+		//	return ColorRGB::YELLOW;
+		//case Red:
+		//	return ColorRGB::RED;
+		//case Blue:
+		//	return ColorRGB::BLUE;
+		//case Green:
+		//	return ColorRGB::GREEN;
+		//case Orange:
+		//	return ColorRGB::ORANGE;
+		//case White:
+		//	return ColorRGB::WHITE;
+		//case Black :
+		//	return ColorRGB::BLACK;
+		//default:
+		//	//Assert
+		//	return ColorRGB::BLACK;
+		//}
+
+		Color faceCol = GetFaceColor(eFace);
+		return ColorRGB::RGBColors[faceCol];
 	}
 
 	void Cube::TiltUp()
@@ -560,7 +573,7 @@ namespace mm {
 				for (int k = 0; k < size_; k++)
 				{
 					if (cubes_[i][j][k].GetFaceColor(face) != color)
-						return FALSE;
+						return false;
 				}
 			}
 		}
@@ -576,7 +589,7 @@ namespace mm {
 				for (int k = 0; k < size_; k++)
 				{
 					if (cubes_[i][j][k].GetFaceColor(face) != color)
-						return FALSE;
+						return false;
 				}
 			}
 		}
@@ -592,12 +605,12 @@ namespace mm {
 				for (int j = 0; j < size_; j++)
 				{
 					if (cubes_[i][j][k].GetFaceColor(face) != color)
-						return FALSE;
+						return false;
 				}
 			}
 		}
 
-		return TRUE;
+		return true;
 	}
 
 
@@ -605,7 +618,7 @@ namespace mm {
 	int CRubiksCube::applyAlgorithm(const string& algorithm, bool animate /*= false*/, int steps /*= 0*/, RubiksCubeSolverUI* ui /*= nullptr*/)
 	{
 		int solutionSteps = 0;
-		g_bFlipRotation = FALSE;
+		g_bFlipRotation = false;
 
 		for (int i = 0; i < algorithm.length(); ++i)
 		{
@@ -636,7 +649,6 @@ namespace mm {
 			applyStep(face, isPrime, numRotations, animate, steps, ui);
 			++solutionSteps;
 		}
-		//Scene::getInstance().g_bRotating = FALSE; // TODO: Find why this resets the cube
 
 		return solutionSteps;
 	}
@@ -731,7 +743,7 @@ namespace mm {
 
 		if (animate)
 		{
-			g_bRotating = TRUE;
+			g_bRotating = true;
 			int angle = g_nRotationAngle;
 			g_nRotationAngle = 0;
 			int step = (angle - g_nRotationAngle) / steps;
@@ -752,7 +764,7 @@ namespace mm {
 				if (ui)
 					ui->redrawWindow();
 			}
-			g_bRotating = FALSE;
+			g_bRotating = false;
 		}
 
 		//Fix cube position and Reset all parameters

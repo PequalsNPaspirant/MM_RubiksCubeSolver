@@ -60,16 +60,18 @@ namespace mm {
 			return !((r == c.r) && (g == c.g) && (b == c.b));
 		}
 
-		static const ColorRGB RED;
-		static const ColorRGB ORANGE;
+		//static const ColorRGB RED;
+		//static const ColorRGB ORANGE;
 
-		static const ColorRGB BLUE;
-		static const ColorRGB GREEN;
+		//static const ColorRGB BLUE;
+		//static const ColorRGB GREEN;
 
-		static const ColorRGB YELLOW;
-		static const ColorRGB WHITE;
+		//static const ColorRGB YELLOW;
+		//static const ColorRGB WHITE;
 
-		static const ColorRGB BLACK;
+		//static const ColorRGB BLACK;
+
+		static const ColorRGB RGBColors[7];
 	};
 
 	class Cube
