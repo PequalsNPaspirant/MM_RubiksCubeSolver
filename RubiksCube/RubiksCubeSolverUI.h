@@ -79,6 +79,9 @@ namespace mm {
 		void Solve();
 		void SolveAndAnimate();
 
+		void Solve_v2();
+		void SolveAndAnimate_v2();
+
 	public:
 		//CRubiksCube g_cCube;
 		//BOOL g_bRotating;

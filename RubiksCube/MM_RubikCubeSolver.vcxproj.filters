@@ -42,6 +42,12 @@
     <ClCompile Include="RubiksCubeSolverScene.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="RubiksCubeRenderingModel_v2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\%40_Programming\Everything\MM_RubikCubeSolver\RubiksCube\RubiksCubeSolver_v2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h">
@@ -72,6 +78,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="RubiksCubeSolverScene.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RubiksCubeRenderingModel_v2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\%40_Programming\Everything\MM_RubikCubeSolver\RubiksCube\RubiksCubeSolver_v2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -19,7 +19,8 @@ namespace mm {
 	const int RUBIKS_CUBE_SIZE = 3;
 
 	RubiksCubeSolverScene::RubiksCubeSolverScene()
-		: g_cCube(RUBIKS_CUBE_SIZE)
+		: g_cCube(RUBIKS_CUBE_SIZE),
+		g_cCube_v2(RUBIKS_CUBE_SIZE)
 	{
 	}
 
@@ -201,7 +202,8 @@ namespace mm {
 		glMaterialfv(GL_FRONT, GL_SPECULAR, color);
 		//glMaterialfv(GL_FRONT, GL_SHININESS, &shininess);
 
-		renderRubiksCube();
+		//renderRubiksCube();
+		renderRubiksCube_v2();
 
 		glDisable(GL_LIGHT1);
 		glDisable(GL_LIGHTING);
@@ -250,6 +252,174 @@ namespace mm {
 		x--;
 		y--;
 		z--;
+
+		glPushMatrix();
+
+		glTranslated(x * CUBE_SIZE, y * CUBE_SIZE, z * CUBE_SIZE);
+
+		//ColorRGB top = pCube.GetFaceColorRGB(Top);
+		//ColorRGB bottom = pCube.GetFaceColorRGB(Bottom);
+		//ColorRGB left = pCube.GetFaceColorRGB(Left);
+		//ColorRGB right = pCube.GetFaceColorRGB(Right);
+		//ColorRGB back = pCube.GetFaceColorRGB(Back);
+		//ColorRGB front = pCube.GetFaceColorRGB(Front);
+
+		Color top = pCube.GetFaceColor(Top);
+		Color bottom = pCube.GetFaceColor(Bottom);
+		Color left = pCube.GetFaceColor(Left);
+		Color right = pCube.GetFaceColor(Right);
+		Color back = pCube.GetFaceColor(Back);
+		Color front = pCube.GetFaceColor(Front);
+
+		glEnable(GL_TEXTURE_2D);
+
+		// Front Face
+		glPushName((GLuint)Front);
+		glBindTexture(GL_TEXTURE_2D, getTextureID(front));
+		glBegin(GL_QUADS);
+		ColorRGB colRgb = ColorRGB::RGBColors[front];
+		glColor3ub(colRgb.r, colRgb.g, colRgb.b);
+		glNormal3f(0.0f, 0.0f, 1.0f);
+		glTexCoord2d(0.0, 0.0); glVertex3f(-1.0f, -1.0f, 1.0f);	// Bottom Left Of The Texture and Quad
+		glTexCoord2d(1.0, 0.0); glVertex3f(1.0f, -1.0f, 1.0f);	// Bottom Right Of The Texture and Quad
+		glTexCoord2d(1.0, 1.0); glVertex3f(1.0f, 1.0f, 1.0f);	// Top Right Of The Texture and Quad
+		glTexCoord2d(0.0, 1.0); glVertex3f(-1.0f, 1.0f, 1.0f);	// Top Left Of The Texture and Quad
+		glEnd();
+		glPopName();
+
+		// Back Face
+		glPushName((GLuint)Back);
+		glBindTexture(GL_TEXTURE_2D, getTextureID(back));
+		glBegin(GL_QUADS);
+		colRgb = ColorRGB::RGBColors[back];
+		glColor3ub(colRgb.r, colRgb.g, colRgb.b);
+		glNormal3f(0.0f, 0.0f, -1.0f);
+		glTexCoord2d(1.0, 0.0); glVertex3f(-1.0f, -1.0f, -1.0f);	// Bottom Right Of The Texture and Quad
+		glTexCoord2d(1.0, 1.0); glVertex3f(-1.0f, 1.0f, -1.0f);	// Top Right Of The Texture and Quad
+		glTexCoord2d(0.0, 1.0); glVertex3f(1.0f, 1.0f, -1.0f);	// Top Left Of The Texture and Quad
+		glTexCoord2d(0.0, 0.0); glVertex3f(1.0f, -1.0f, -1.0f);	// Bottom Left Of The Texture and Quad
+		glEnd();
+		glPopName();
+
+		// Top Face
+		glPushName((GLuint)Top);
+		glBindTexture(GL_TEXTURE_2D, getTextureID(top));
+		glBegin(GL_QUADS);
+		colRgb = ColorRGB::RGBColors[top];
+		glColor3ub(colRgb.r, colRgb.g, colRgb.b);
+		glNormal3f(0.0f, 1.0f, 0.0f);
+		glTexCoord2d(0.0, 1.0); glVertex3f(-1.0f, 1.0f, -1.0f);	// Top Left Of The Texture and Quad
+		glTexCoord2d(0.0, 0.0); glVertex3f(-1.0f, 1.0f, 1.0f);	// Bottom Left Of The Texture and Quad
+		glTexCoord2d(1.0, 0.0); glVertex3f(1.0f, 1.0f, 1.0f);	// Bottom Right Of The Texture and Quad
+		glTexCoord2d(1.0, 1.0); glVertex3f(1.0f, 1.0f, -1.0f);	// Top Right Of The Texture and Quad
+		glEnd();
+		glPopName();
+
+		// Bottom Face
+		glPushName((GLuint)Bottom);
+		glBindTexture(GL_TEXTURE_2D, getTextureID(bottom));
+		glBegin(GL_QUADS);
+		colRgb = ColorRGB::RGBColors[bottom];
+		glColor3ub(colRgb.r, colRgb.g, colRgb.b);
+		glNormal3f(0.0f, -1.0f, 0.0f);
+		glTexCoord2d(1.0, 1.0); glVertex3f(-1.0f, -1.0f, -1.0f);	// Top Right Of The Texture and Quad
+		glTexCoord2d(0.0, 1.0); glVertex3f(1.0f, -1.0f, -1.0f);	// Top Left Of The Texture and Quad
+		glTexCoord2d(0.0, 0.0); glVertex3f(1.0f, -1.0f, 1.0f);	// Bottom Left Of The Texture and Quad
+		glTexCoord2d(1.0, 0.0); glVertex3f(-1.0f, -1.0f, 1.0f);	// Bottom Right Of The Texture and Quad
+		glEnd();
+		glPopName();
+
+		// Right face
+		glPushName((GLuint)Right);
+		glBindTexture(GL_TEXTURE_2D, getTextureID(right));
+		glBegin(GL_QUADS);
+		colRgb = ColorRGB::RGBColors[right];
+		glColor3ub(colRgb.r, colRgb.g, colRgb.b);
+		glNormal3f(1.0f, 0.0f, 0.0f);
+		glTexCoord2d(1.0, 0.0); glVertex3f(1.0f, -1.0f, -1.0f);	// Bottom Right Of The Texture and Quad
+		glTexCoord2d(1.0, 1.0); glVertex3f(1.0f, 1.0f, -1.0f);	// Top Right Of The Texture and Quad
+		glTexCoord2d(0.0, 1.0); glVertex3f(1.0f, 1.0f, 1.0f);	// Top Left Of The Texture and Quad
+		glTexCoord2d(0.0, 0.0); glVertex3f(1.0f, -1.0f, 1.0f);	// Bottom Left Of The Texture and Quad
+		glEnd();
+		glPopName();
+
+		// Left Face
+		glPushName((GLuint)Left);
+		glBindTexture(GL_TEXTURE_2D, getTextureID(left));
+		glBegin(GL_QUADS);
+		colRgb = ColorRGB::RGBColors[left];
+		glColor3ub(colRgb.r, colRgb.g, colRgb.b);
+		glNormal3f(-1.0f, 0.0f, 0.0f);
+		glTexCoord2d(0.0, 0.0); glVertex3f(-1.0f, -1.0f, -1.0f);	// Bottom Left Of The Texture and Quad
+		glTexCoord2d(1.0, 0.0); glVertex3f(-1.0f, -1.0f, 1.0f);	// Bottom Right Of The Texture and Quad
+		glTexCoord2d(1.0, 1.0); glVertex3f(-1.0f, 1.0f, 1.0f);	// Top Right Of The Texture and Quad
+		glTexCoord2d(0.0, 1.0); glVertex3f(-1.0f, 1.0f, -1.0f);	// Top Left Of The Texture and Quad
+		glEnd();
+		glPopName();
+
+		glPopName();
+		glPopName();
+		glPopName();
+
+		glDisable(GL_TEXTURE_2D);
+
+		glPopMatrix();
+	}
+
+	void RubiksCubeSolverScene::renderRubiksCube_v2()
+	{
+		glInitNames();
+
+		//for (int i = 0; i < g_cCube_v2.getSize(); i++)
+		{
+			//for (int j = 0; j < g_cCube_v2.getSize(); j++)
+			{
+				//for (int k = 0; k < g_cCube_v2.getSize(); k++)
+				for(auto& obj : g_cCube_v2.cubes_)
+				{
+					const Location_v2& loc = obj.first;
+					const Cube_v2& cube = *obj.second.get();
+
+					glPushMatrix();
+
+					if (g_cCube_v2.g_bRotating)
+					{
+						//if (g_cCube_v2.g_vRotationAxis.x && i == g_cCube_v2.g_nRotatingSection //Rotate left, right or middle section
+						//	|| g_cCube_v2.g_vRotationAxis.y && j == g_cCube_v2.g_nRotatingSection //Rotate top, bottom or middle section
+						//	|| g_cCube_v2.g_vRotationAxis.z && k == g_cCube_v2.g_nRotatingSection //Rotate front, back or middle section
+						//																	//||	(	g_cCube_v2.g_nRotatingSection == -1 && 
+						//																	//		(g_cCube_v2.g_vRotationAxis.x || g_cCube_v2.g_vRotationAxis.y || g_cCube_v2.g_vRotationAxis.z) //Rotate whole cube
+						//																	//	)
+						//	)
+						{
+							int angle = g_cCube_v2.g_bFlipRotation ? -g_cCube_v2.g_nRotationAngle : g_cCube_v2.g_nRotationAngle;
+							glRotated(angle, g_cCube_v2.g_vRotationAxis.x, g_cCube_v2.g_vRotationAxis.y, g_cCube_v2.g_vRotationAxis.z);
+						}
+					}
+
+					//const Cube_v2& cube = g_cCube_v2.GetCube(i, j, k);
+					renderIndividualCube_v2(cube, cube.getLocation());
+
+					glPopMatrix();
+				}
+			}
+		}
+	}
+
+	void RubiksCubeSolverScene::renderIndividualCube_v2(const Cube_v2& pCube, const Location_v2& location)
+	{
+		double x = location.x_;
+		double y = location.y_;
+		double z = location.z_;
+
+		glPushName(x);
+		glPushName(y);
+		glPushName(z);
+
+		// scale to -1 to +1
+		//x--;
+		//y--;
+		//z--;
 
 		glPushMatrix();
 

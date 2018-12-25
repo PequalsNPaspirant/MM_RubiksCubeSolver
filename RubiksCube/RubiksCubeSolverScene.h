@@ -6,6 +6,7 @@ using namespace std;
 #include <gl\gl.h>
 #include "Camera.h"
 #include "RubiksCubeRenderingModel_v1.h"
+#include "RubiksCubeRenderingModel_v2.h"
 
 namespace mm {
 
@@ -34,6 +35,8 @@ namespace mm {
 	public:
 		/**//**/void renderRubiksCube();
 		/**//**//**/void renderIndividualCube(const Cube& pCube, int x, int y, int z);
+		/**//**/void renderRubiksCube_v2();
+		/**//**//**/void renderIndividualCube_v2(const Cube_v2& pCube, const Location_v2& location);
 		/**//**//**//**/GLuint getTextureID(Color color);
 	
 	public:
@@ -55,6 +58,8 @@ namespace mm {
 
 	public:
 		CRubiksCube g_cCube;
+		CRubiksCube_v2 g_cCube_v2;
+
 		//bool g_bRotating;
 		//bool g_bFlipRotation;
 		//CVector3 g_vRotationAxis;

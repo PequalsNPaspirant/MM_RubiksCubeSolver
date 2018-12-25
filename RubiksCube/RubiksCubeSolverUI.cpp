@@ -14,6 +14,7 @@ using namespace std;
 #include "RubiksCubeSolverUI.h"
 #include "RubiksCubeSimulator.h"
 #include "RubiksCubeSolver_v1.h"
+#include "RubiksCubeSolver_v2.h"
 #include "RubiksCubeSolverTest.h"
 
 int APIENTRY _tWinMain(HINSTANCE hInstance,
@@ -648,9 +649,10 @@ namespace mm {
 
 	void RubiksCubeSolverUI::Scramble(const string& str)
 	{
-		//RubiksCubeAlgoExecuter::test();
-		//RubiksCubeSimulator::executeAlgorithm(str, scene_);
-		scene_.g_cCube.applyAlgorithm(str, true, 20, this);
+		//Testing
+		scene_.g_cCube.applyAlgorithm("U", true, 20, this);
+
+		//scene_.g_cCube.applyAlgorithm(str, true, 20, this);
 	}
 
 	void RubiksCubeSolverUI::Solve()
@@ -687,10 +689,53 @@ namespace mm {
 		}		
 	}
 
+	void RubiksCubeSolverUI::Solve_v2()
+	{
+		//First solve and then animate
+		CRubiksCube_v2 copy = scene_.g_cCube_v2;
+		RubiksCubeSolver_v2 solver(copy);
+		using HRClock = std::chrono::high_resolution_clock;
+		int solutionSteps;
+		HRClock::time_point start_time = HRClock::now();
+		string solution = solver.solve(solutionSteps);
+		HRClock::time_point end_time = HRClock::now();
+		std::chrono::nanoseconds time_span = std::chrono::duration_cast<std::chrono::nanoseconds>(end_time - start_time);
+		unsigned long long duration = time_span.count();
+		wstring wDuration = to_wstring(duration % 1000);
+		duration /= 1000;
+		while (duration > 0)
+		{
+			wDuration = L"," + wDuration;
+			wDuration = to_wstring(duration % 1000) + wDuration;
+			duration /= 1000;
+		}
+
+		wstring wSolution(solution.begin(), solution.end());
+		wstring wMessage = L"Solution: " + wSolution
+			+ L"\nNumber of steps: " + to_wstring(solutionSteps)
+			+ L"\nTime required: " + wDuration + L" ns"
+			+ L"\nDo you want to see animation of solution?";
+		if (MessageBox(g_hWnd, wMessage.c_str(),
+			g_szTitle, MB_YESNO | MB_ICONQUESTION | MB_APPLMODAL) == IDYES)
+		{
+			//RubiksCubeSimulator::executeAlgorithm(solution, scene_);
+			scene_.g_cCube.applyAlgorithm(solution, true, 20, this);
+		}
+	}
+
 	void RubiksCubeSolverUI::SolveAndAnimate()
 	{
 		//Animate while solving
+		//RubiksCubeSolver_v1 solver(scene_.g_cCube, true, 20, this);
 		RubiksCubeSolver_v1 solver(scene_.g_cCube, true, 20, this);
+		int solutionSteps;
+		string solution = solver.solve(solutionSteps);
+	}
+
+	void RubiksCubeSolverUI::SolveAndAnimate_v2()
+	{
+		//Animate while solving
+		RubiksCubeSolver_v2 solver(scene_.g_cCube_v2, true, 20, this);
 		int solutionSteps;
 		string solution = solver.solve(solutionSteps);
 	}
