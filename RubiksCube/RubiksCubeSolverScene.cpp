@@ -391,8 +391,8 @@ namespace mm {
 						//																	//		(g_cCube_v2.g_vRotationAxis.x || g_cCube_v2.g_vRotationAxis.y || g_cCube_v2.g_vRotationAxis.z) //Rotate whole cube
 						//																	//	)
 							//)
-						if(g_cCube_v2.g_nRotatingSection == Groups::All
-							|| g_cCube_v2.g_nRotatingSection & cube.group_)
+						//if(g_cCube_v2.g_nRotatingSection == Groups::All || g_cCube_v2.g_nRotatingSection & cube.group_)
+						if (g_cCube_v2.g_nRotatingSection & cube.group_)
 						{
 							int angle = g_cCube_v2.g_bFlipRotation ? -g_cCube_v2.g_nRotationAngle : g_cCube_v2.g_nRotationAngle;
 							glRotated(angle, g_cCube_v2.g_vRotationAxis.x, g_cCube_v2.g_vRotationAxis.y, g_cCube_v2.g_vRotationAxis.z);

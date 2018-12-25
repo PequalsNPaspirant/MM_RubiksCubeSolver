@@ -88,6 +88,22 @@ namespace mm {
 	};
 	*/
 
+	enum Groups
+	{
+		None = 0,
+
+		L = 1,
+		R = 2,
+
+		D = 4,
+		U = 8,
+
+		B = 16,
+		F = 32,
+
+		All = 64 - 1 //Stores All flags from 1 to 32
+	};
+
 	struct Location_v2
 	{
 		Location_v2()
@@ -168,26 +184,34 @@ namespace mm {
 			z_ = result[0][2];
 		}
 
+		int recalcGroup(int size)
+		{
+			double extend = (size - 1) / 2.0;
+			int group = 0;
+			if (fabs(x_ - (-extend)) < 0.0001)
+				group |= Groups::L;
+			else if (fabs(x_ - extend) < 0.0001)
+				group |= Groups::R;
+
+			if (fabs(y_ - (-extend)) < 0.0001)
+				group |= Groups::D;
+			else if (fabs(y_ - extend) < 0.0001)
+				group |= Groups::U;
+
+			if (fabs(z_ - (-extend)) < 0.0001)
+				group |= Groups::B;
+			else if (fabs(z_ - extend) < 0.0001)
+				group |= Groups::F;
+
+			return group;
+		}
+
 		double x_;
 		double y_;
 		double z_;
 	};
 
-	enum Groups
-	{
-		None = 0,
-
-		L = 1,
-		R = 2,
-
-		D = 4,
-		U = 8,
-
-		B = 16,
-		F = 32,
-
-		All = 64 //TODO: remove this element...redundant as 1 to 32 all flags can be ON to store All
-	};
+	
 
 	class Cube_v2
 	{
@@ -258,6 +282,8 @@ namespace mm {
 	private:
 		void applyStep(const char& face, bool isPrime, int numRotations, bool animate = false, int steps = 0, RubiksCubeSolverUI* ui = nullptr);
 		void fixRubiksCubeFaces();
+
+		//const CVector3& getRotationAxis(Groups rotationSection); //TODO: add this to localise group <--> Axis relation
 
 		template <class T>
 		static inline void hash_combine(std::size_t& seed, const T& v)  // Similar to boost::hash_combine<T>

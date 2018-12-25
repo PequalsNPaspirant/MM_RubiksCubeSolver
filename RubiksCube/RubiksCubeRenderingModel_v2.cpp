@@ -1,6 +1,7 @@
 #include "StdAfx.h"
 
 #include <time.h>
+#include <cassert>
 using namespace std;
 
 #include "RubiksCubeRenderingModel_v2.h"
@@ -104,7 +105,6 @@ namespace mm {
 	 blue
 
 	*/
-
 
 	void Cube_v2::rotate(CVector3 rotationAxis, double rotationAngle)
 	{
@@ -419,26 +419,28 @@ namespace mm {
 				double z = -extend;
 				for (int k = 0; k < size_; k++, ++z)
 				{
-					int group = 0;
-					if (i == 0)
-						group |= Groups::L;
-					else if (i == size_ - 1)
-						group |= Groups::R;
-					
-					if (j == 0)
-						group |= Groups::D;
-					else if (j == size_ - 1)
-						group |= Groups::U;
+					//int group = 0;
+					//if (i == 0)
+					//	group |= Groups::L;
+					//else if (i == size_ - 1)
+					//	group |= Groups::R;
+					//
+					//if (j == 0)
+					//	group |= Groups::D;
+					//else if (j == size_ - 1)
+					//	group |= Groups::U;
 
-					if (k == 0)
-						group |= Groups::B;
-					else if (k == size_ - 1)
-						group |= Groups::F;
+					//if (k == 0)
+					//	group |= Groups::B;
+					//else if (k == size_ - 1)
+					//	group |= Groups::F;
+
+					Location_v2 loc(x, y, z);
 
 					if (i == 0 || i == size_ - 1
 						|| j == 0 || j == size_ - 1
 						|| k == 0 || k == size_ - 1)
-						cubes_[Location_v2(x, y, z)] = CreateCube(i, j, k, Location_v2(x, y, z), group);
+						cubes_[loc] = CreateCube(i, j, k, loc, loc.recalcGroup(size_));
 				}
 			}
 		}
@@ -718,10 +720,16 @@ namespace mm {
 			const Location_v2& loc = obj.first;
 			Cube_v2& cube = *obj.second.get();
 			
-			if (rotatingSection == Groups::All || cube.group_ & rotatingSection)
+			//if (rotatingSection == Groups::All || cube.group_ & rotatingSection)
+			if (cube.group_ & rotatingSection)
 			{
 				cube.rotate(rotationAxis, rotationAngle);
 				cube.location_.rotate(rotationAxis, rotationAngle * PI / 180.0); //Angle should be in radians
+				//bool noChangeInGroupAfterRotation = (rotationAxis == CVector3::XAxis && (cube.group_ == L || cube.group_ == R))
+				//	|| (rotationAxis == CVector3::YAxis && (cube.group_ == L || cube.group_ == R))
+				//	|| (rotationAxis == CVector3::ZAxis && (cube.group_ == L || cube.group_ == R));
+				//if (rotationAxis != getRotationAxis(cube.group_))
+				cube.group_ = cube.location_.recalcGroup(size_); //Need to recalculate group always in case of any type of rotation since the cube may belong to multiple groups
 			}
 		}
 
@@ -901,6 +909,52 @@ namespace mm {
 
 		return solutionSteps;
 	}
+
+	//const CVector3& CRubiksCube_v2::getRotationAxis(Groups rotationSection)
+	//{
+	//	switch (rotationSection)
+	//	{
+	//	case F:
+	//		g_vRotationAxis = CVector3(0, 0, 1);
+	//		break;
+
+	//	case Z:
+	//		g_vRotationAxis = CVector3(0, 0, 1);
+	//		break;
+
+	//	case B:
+	//		g_vRotationAxis = CVector3(0, 0, 1);
+	//		break;
+
+	//	case L:
+	//		g_vRotationAxis = CVector3(1, 0, 0);
+	//		break;
+
+	//	case X:
+	//		g_vRotationAxis = CVector3(1, 0, 0);
+	//		break;
+
+	//	case R:
+	//		g_vRotationAxis = CVector3(1, 0, 0);
+	//		break;
+
+	//	case U:
+	//		g_vRotationAxis = CVector3(0, 1, 0);
+	//		break;
+
+	//	case Y:
+	//		g_vRotationAxis = CVector3(0, 1, 0);
+	//		break;
+
+	//	case D:
+	//		g_vRotationAxis = CVector3(0, 1, 0);
+	//		break;
+
+	//	default:
+	//		assert(false);
+	//		break;
+	//	}
+	//}
 
 	void CRubiksCube_v2::applyStep(const char& face, bool isPrime, int numRotations, bool animate /*= false*/, int steps /*= 0*/, RubiksCubeSolverUI* ui /*= nullptr*/)
 	{
