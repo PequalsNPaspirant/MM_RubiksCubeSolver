@@ -32,7 +32,7 @@ namespace mm {
 	};
 	*/
 
-	Cube_v2::Cube_v2(Color cTop, Color cBottom, Color cLeft, Color cRight, Color cFront, Color cBack, const Location_v2& location)
+	Cube_v2::Cube_v2(Color cTop, Color cBottom, Color cLeft, Color cRight, Color cFront, Color cBack, const Location_v2& location, int group)
 		: faces_(FACE_COUNT)
 	{
 		//faces_ = new Color[FACE_COUNT];
@@ -45,6 +45,7 @@ namespace mm {
 		faces_[Back] = cBack;
 
 		location_ = location;
+		group_ = group;
 	}
 
 	Cube_v2::~Cube_v2(void)
@@ -103,6 +104,45 @@ namespace mm {
 	 blue
 
 	*/
+
+
+	void Cube_v2::rotate(CVector3 rotationAxis, double rotationAngle)
+	{
+		if (fabs(rotationAngle) < 0.00001)
+			return;
+
+		int numRotations = fabs(rotationAngle) / 90;
+		if(rotationAxis == CVector3::XAxis)
+		{
+			while (--numRotations > -1)
+			{
+				if (rotationAngle > 0)
+					TiltDown();
+				else
+					TiltUp();					
+			}
+		}
+		else if (rotationAxis == CVector3::YAxis)
+		{
+			while (--numRotations > -1)
+			{
+				if (rotationAngle > 0)
+					TurnRight();
+				else
+					TurnLeft();
+			}
+		}
+		else if (rotationAxis == CVector3::ZAxis)
+		{
+			while (--numRotations > -1)
+			{
+				if (rotationAngle > 0)
+					TiltLeft();
+				else
+					TiltRight();
+			}
+		}
+	}
 
 	// Aound X axis
 	void Cube_v2::TiltUp()
@@ -256,7 +296,7 @@ namespace mm {
 		g_bRotating(false),
 		g_bFlipRotation(false),
 		g_vRotationAxis(0, 0, 0),
-		g_nRotatingSection(-1),
+		g_nRotatingSection(None),
 		g_nRotationAngle(0)
 	{
 		ResetCube();
@@ -366,7 +406,7 @@ namespace mm {
 		g_bRotating = false;
 		g_bFlipRotation = false;
 		g_vRotationAxis = CVector3(0, 0, 0);
-		g_nRotatingSection = -1;
+		g_nRotatingSection = None;
 		g_nRotationAngle = 0;
 
 		double extend = (size_ - 1) / 2.0;
@@ -379,16 +419,32 @@ namespace mm {
 				double z = -extend;
 				for (int k = 0; k < size_; k++, ++z)
 				{
+					int group = 0;
+					if (i == 0)
+						group |= Groups::L;
+					else if (i == size_ - 1)
+						group |= Groups::R;
+					
+					if (j == 0)
+						group |= Groups::D;
+					else if (j == size_ - 1)
+						group |= Groups::U;
+
+					if (k == 0)
+						group |= Groups::B;
+					else if (k == size_ - 1)
+						group |= Groups::F;
+
 					if (i == 0 || i == size_ - 1
 						|| j == 0 || j == size_ - 1
 						|| k == 0 || k == size_ - 1)
-						cubes_[Location_v2(x, y, z)] = CreateCube(i, j, k, Location_v2(x, y, z));
+						cubes_[Location_v2(x, y, z)] = CreateCube(i, j, k, Location_v2(x, y, z), group);
 				}
 			}
 		}
 	}
 
-	unique_ptr<Cube_v2> CRubiksCube_v2::CreateCube(double x, double y, double z, const Location_v2& location)
+	unique_ptr<Cube_v2> CRubiksCube_v2::CreateCube(double x, double y, double z, const Location_v2& location, int group)
 	{
 		Color left, right, top, bottom, front, back;
 
@@ -440,7 +496,7 @@ namespace mm {
 			front = Black;
 		}
 
-		return make_unique<Cube_v2>(top, bottom, left, right, front, back, location);
+		return make_unique<Cube_v2>(top, bottom, left, right, front, back, location, group);
 	}
 
 	const Cube_v2& CRubiksCube_v2::GetCube(double x, double y, double z)
@@ -458,6 +514,7 @@ namespace mm {
 			(z >= 0 && z < size_);
 	}
 
+	/*
 	//Around Y axis
 	void CRubiksCube_v2::Rotate(int section, int turns)
 	{
@@ -483,7 +540,7 @@ namespace mm {
 			|
 			|
 			Z
-			*/
+			*//*
 			
 			for (int i = 0; i < turns; i++)
 			{
@@ -504,7 +561,6 @@ namespace mm {
 				//{
 				//}
 
-				/*
 				unique_ptr<Cube_v2> temp1 = cubes_[0][section][0];
 				unique_ptr<Cube_v2> temp2 = cubes_[0][section][2];
 
@@ -529,7 +585,6 @@ namespace mm {
 
 				cubes_[2][section][1] = temp1;
 				cubes_[1][section][0] = temp2;
-				*/
 
 				// front -> right -> back -> left
 
@@ -577,7 +632,6 @@ namespace mm {
 
 			for (int i = 0; i < turns; i++)
 			{
-				/*
 				Cube_v2 temp1 = cubes_[section][0][0];
 				Cube_v2 temp2 = cubes_[section][2][0];
 
@@ -602,7 +656,6 @@ namespace mm {
 
 				cubes_[section][0][1] = temp1;
 				cubes_[section][1][0] = temp2;
-				*/
 			}
 		}
 	}
@@ -629,7 +682,6 @@ namespace mm {
 
 			for (int i = 0; i < turns; i++)
 			{
-				/*
 				Cube_v2 temp1 = cubes_[0][0][section];
 				Cube_v2 temp2 = cubes_[2][0][section];
 
@@ -654,8 +706,38 @@ namespace mm {
 
 				cubes_[1][2][section] = temp1;
 				cubes_[0][1][section] = temp2;
-				*/
 			}
+		}
+	}
+	*/
+
+	void CRubiksCube_v2::Rotate(CVector3 rotationAxis, Groups rotatingSection, double rotationAngle)
+	{
+		for(auto& obj : cubes_)
+		{
+			const Location_v2& loc = obj.first;
+			Cube_v2& cube = *obj.second.get();
+			
+			if (rotatingSection == Groups::All || cube.group_ & rotatingSection)
+			{
+				cube.rotate(rotationAxis, rotationAngle);
+				cube.location_.rotate(rotationAxis, rotationAngle * PI / 180.0); //Angle should be in radians
+			}
+		}
+
+		for (auto& obj : cubes_)
+		{
+			const Location_v2& loc = obj.first;
+			unique_ptr<Cube_v2>& current = obj.second;
+
+			//unique_ptr<Cube_v2> current = std::move(cube);
+			while(loc != current->location_)
+			{
+				unique_ptr<Cube_v2> temp = std::move(cubes_[current->location_]);
+				cubes_[current->location_] = std::move(current);
+				current = std::move(temp);
+			}
+			//obj.second = std::move(current);
 		}
 	}
 
@@ -669,15 +751,16 @@ namespace mm {
 
 		for (int section = 0; section < size_; ++section)
 		{
-			if (axis == 0)
-				Tilt(section, turns);
-			else if (axis == 1)
-				Rotate(section, turns);
-			else if (axis == 2)
-				Turn(section, turns);
+			//if (axis == 0)
+			//	Tilt(section, turns);
+			//else if (axis == 1)
+			//	Rotate(section, turns);
+			//else if (axis == 2)
+			//	Turn(section, turns);
 		}
 	}
 
+	/*
 	void CRubiksCube_v2::Randomize()
 	{
 		int count = 0;
@@ -714,6 +797,7 @@ namespace mm {
 			}
 		}
 	}
+	*/
 
 	bool CRubiksCube_v2::IsSolved()
 	{
@@ -845,55 +929,55 @@ namespace mm {
 		{
 		case 'F':
 			g_vRotationAxis = CVector3(0, 0, 1);
-			g_nRotatingSection = 2;
+			g_nRotatingSection = F;
 			g_nRotationAngle = -90;
 			break;
 
 		case 'Z':
 			g_vRotationAxis = CVector3(0, 0, 1);
-			g_nRotatingSection = 1;
+			g_nRotatingSection = All;
 			g_nRotationAngle = 90;
 			break;
 
 		case 'B':
 			g_vRotationAxis = CVector3(0, 0, 1);
-			g_nRotatingSection = 0;
+			g_nRotatingSection = B;
 			g_nRotationAngle = 90;
 			break;
 
 		case 'L':
 			g_vRotationAxis = CVector3(1, 0, 0);
-			g_nRotatingSection = 0;
+			g_nRotatingSection = L;
 			g_nRotationAngle = 90;
 			break;
 
 		case 'X':
 			g_vRotationAxis = CVector3(1, 0, 0);
-			g_nRotatingSection = 1;
+			g_nRotatingSection = All;
 			g_nRotationAngle = 90;
 			break;
 
 		case 'R':
 			g_vRotationAxis = CVector3(1, 0, 0);
-			g_nRotatingSection = 2;
+			g_nRotatingSection = R;
 			g_nRotationAngle = -90;
 			break;
 
 		case 'U':
 			g_vRotationAxis = CVector3(0, 1, 0);
-			g_nRotatingSection = 2;
+			g_nRotatingSection = U;
 			g_nRotationAngle = -90;
 			break;
 
 		case 'Y':
 			g_vRotationAxis = CVector3(0, 1, 0);
-			g_nRotatingSection = 1;
+			g_nRotatingSection = All;
 			g_nRotationAngle = 90;
 			break;
 
 		case 'D':
 			g_vRotationAxis = CVector3(0, 1, 0);
-			g_nRotatingSection = 0;
+			g_nRotatingSection = D;
 			g_nRotationAngle = 90;
 			break;
 
@@ -934,29 +1018,32 @@ namespace mm {
 
 		//Fix cube position and Reset all parameters
 		fixRubiksCubeFaces();
+		g_vRotationAxis = CVector3{0.0, 0.0, 0.0};
 		g_nRotationAngle = 0;
-		g_nRotatingSection = -1;
+		g_nRotatingSection = None;
 	}
 
 
 	void CRubiksCube_v2::fixRubiksCubeFaces()
 	{
-		int turns = 0;
-		if (g_nRotationAngle == 0)
-			turns = 0;
-		else if (g_nRotationAngle == 90)
-			turns = 1;
-		else if (g_nRotationAngle == 180 || g_nRotationAngle == -180)
-			turns = 2;
-		else if (g_nRotationAngle == -90)
-			turns = 3;
+		//int turns = 0;
+		//if (g_nRotationAngle == 0)
+		//	turns = 0;
+		//else if (g_nRotationAngle == 90)
+		//	turns = 1;
+		//else if (g_nRotationAngle == 180 || g_nRotationAngle == -180)
+		//	turns = 2;
+		//else if (g_nRotationAngle == -90)
+		//	turns = 3;
 
-		if (g_vRotationAxis.x)
-			Tilt(g_nRotatingSection, turns);
-		else if (g_vRotationAxis.y)
-			Rotate(g_nRotatingSection, turns);
-		else if (g_vRotationAxis.z)
-			Turn(g_nRotatingSection, turns);
+		//if (g_vRotationAxis.x)
+		//	Tilt(g_nRotatingSection, turns);
+		//else if (g_vRotationAxis.y)
+		//	Rotate(g_nRotatingSection, turns);
+		//else if (g_vRotationAxis.z)
+		//	Turn(g_nRotatingSection, turns);
+
+		Rotate(g_vRotationAxis, g_nRotatingSection, g_nRotationAngle);
 	}
 
 }

@@ -79,6 +79,8 @@ namespace mm {
 		void Solve();
 		void SolveAndAnimate();
 
+		void Reset_v2();
+		void Scramble_v2(const string& str);
 		void Solve_v2();
 		void SolveAndAnimate_v2();
 

@@ -108,21 +108,101 @@ namespace mm {
 				&& fabs(z_ - rhs.z_) < 0.0001;
 		}
 
+		bool operator!=(const Location_v2& rhs) const
+		{
+			return !(*this == rhs);
+		}
+
+		void rotate(CVector3 rotationAxis, double rotationAngle)
+		{
+			static vector<vector<double>> rotationMatrix(4, vector<double>(4));
+
+			// Initialize rotation matrix
+			for (int Row = 0; Row < 4; Row++)
+				for (int Column = 0; Column < 4; Column++)
+					if (Row == Column)
+						rotationMatrix[Row][Column] = 1.0;
+					else
+						rotationMatrix[Row][Column] = 0.0;
+
+			if (rotationAxis == CVector3::XAxis)
+			{
+				rotationMatrix[1][1] = cos(rotationAngle);
+				rotationMatrix[1][2] = sin(rotationAngle);
+				rotationMatrix[2][1] = -sin(rotationAngle);
+				rotationMatrix[2][2] = cos(rotationAngle);
+			}
+			else if (rotationAxis == CVector3::YAxis)
+			{
+				rotationMatrix[0][0] = cos(rotationAngle);
+				rotationMatrix[0][2] = -sin(rotationAngle);
+				rotationMatrix[2][0] = sin(rotationAngle);
+				rotationMatrix[2][2] = cos(rotationAngle);
+			}
+			else if (rotationAxis == CVector3::ZAxis)
+			{
+				rotationMatrix[0][0] = cos(rotationAngle);
+				rotationMatrix[0][1] = sin(rotationAngle);
+				rotationMatrix[1][0] = -sin(rotationAngle);
+				rotationMatrix[1][1] = cos(rotationAngle);
+			}
+
+			for (int Row = 0; Row < 4; Row++)
+				for (int Column = 0; Column < 4; Column++)
+					if (fabs(rotationMatrix[Row][Column]) < 0.000001)
+						rotationMatrix[Row][Column] = 0.0;
+
+			vector< vector<double>> geomVecMatrix(1, vector<double>(4, 1.0));
+			geomVecMatrix[0][0] = x_;
+			geomVecMatrix[0][1] = y_;
+			geomVecMatrix[0][2] = z_;
+			vector< vector<double>> result(1, vector<double>(4, 0.0));
+
+			for (int i = 0; i < 1; i++)
+				for (int j = 0; j < 4; j++)
+					for (int k = 0; k < 4; k++) // OR use Matrix2.m_row. Both are equal.
+						result[i][j] += geomVecMatrix[i][k] * rotationMatrix[k][j];
+
+			x_ = result[0][0];
+			y_ = result[0][1];
+			z_ = result[0][2];
+		}
+
 		double x_;
 		double y_;
 		double z_;
+	};
+
+	enum Groups
+	{
+		None = 0,
+
+		L = 1,
+		R = 2,
+
+		D = 4,
+		U = 8,
+
+		B = 16,
+		F = 32,
+
+		All = 64 //TODO: remove this element...redundant as 1 to 32 all flags can be ON to store All
 	};
 
 	class Cube_v2
 	{
 	public:
 		Cube_v2() {}
-		Cube_v2(const Cube_v2& copy) : faces_(copy.faces_), location_(copy.location_) {}
+		Cube_v2(const Cube_v2& copy) 
+			: faces_(copy.faces_), 
+			location_(copy.location_),
+			group_(copy.group_)
+		{}
 		Cube_v2(Cube_v2&&) = default;
 		Cube_v2& operator=(const Cube_v2&) = default;
 		Cube_v2& operator=(Cube_v2&&) = default;
 		Cube_v2(Color cTop, Color cBottom, Color cLeft,
-			Color cRight, Color cFront, Color cBack, const Location_v2& location);
+			Color cRight, Color cFront, Color cBack, const Location_v2& location, int group);
 		~Cube_v2();
 		Color GetFaceColor(Face eFace) const;
 		//ColorRGB GetFaceColorRGB(Face eFace) const;
@@ -135,10 +215,13 @@ namespace mm {
 
 		const Location_v2& getLocation() const { return location_; }
 
-	protected:
+		void rotate(CVector3 rotationAxis, double rotationAngle);
+
+	//private:
 		static const int FACE_COUNT = 6;
 		vector<Color> faces_;
 		Location_v2 location_;
+		int group_;
 	};
 
 	class RubiksCubeSolverUI;
@@ -152,10 +235,11 @@ namespace mm {
 
 		void ResetCube();
 		const Cube_v2& GetCube(double x, double y, double z);
-		void Rotate(int section, int turns);	// around y axis
-		void Tilt(int section, int turns);	// around x axis
-		void Turn(int section, int turns);	// around z axis
-		void Randomize();
+		//void Rotate(int section, int turns);	// around y axis
+		//void Tilt(int section, int turns);	// around x axis
+		//void Turn(int section, int turns);	// around z axis
+		void Rotate(CVector3 rotationAxis, Groups rotatingSection, double rotationAngle);
+		//void Randomize();
 		bool IsSolved();
 
 		void RotateWholeRubiksCube(int axis, int turns);
@@ -166,8 +250,8 @@ namespace mm {
 		bool g_bRotating;
 		bool g_bFlipRotation;
 		CVector3 g_vRotationAxis;
-		int g_nRotatingSection;
-		int g_nRotationAngle;
+		Groups g_nRotatingSection;
+		double g_nRotationAngle;
 
 		int getSize() { return size_; }
 
@@ -217,7 +301,7 @@ namespace mm {
 
 	private:
 		bool IsValidCube(int x, int y, int z);
-		unique_ptr<Cube_v2> CreateCube(double x, double y, double z, const Location_v2& location);
+		unique_ptr<Cube_v2> CreateCube(double x, double y, double z, const Location_v2& location, int group);
 		bool IsFaceSolved(Face face);
 	};
 

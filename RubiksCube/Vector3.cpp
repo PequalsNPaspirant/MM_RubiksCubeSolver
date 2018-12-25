@@ -4,6 +4,10 @@
 
 namespace mm {
 
+	const CVector3 CVector3::XAxis{ 1.0, 0.0, 0.0 };
+	const CVector3 CVector3::YAxis{ 0.0, 1.0, 0.0 };
+	const CVector3 CVector3::ZAxis{ 0.0, 0.0, 1.0 };
+
 	CVector3::CVector3(double x, double y, double z)
 	{
 		this->x = x;

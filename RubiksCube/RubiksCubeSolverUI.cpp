@@ -602,7 +602,8 @@ namespace mm {
 		// menu
 		if (id == IDM_FILE_RESET)
 		{
-			Reset();
+			//Reset();
+			Reset_v2();
 		}
 		else if (id == IDM_FILE_SCRAMBLE)
 		{
@@ -619,16 +620,19 @@ namespace mm {
 			if (MessageBox(hwnd, wMessage.c_str(),
 				g_szTitle, MB_YESNO | MB_ICONQUESTION | MB_APPLMODAL) == IDYES)
 			{
-				Scramble(algo);
+				//Scramble(algo);
+				Scramble_v2(algo);
 			}
 		}
 		else if (id == IDM_FILE_SOLVE)
 		{
-			Solve();
+			//Solve();
+			Solve_v2();
 		}
 		else if (id == IDM_FILE_SOLVE_ANIM)
 		{
-			SolveAndAnimate();
+			//SolveAndAnimate();
+			SolveAndAnimate_v2();
 		}
 		else if (id == IDM_ABOUT)
 		{
@@ -647,12 +651,20 @@ namespace mm {
 		redrawWindow();
 	}
 
+	void RubiksCubeSolverUI::Reset_v2()
+	{
+		scene_.g_cCube_v2.ResetCube();
+		redrawWindow();
+	}
+
 	void RubiksCubeSolverUI::Scramble(const string& str)
 	{
-		//Testing
-		scene_.g_cCube.applyAlgorithm("U", true, 20, this);
+		scene_.g_cCube.applyAlgorithm(str, true, 20, this);
+	}
 
-		//scene_.g_cCube.applyAlgorithm(str, true, 20, this);
+	void RubiksCubeSolverUI::Scramble_v2(const string& str)
+	{
+		scene_.g_cCube_v2.applyAlgorithm(str, true, 20, this);
 	}
 
 	void RubiksCubeSolverUI::Solve()
@@ -691,6 +703,44 @@ namespace mm {
 
 	void RubiksCubeSolverUI::Solve_v2()
 	{
+		//Testing
+		//scene_.g_cCube.applyAlgorithm("U", true, 20, this);
+
+		string algo;
+		algo = "U";
+		algo = "D";
+		algo = "L";
+		algo = "R";
+		algo = "F";
+		algo = "B";
+		algo = "X";
+		algo = "Y";
+		algo = "Z";
+
+		algo = "U'";
+		algo = "D'";
+		algo = "L'";
+		algo = "R'";
+		algo = "F'";
+		algo = "B'";
+		algo = "X'";
+		algo = "Y'";
+		algo = "Z'";
+
+		algo = "U2";
+		algo = "D2";
+		algo = "L2";
+		algo = "R2";
+		algo = "F2";
+		algo = "B2";
+		algo = "X2";
+		//algo = "Y2";
+		//algo = "Z2";
+
+		scene_.g_cCube_v2.applyAlgorithm(algo, true, 20, this);
+
+		return;
+
 		//First solve and then animate
 		CRubiksCube_v2 copy = scene_.g_cCube_v2;
 		RubiksCubeSolver_v2 solver(copy);

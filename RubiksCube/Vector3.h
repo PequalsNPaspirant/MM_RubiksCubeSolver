@@ -1,5 +1,6 @@
 #pragma once
 
+#include <math.h>
 
 namespace mm {
 
@@ -30,6 +31,22 @@ namespace mm {
 		CVector3 OrthogonalTo(void);
 		double GetAngle(CVector3& v);
 		VOID ToFloatArray(float* position);
+
+		static const CVector3 XAxis;
+		static const CVector3 YAxis;
+		static const CVector3 ZAxis;
+
+		bool operator==(const CVector3& rhs) const
+		{
+			return fabs(x - rhs.x) < 0.0001
+				&& fabs(y - rhs.y) < 0.0001
+				&& fabs(z - rhs.z) < 0.0001;
+		}
+
+		bool operator!=(const CVector3& rhs) const
+		{
+			return !(*this == rhs);
+		}
 
 	protected:
 		double LengthSquared(void);
