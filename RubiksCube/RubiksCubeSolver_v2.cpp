@@ -300,7 +300,7 @@ namespace mm {
 			&& (c1 == targetColorRight || c2 == targetColorRight || c3 == targetColorRight)
 			&& (c1 == targetColorBottom || c2 == targetColorBottom || c3 == targetColorBottom)
 			)
-			applyAlgorithm("LU2L'");
+			applyAlgorithm("LUUL'");
 
 
 		currentCube = rubiksCube_.GetCube(0, 0, 2);
@@ -347,7 +347,7 @@ namespace mm {
 			&& (c1 == targetColorRight || c2 == targetColorRight || c3 == targetColorRight)
 			&& (c1 == targetColorBottom || c2 == targetColorBottom || c3 == targetColorBottom)
 			)
-			applyAlgorithm("U2");
+			applyAlgorithm("UU");
 
 		currentCube = rubiksCube_.GetCube(0, 2, 2);
 		c1 = currentCube.GetFaceColor(Face::Up);

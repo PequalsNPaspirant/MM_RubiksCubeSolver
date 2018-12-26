@@ -344,12 +344,12 @@ namespace mm {
 		//layerR_(vector< vector<Cube_v2*> >(size, vector<Cube_v2*>(size, nullptr))),
 		//layerU_(vector< vector<Cube_v2*> >(size, vector<Cube_v2*>(size, nullptr))),
 		//layerD_(vector< vector<Cube_v2*> >(size, vector<Cube_v2*>(size, nullptr))),
-		size_(size),
-		g_bRotating(false),
-		g_bFlipRotation(false),
-		g_vRotationAxis(0, 0, 0),
-		g_nRotatingSection(None),
-		g_nRotationAngle(0)
+		size_(size)
+		//g_bRotating(false),
+		//g_bFlipRotation(false),
+		//g_vRotationAxis(0, 0, 0),
+		//g_nRotatingSection(None),
+		//g_nRotationAngle(0)
 	{
 		ResetCube();
 
@@ -459,6 +459,7 @@ namespace mm {
 		g_bFlipRotation = false;
 		g_vRotationAxis = CVector3(0, 0, 0);
 		g_nRotatingSection = None;
+		g_nLayerIndex = 1;
 		g_nRotationAngle = 0;
 
 		double extend = (size_ - 1) / 2.0;
@@ -1227,7 +1228,7 @@ namespace mm {
 			unsigned int option = rand() % size_;
 			if (option == 0)
 				retVal += '\'';
-			else if (index < 6 && option > 1) //not for X, Y and Z
+			else if (index < 6 && option > 1) //Avoid X, Y and Z since layerIndex is not applicable for it
 				retVal += to_string(option);
 		}
 
