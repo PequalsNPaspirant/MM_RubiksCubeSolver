@@ -36,8 +36,8 @@ namespace mm {
 	{
 		//faces_ = new Color[FACE_COUNT];
 
-		faces_[Top] = cTop;
-		faces_[Bottom] = cBottom;
+		faces_[Up] = cTop;
+		faces_[Down] = cBottom;
 		faces_[Left] = cLeft;
 		faces_[Right] = cRight;
 		faces_[Front] = cFront;
@@ -105,22 +105,22 @@ namespace mm {
 	void Cube::TiltUp()
 	{
 		/*
-		Color temp1 = faces_[Top];
+		Color temp1 = faces_[Up];
 		Color temp2 = faces_[Back];
 
-		faces_[Top] = faces_[Front];
+		faces_[Up] = faces_[Front];
 		faces_[Back] = temp1;
 
-		temp1 = faces_[Bottom];
-		faces_[Bottom] = temp2;
+		temp1 = faces_[Down];
+		faces_[Down] = temp2;
 
 		faces_[Front] = temp1;
 		*/
 
-		Color temp1 = faces_[Top];
-		faces_[Top] = faces_[Front];
-		faces_[Front] = faces_[Bottom];
-		faces_[Bottom] = faces_[Back];
+		Color temp1 = faces_[Up];
+		faces_[Up] = faces_[Front];
+		faces_[Front] = faces_[Down];
+		faces_[Down] = faces_[Back];
 		faces_[Back] = temp1;
 	}
 
@@ -128,22 +128,22 @@ namespace mm {
 	void Cube::TiltDown()
 	{
 		/*
-		Color temp1 = faces_[Top];
+		Color temp1 = faces_[Up];
 		Color temp2 = faces_[Front];
 
-		faces_[Top] = faces_[Back];
+		faces_[Up] = faces_[Back];
 		faces_[Front] = temp1;
 
-		temp1 = faces_[Bottom];
-		faces_[Bottom] = temp2;
+		temp1 = faces_[Down];
+		faces_[Down] = temp2;
 
 		faces_[Back] = temp1;
 		*/
 
-		Color temp1 = faces_[Top];
-		faces_[Top] = faces_[Back];
-		faces_[Back] = faces_[Bottom];
-		faces_[Bottom] = faces_[Front];
+		Color temp1 = faces_[Up];
+		faces_[Up] = faces_[Back];
+		faces_[Back] = faces_[Down];
+		faces_[Down] = faces_[Front];
 		faces_[Front] = temp1;
 	}
 
@@ -197,22 +197,22 @@ namespace mm {
 	void Cube::TiltLeft()
 	{
 		/*
-		Color temp1 = faces_[Top];
+		Color temp1 = faces_[Up];
 		Color temp2 = faces_[Left];
 
-		faces_[Top] = faces_[Right];
+		faces_[Up] = faces_[Right];
 		faces_[Left] = temp1;
 
-		temp1 = faces_[Bottom];
-		faces_[Bottom] = temp2;
+		temp1 = faces_[Down];
+		faces_[Down] = temp2;
 
 		faces_[Right] = temp1;
 		*/
 
-		Color temp1 = faces_[Top];
-		faces_[Top] = faces_[Right];
-		faces_[Right] = faces_[Bottom];
-		faces_[Bottom] = faces_[Left];
+		Color temp1 = faces_[Up];
+		faces_[Up] = faces_[Right];
+		faces_[Right] = faces_[Down];
+		faces_[Down] = faces_[Left];
 		faces_[Left] = temp1;
 	}
 
@@ -220,22 +220,22 @@ namespace mm {
 	void Cube::TiltRight()
 	{
 		/*
-		Color temp1 = faces_[Top];
+		Color temp1 = faces_[Up];
 		Color temp2 = faces_[Right];
 
-		faces_[Top] = faces_[Left];
+		faces_[Up] = faces_[Left];
 		faces_[Right] = temp1;
 
-		temp1 = faces_[Bottom];
-		faces_[Bottom] = temp2;
+		temp1 = faces_[Down];
+		faces_[Down] = temp2;
 
 		faces_[Left] = temp1;
 		*/
 
-		Color temp1 = faces_[Top];
-		faces_[Top] = faces_[Left];
-		faces_[Left] = faces_[Bottom];
-		faces_[Bottom] = faces_[Right];
+		Color temp1 = faces_[Up];
+		faces_[Up] = faces_[Left];
+		faces_[Left] = faces_[Down];
+		faces_[Down] = faces_[Right];
 		faces_[Right] = temp1;
 	}
 
@@ -611,8 +611,8 @@ namespace mm {
 
 	bool CRubiksCube::IsSolved()
 	{
-		return IsFaceSolved(Top) &&
-			IsFaceSolved(Bottom) &&
+		return IsFaceSolved(Up) &&
+			IsFaceSolved(Down) &&
 			IsFaceSolved(Left) &&
 			IsFaceSolved(Right) &&
 			IsFaceSolved(Front) &&
@@ -621,9 +621,9 @@ namespace mm {
 
 	bool CRubiksCube::IsFaceSolved(Face face)
 	{
-		if (face == Top || face == Bottom)
+		if (face == Up || face == Down)
 		{
-			int j = (face == Top) ? 2 : 0;
+			int j = (face == Up) ? 2 : 0;
 
 			Color color = cubes_[0][j][0].GetFaceColor(face);
 
@@ -853,5 +853,32 @@ namespace mm {
 			Turn(g_nRotatingSection, turns);
 	}
 
+	string CRubiksCube::getScramblingAlgo()
+	{
+		char charSet[9] = { 
+			'F', //Front
+			'Z', //Center layer between F and B
+			'B', //Back
+			'L', //Left
+			'X', //Center layer between L and R
+			'R', //Right
+			'U', //Up
+			'Y', //Center layer between U and D
+			'D'  //Down
+		};
+		string retVal;
+		for (int i = 0; i < 25; ++i)
+		{
+			int index = rand() % 9;
+			retVal += charSet[index];
+
+			if (rand() % 2 == 0)
+				retVal += '\'';
+			else if (rand() % 10 == 0)
+				retVal += '2';
+		}
+
+		return retVal;
+	}
 }
 

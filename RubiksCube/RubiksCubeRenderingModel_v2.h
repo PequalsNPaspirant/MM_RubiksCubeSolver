@@ -88,20 +88,34 @@ namespace mm {
 	};
 	*/
 
-	enum Groups
+	//enum Groups
+	//{
+	//	None = 0,
+
+	//	L = 1,
+	//	R = 2,
+
+	//	D = 4,
+	//	U = 8,
+
+	//	B = 16,
+	//	F = 32,
+
+	//	All = 64 - 1 //Stores All flags from 1 to 32
+	//};
+
+	class Utility
 	{
-		None = 0,
+	public:
+		//static Groups getGroup(char layer, int index)
+		//{
 
-		L = 1,
-		R = 2,
+		//}
 
-		D = 4,
-		U = 8,
-
-		B = 16,
-		F = 32,
-
-		All = 64 - 1 //Stores All flags from 1 to 32
+		//static const CVector3& getAxis(char layer, int index)
+		//{
+		//	static vector<CVector3*> data{};
+		//}
 	};
 
 	struct Location_v2
@@ -184,27 +198,27 @@ namespace mm {
 			z_ = result[0][2];
 		}
 
-		int recalcGroup(int size)
-		{
-			double extend = (size - 1) / 2.0;
-			int group = 0;
-			if (fabs(x_ - (-extend)) < 0.0001)
-				group |= Groups::L;
-			else if (fabs(x_ - extend) < 0.0001)
-				group |= Groups::R;
+		//int recalcGroup(int size)
+		//{
+		//	double extend = (size - 1) / 2.0;
+		//	int group = 0;
+		//	if (fabs(x_ - (-extend)) < 0.0001)
+		//		group |= Groups::L;
+		//	else if (fabs(x_ - extend) < 0.0001)
+		//		group |= Groups::R;
 
-			if (fabs(y_ - (-extend)) < 0.0001)
-				group |= Groups::D;
-			else if (fabs(y_ - extend) < 0.0001)
-				group |= Groups::U;
+		//	if (fabs(y_ - (-extend)) < 0.0001)
+		//		group |= Groups::D;
+		//	else if (fabs(y_ - extend) < 0.0001)
+		//		group |= Groups::U;
 
-			if (fabs(z_ - (-extend)) < 0.0001)
-				group |= Groups::B;
-			else if (fabs(z_ - extend) < 0.0001)
-				group |= Groups::F;
+		//	if (fabs(z_ - (-extend)) < 0.0001)
+		//		group |= Groups::B;
+		//	else if (fabs(z_ - extend) < 0.0001)
+		//		group |= Groups::F;
 
-			return group;
-		}
+		//	return group;
+		//}
 
 		double x_;
 		double y_;
@@ -219,14 +233,14 @@ namespace mm {
 		Cube_v2() {}
 		Cube_v2(const Cube_v2& copy) 
 			: faces_(copy.faces_), 
-			location_(copy.location_),
-			group_(copy.group_)
+			location_(copy.location_)
+			//group_(copy.group_)
 		{}
 		Cube_v2(Cube_v2&&) = default;
 		Cube_v2& operator=(const Cube_v2&) = default;
 		Cube_v2& operator=(Cube_v2&&) = default;
 		Cube_v2(Color cTop, Color cBottom, Color cLeft,
-			Color cRight, Color cFront, Color cBack, const Location_v2& location, int group);
+			Color cRight, Color cFront, Color cBack, const Location_v2& location);
 		~Cube_v2();
 		Color GetFaceColor(Face eFace) const;
 		//ColorRGB GetFaceColorRGB(Face eFace) const;
@@ -240,12 +254,13 @@ namespace mm {
 		const Location_v2& getLocation() const { return location_; }
 
 		void rotate(CVector3 rotationAxis, double rotationAngle);
+		bool belongsTo(Face rotatingSection, int layerIndex, int size) const;
 
 	//private:
 		static const int FACE_COUNT = 6;
 		vector<Color> faces_;
 		Location_v2 location_;
-		int group_;
+		//int group_;
 	};
 
 	class RubiksCubeSolverUI;
@@ -259,14 +274,16 @@ namespace mm {
 
 		void ResetCube();
 		const Cube_v2& GetCube(double x, double y, double z);
+		//const Cube_v2& GetCube(Face layer0, Face layer1, Face layer2);
+
 		//void Rotate(int section, int turns);	// around y axis
 		//void Tilt(int section, int turns);	// around x axis
 		//void Turn(int section, int turns);	// around z axis
-		void Rotate(CVector3 rotationAxis, Groups rotatingSection, double rotationAngle);
+		void Rotate(CVector3 rotationAxis, Face rotatingSection, int layerIndex, double rotationAngle);
 		//void Randomize();
 		bool IsSolved();
 
-		void RotateWholeRubiksCube(int axis, int turns);
+		//void RotateWholeRubiksCube(int axis, int turns); This function is not required. Rotate can do it.
 
 		//Apply algorithm
 		int applyAlgorithm(const string& algorithm, bool animate = false, int steps = 0, RubiksCubeSolverUI* ui = nullptr);
@@ -274,10 +291,13 @@ namespace mm {
 		bool g_bRotating;
 		bool g_bFlipRotation;
 		CVector3 g_vRotationAxis;
-		Groups g_nRotatingSection;
+		Face g_nRotatingSection;
+		int g_nLayerIndex;
 		double g_nRotationAngle;
 
 		int getSize() { return size_; }
+
+		string getScramblingAlgo();
 
 	private:
 		void applyStep(const char& face, bool isPrime, int numRotations, bool animate = false, int steps = 0, RubiksCubeSolverUI* ui = nullptr);
@@ -327,7 +347,7 @@ namespace mm {
 
 	private:
 		bool IsValidCube(int x, int y, int z);
-		unique_ptr<Cube_v2> CreateCube(double x, double y, double z, const Location_v2& location, int group);
+		unique_ptr<Cube_v2> CreateCube(double x, double y, double z, const Location_v2& location);
 		bool IsFaceSolved(Face face);
 	};
 

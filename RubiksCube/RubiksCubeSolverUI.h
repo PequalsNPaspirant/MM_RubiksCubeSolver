@@ -113,6 +113,8 @@ namespace mm {
 
 	private:
 		RubiksCubeSolverScene scene_;
+
+		void test();
 	};
 
 }

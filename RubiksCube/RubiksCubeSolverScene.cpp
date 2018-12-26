@@ -257,15 +257,15 @@ namespace mm {
 
 		glTranslated(x * CUBE_SIZE, y * CUBE_SIZE, z * CUBE_SIZE);
 
-		//ColorRGB top = pCube.GetFaceColorRGB(Top);
-		//ColorRGB bottom = pCube.GetFaceColorRGB(Bottom);
+		//ColorRGB top = pCube.GetFaceColorRGB(Up);
+		//ColorRGB bottom = pCube.GetFaceColorRGB(Down);
 		//ColorRGB left = pCube.GetFaceColorRGB(Left);
 		//ColorRGB right = pCube.GetFaceColorRGB(Right);
 		//ColorRGB back = pCube.GetFaceColorRGB(Back);
 		//ColorRGB front = pCube.GetFaceColorRGB(Front);
 
-		Color top = pCube.GetFaceColor(Top);
-		Color bottom = pCube.GetFaceColor(Bottom);
+		Color top = pCube.GetFaceColor(Up);
+		Color bottom = pCube.GetFaceColor(Down);
 		Color left = pCube.GetFaceColor(Left);
 		Color right = pCube.GetFaceColor(Right);
 		Color back = pCube.GetFaceColor(Back);
@@ -301,8 +301,8 @@ namespace mm {
 		glEnd();
 		glPopName();
 
-		// Top Face
-		glPushName((GLuint)Top);
+		// Up Face
+		glPushName((GLuint)Up);
 		glBindTexture(GL_TEXTURE_2D, getTextureID(top));
 		glBegin(GL_QUADS);
 		colRgb = ColorRGB::RGBColors[top];
@@ -315,8 +315,8 @@ namespace mm {
 		glEnd();
 		glPopName();
 
-		// Bottom Face
-		glPushName((GLuint)Bottom);
+		// Down Face
+		glPushName((GLuint)Down);
 		glBindTexture(GL_TEXTURE_2D, getTextureID(bottom));
 		glBegin(GL_QUADS);
 		colRgb = ColorRGB::RGBColors[bottom];
@@ -392,7 +392,8 @@ namespace mm {
 						//																	//	)
 							//)
 						//if(g_cCube_v2.g_nRotatingSection == Groups::All || g_cCube_v2.g_nRotatingSection & cube.group_)
-						if (g_cCube_v2.g_nRotatingSection & cube.group_)
+						//if (g_cCube_v2.g_nRotatingSection & cube.group_)
+						if(cube.belongsTo(g_cCube_v2.g_nRotatingSection, g_cCube_v2.g_nLayerIndex, g_cCube_v2.size_))
 						{
 							int angle = g_cCube_v2.g_bFlipRotation ? -g_cCube_v2.g_nRotationAngle : g_cCube_v2.g_nRotationAngle;
 							glRotated(angle, g_cCube_v2.g_vRotationAxis.x, g_cCube_v2.g_vRotationAxis.y, g_cCube_v2.g_vRotationAxis.z);
@@ -434,8 +435,8 @@ namespace mm {
 		//ColorRGB back = pCube.GetFaceColorRGB(Back);
 		//ColorRGB front = pCube.GetFaceColorRGB(Front);
 
-		Color top = pCube.GetFaceColor(Top);
-		Color bottom = pCube.GetFaceColor(Bottom);
+		Color top = pCube.GetFaceColor(Up);
+		Color bottom = pCube.GetFaceColor(Down);
 		Color left = pCube.GetFaceColor(Left);
 		Color right = pCube.GetFaceColor(Right);
 		Color back = pCube.GetFaceColor(Back);
@@ -471,8 +472,8 @@ namespace mm {
 		glEnd();
 		glPopName();
 
-		// Top Face
-		glPushName((GLuint)Top);
+		// Up Face
+		glPushName((GLuint)Up);
 		glBindTexture(GL_TEXTURE_2D, getTextureID(top));
 		glBegin(GL_QUADS);
 		colRgb = ColorRGB::RGBColors[top];
@@ -485,8 +486,8 @@ namespace mm {
 		glEnd();
 		glPopName();
 
-		// Bottom Face
-		glPushName((GLuint)Bottom);
+		// Down Face
+		glPushName((GLuint)Down);
 		glBindTexture(GL_TEXTURE_2D, getTextureID(bottom));
 		glBegin(GL_QUADS);
 		colRgb = ColorRGB::RGBColors[bottom];

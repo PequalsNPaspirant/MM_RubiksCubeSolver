@@ -33,20 +33,20 @@ namespace mm {
 	};
 	*/
 
-	Cube_v2::Cube_v2(Color cTop, Color cBottom, Color cLeft, Color cRight, Color cFront, Color cBack, const Location_v2& location, int group)
+	Cube_v2::Cube_v2(Color cTop, Color cBottom, Color cLeft, Color cRight, Color cFront, Color cBack, const Location_v2& location)
 		: faces_(FACE_COUNT)
 	{
 		//faces_ = new Color[FACE_COUNT];
 
-		faces_[Top] = cTop;
-		faces_[Bottom] = cBottom;
+		faces_[Up] = cTop;
+		faces_[Down] = cBottom;
 		faces_[Left] = cLeft;
 		faces_[Right] = cRight;
 		faces_[Front] = cFront;
 		faces_[Back] = cBack;
 
 		location_ = location;
-		group_ = group;
+		//group_ = group;
 	}
 
 	Cube_v2::~Cube_v2(void)
@@ -148,22 +148,22 @@ namespace mm {
 	void Cube_v2::TiltUp()
 	{
 		/*
-		Color temp1 = faces_[Top];
+		Color temp1 = faces_[Up];
 		Color temp2 = faces_[Back];
 
-		faces_[Top] = faces_[Front];
+		faces_[Up] = faces_[Front];
 		faces_[Back] = temp1;
 
-		temp1 = faces_[Bottom];
-		faces_[Bottom] = temp2;
+		temp1 = faces_[Down];
+		faces_[Down] = temp2;
 
 		faces_[Front] = temp1;
 		*/
 
-		Color temp1 = faces_[Top];
-		faces_[Top] = faces_[Front];
-		faces_[Front] = faces_[Bottom];
-		faces_[Bottom] = faces_[Back];
+		Color temp1 = faces_[Up];
+		faces_[Up] = faces_[Front];
+		faces_[Front] = faces_[Down];
+		faces_[Down] = faces_[Back];
 		faces_[Back] = temp1;
 	}
 
@@ -171,22 +171,22 @@ namespace mm {
 	void Cube_v2::TiltDown()
 	{
 		/*
-		Color temp1 = faces_[Top];
+		Color temp1 = faces_[Up];
 		Color temp2 = faces_[Front];
 
-		faces_[Top] = faces_[Back];
+		faces_[Up] = faces_[Back];
 		faces_[Front] = temp1;
 
-		temp1 = faces_[Bottom];
-		faces_[Bottom] = temp2;
+		temp1 = faces_[Down];
+		faces_[Down] = temp2;
 
 		faces_[Back] = temp1;
 		*/
 
-		Color temp1 = faces_[Top];
-		faces_[Top] = faces_[Back];
-		faces_[Back] = faces_[Bottom];
-		faces_[Bottom] = faces_[Front];
+		Color temp1 = faces_[Up];
+		faces_[Up] = faces_[Back];
+		faces_[Back] = faces_[Down];
+		faces_[Down] = faces_[Front];
 		faces_[Front] = temp1;
 	}
 
@@ -240,22 +240,22 @@ namespace mm {
 	void Cube_v2::TiltLeft()
 	{
 		/*
-		Color temp1 = faces_[Top];
+		Color temp1 = faces_[Up];
 		Color temp2 = faces_[Left];
 
-		faces_[Top] = faces_[Right];
+		faces_[Up] = faces_[Right];
 		faces_[Left] = temp1;
 
-		temp1 = faces_[Bottom];
-		faces_[Bottom] = temp2;
+		temp1 = faces_[Down];
+		faces_[Down] = temp2;
 
 		faces_[Right] = temp1;
 		*/
 
-		Color temp1 = faces_[Top];
-		faces_[Top] = faces_[Right];
-		faces_[Right] = faces_[Bottom];
-		faces_[Bottom] = faces_[Left];
+		Color temp1 = faces_[Up];
+		faces_[Up] = faces_[Right];
+		faces_[Right] = faces_[Down];
+		faces_[Down] = faces_[Left];
 		faces_[Left] = temp1;
 	}
 
@@ -263,25 +263,77 @@ namespace mm {
 	void Cube_v2::TiltRight()
 	{
 		/*
-		Color temp1 = faces_[Top];
+		Color temp1 = faces_[Up];
 		Color temp2 = faces_[Right];
 
-		faces_[Top] = faces_[Left];
+		faces_[Up] = faces_[Left];
 		faces_[Right] = temp1;
 
-		temp1 = faces_[Bottom];
-		faces_[Bottom] = temp2;
+		temp1 = faces_[Down];
+		faces_[Down] = temp2;
 
 		faces_[Left] = temp1;
 		*/
 
-		Color temp1 = faces_[Top];
-		faces_[Top] = faces_[Left];
-		faces_[Left] = faces_[Bottom];
-		faces_[Bottom] = faces_[Right];
+		Color temp1 = faces_[Up];
+		faces_[Up] = faces_[Left];
+		faces_[Left] = faces_[Down];
+		faces_[Down] = faces_[Right];
 		faces_[Right] = temp1;
 	}
 
+	bool Cube_v2::belongsTo(Face rotatingSection, int layerIndex, int size) const
+	{
+		if (rotatingSection == All)
+			return true;
+
+		assert(layerIndex > 0);
+
+		double extend = (size - 1) / 2.0;
+		/*
+		Up = 0,
+		Down = 1,
+		Left = 2,
+		Right = 3,
+		Front = 4,
+		Back = 5,
+		*/
+		static int diffData[6] = {-1, 1, 1, -1, -1, 1};
+		double diff = diffData[rotatingSection] * (layerIndex - 1);
+
+		double x, y, z;
+		x = y = z = -1;
+		bool retVal = false;
+		switch (rotatingSection)
+		{
+		case Left:
+			x = -extend + diff;
+			retVal = (fabs(x - location_.x_) < 0.0001);
+			break;
+		case Right:
+			x = extend + diff;
+			retVal = (fabs(x - location_.x_) < 0.0001);
+			break;
+		case Down:
+			y = -extend + diff;
+			retVal = (fabs(y - location_.y_) < 0.0001);
+			break;
+		case Up:
+			y = extend + diff;
+			retVal = (fabs(y - location_.y_) < 0.0001);
+			break;
+		case Back:
+			z = -extend + diff;
+			retVal = (fabs(z - location_.z_) < 0.0001);
+			break;
+		case Front:
+			z = extend + diff;
+			retVal = (fabs(z - location_.z_) < 0.0001);
+			break;
+		}
+		
+		return retVal;
+	}
 
 
 	CRubiksCube_v2::CRubiksCube_v2(int size)
@@ -440,13 +492,13 @@ namespace mm {
 					if (i == 0 || i == size_ - 1
 						|| j == 0 || j == size_ - 1
 						|| k == 0 || k == size_ - 1)
-						cubes_[loc] = CreateCube(i, j, k, loc, loc.recalcGroup(size_));
+						cubes_[loc] = CreateCube(i, j, k, loc);
 				}
 			}
 		}
 	}
 
-	unique_ptr<Cube_v2> CRubiksCube_v2::CreateCube(double x, double y, double z, const Location_v2& location, int group)
+	unique_ptr<Cube_v2> CRubiksCube_v2::CreateCube(double x, double y, double z, const Location_v2& location)
 	{
 		Color left, right, top, bottom, front, back;
 
@@ -498,7 +550,7 @@ namespace mm {
 			front = Black;
 		}
 
-		return make_unique<Cube_v2>(top, bottom, left, right, front, back, location, group);
+		return make_unique<Cube_v2>(top, bottom, left, right, front, back, location);
 	}
 
 	const Cube_v2& CRubiksCube_v2::GetCube(double x, double y, double z)
@@ -506,8 +558,52 @@ namespace mm {
 		//if (!IsValidCube(x, y, z))
 		//	assert
 		
-		return *cubes_[Location_v2(x, y, z)];
+		return *cubes_[Location_v2(x - 1, y - 1, z - 1)];
 	}
+
+	/*
+	const Cube_v2& CRubiksCube_v2::GetCube(Face layer0, Face layer1, Face layer2)
+	{
+		assert(layer0 != layer1 && layer1 != layer2);
+
+		double x, y, z;
+		double extend = (size_ - 1) / 2.0;
+		for (int i = 0; i < 3; ++i)
+		{
+			Face layer;
+			if (i == 0)
+				layer = layer0;
+			else if (i == 1)
+				layer = layer1;
+			else if (i == 2)
+				layer = layer2;
+
+			switch (layer)
+			{
+			case Left:
+				x = -extend;
+				break;
+			case Right:
+				x = extend;
+				break;
+			case Down:
+				y = -extend;
+				break;
+			case Up:
+				y = extend;
+				break;
+			case Back:
+				z = -extend;
+				break;
+			case Front:
+				z = extend;
+				break;
+			}
+		}
+
+		return *cubes_[Location_v2(x, y, z)];		
+	}
+	*/
 
 	bool CRubiksCube_v2::IsValidCube(int x, int y, int z)
 	{
@@ -713,7 +809,7 @@ namespace mm {
 	}
 	*/
 
-	void CRubiksCube_v2::Rotate(CVector3 rotationAxis, Groups rotatingSection, double rotationAngle)
+	void CRubiksCube_v2::Rotate(CVector3 rotationAxis, Face rotatingSection, int layerIndex, double rotationAngle)
 	{
 		for(auto& obj : cubes_)
 		{
@@ -721,7 +817,8 @@ namespace mm {
 			Cube_v2& cube = *obj.second.get();
 			
 			//if (rotatingSection == Groups::All || cube.group_ & rotatingSection)
-			if (cube.group_ & rotatingSection)
+			//if (cube.group_ & rotatingSection)
+			if(cube.belongsTo(rotatingSection, layerIndex, size_))
 			{
 				cube.rotate(rotationAxis, rotationAngle);
 				cube.location_.rotate(rotationAxis, rotationAngle * PI / 180.0); //Angle should be in radians
@@ -729,7 +826,7 @@ namespace mm {
 				//	|| (rotationAxis == CVector3::YAxis && (cube.group_ == L || cube.group_ == R))
 				//	|| (rotationAxis == CVector3::ZAxis && (cube.group_ == L || cube.group_ == R));
 				//if (rotationAxis != getRotationAxis(cube.group_))
-				cube.group_ = cube.location_.recalcGroup(size_); //Need to recalculate group always in case of any type of rotation since the cube may belong to multiple groups
+				//cube.group_ = cube.location_.recalcGroup(size_); //Need to recalculate group always in case of any type of rotation since the cube may belong to multiple groups
 			}
 		}
 
@@ -749,24 +846,24 @@ namespace mm {
 		}
 	}
 
-	void CRubiksCube_v2::RotateWholeRubiksCube(int axis, int turns)
-	{
-		/*
-		axis = 0 for X-axis
-		axis = 1 for Y-axis
-		axis = 2 for Z-axis
-		*/
+	//void CRubiksCube_v2::RotateWholeRubiksCube(int axis, int turns)
+	//{
+	//	/*
+	//	axis = 0 for X-axis
+	//	axis = 1 for Y-axis
+	//	axis = 2 for Z-axis
+	//	*/
 
-		for (int section = 0; section < size_; ++section)
-		{
-			//if (axis == 0)
-			//	Tilt(section, turns);
-			//else if (axis == 1)
-			//	Rotate(section, turns);
-			//else if (axis == 2)
-			//	Turn(section, turns);
-		}
-	}
+	//	for (int section = 0; section < size_; ++section)
+	//	{
+	//		//if (axis == 0)
+	//		//	Tilt(section, turns);
+	//		//else if (axis == 1)
+	//		//	Rotate(section, turns);
+	//		//else if (axis == 2)
+	//		//	Turn(section, turns);
+	//	}
+	//}
 
 	/*
 	void CRubiksCube_v2::Randomize()
@@ -809,19 +906,21 @@ namespace mm {
 
 	bool CRubiksCube_v2::IsSolved()
 	{
-		return IsFaceSolved(Top) &&
-			IsFaceSolved(Bottom) &&
-			IsFaceSolved(Left) &&
-			IsFaceSolved(Right) &&
-			IsFaceSolved(Front) &&
-			IsFaceSolved(Back);
+		//TODO:
+		return true;
+		//return IsFaceSolved(Up) &&
+		//	IsFaceSolved(Down) &&
+		//	IsFaceSolved(Left) &&
+		//	IsFaceSolved(Right) &&
+		//	IsFaceSolved(Front) &&
+		//	IsFaceSolved(Back);
 	}
 
 	bool CRubiksCube_v2::IsFaceSolved(Face face)
 	{
-		if (face == Top || face == Bottom)
+		if (face == Up || face == Down)
 		{
-			int j = (face == Top) ? 2 : 0;
+			int j = (face == Up) ? 2 : 0;
 
 			Color color = cubes_[Location_v2(0, j, 0)]->GetFaceColor(face);
 
@@ -886,7 +985,7 @@ namespace mm {
 			if (face >= 'a')
 				face = face - 32; // Convert into Upper case char
 
-								  // Check if prime operation
+			// Check if prime operation
 			bool isPrime = false;
 			int nextCharIndex = i + 1;
 			if (nextCharIndex < algorithm.length() && algorithm[nextCharIndex] == '\'')
@@ -895,15 +994,19 @@ namespace mm {
 				++i;
 			}
 			// Check if multiple rotations
+			// Check the layer index
 			nextCharIndex = i + 1;
-			int numRotations = 1;
+			//int numRotations = 1;
+			int layerIndex = 1;
 			if (nextCharIndex < algorithm.length() && '0' <= algorithm[nextCharIndex] && algorithm[nextCharIndex] <= '9')
 			{
-				numRotations = algorithm[i + 1] - '0';
+				//numRotations = algorithm[i + 1] - '0';
+				layerIndex = algorithm[i + 1] - '0';
 				++i;
 			}
 
-			applyStep(face, isPrime, numRotations, animate, steps, ui);
+			//applyStep(face, isPrime, numRotations, animate, steps, ui);
+			applyStep(face, isPrime, layerIndex, animate, steps, ui);
 			++solutionSteps;
 		}
 
@@ -956,7 +1059,8 @@ namespace mm {
 	//	}
 	//}
 
-	void CRubiksCube_v2::applyStep(const char& face, bool isPrime, int numRotations, bool animate /*= false*/, int steps /*= 0*/, RubiksCubeSolverUI* ui /*= nullptr*/)
+	//void CRubiksCube_v2::applyStep(const char& face, bool isPrime, int numRotations, bool animate /*= false*/, int steps /*= 0*/, RubiksCubeSolverUI* ui /*= nullptr*/)
+	void CRubiksCube_v2::applyStep(const char& face, bool isPrime, int layerIndex, bool animate /*= false*/, int steps /*= 0*/, RubiksCubeSolverUI* ui /*= nullptr*/)
 	{
 		//cout << "\nApplying move: " << face;
 		//if(isPrime)
@@ -983,7 +1087,7 @@ namespace mm {
 		{
 		case 'F':
 			g_vRotationAxis = CVector3(0, 0, 1);
-			g_nRotatingSection = F;
+			g_nRotatingSection = Front;
 			g_nRotationAngle = -90;
 			break;
 
@@ -995,13 +1099,13 @@ namespace mm {
 
 		case 'B':
 			g_vRotationAxis = CVector3(0, 0, 1);
-			g_nRotatingSection = B;
+			g_nRotatingSection = Back;
 			g_nRotationAngle = 90;
 			break;
 
 		case 'L':
 			g_vRotationAxis = CVector3(1, 0, 0);
-			g_nRotatingSection = L;
+			g_nRotatingSection = Left;
 			g_nRotationAngle = 90;
 			break;
 
@@ -1013,13 +1117,13 @@ namespace mm {
 
 		case 'R':
 			g_vRotationAxis = CVector3(1, 0, 0);
-			g_nRotatingSection = R;
+			g_nRotatingSection = Right;
 			g_nRotationAngle = -90;
 			break;
 
 		case 'U':
 			g_vRotationAxis = CVector3(0, 1, 0);
-			g_nRotatingSection = U;
+			g_nRotatingSection = Up;
 			g_nRotationAngle = -90;
 			break;
 
@@ -1031,7 +1135,7 @@ namespace mm {
 
 		case 'D':
 			g_vRotationAxis = CVector3(0, 1, 0);
-			g_nRotatingSection = D;
+			g_nRotatingSection = Down;
 			g_nRotationAngle = 90;
 			break;
 
@@ -1040,7 +1144,8 @@ namespace mm {
 			break;
 		}
 
-		g_nRotationAngle = g_nRotationAngle * numRotations;
+		//g_nRotationAngle = g_nRotationAngle * numRotations;
+		g_nLayerIndex = layerIndex;
 		if (isPrime)
 			g_nRotationAngle = -g_nRotationAngle;
 
@@ -1097,7 +1202,36 @@ namespace mm {
 		//else if (g_vRotationAxis.z)
 		//	Turn(g_nRotatingSection, turns);
 
-		Rotate(g_vRotationAxis, g_nRotatingSection, g_nRotationAngle);
+		Rotate(g_vRotationAxis, g_nRotatingSection, g_nLayerIndex, g_nRotationAngle);
+	}
+
+	string CRubiksCube_v2::getScramblingAlgo()
+	{
+		char charSet[9] = { 
+			'F', //Front
+			'B', //Back
+			'L', //Left
+			'R', //Right
+			'U', //Up
+			'D',  //Down
+			'X', //whole cube in X Axis direction X = L + R + center
+			'Y', //whole cube in Y Axis direction Y = U + D + center
+			'Z'  //whole cube in Z Axis direction Z = F + B + center
+		};
+		string retVal;
+		for (int i = 0; i < 25; ++i)
+		{
+			int index = rand() % 9;
+			retVal += charSet[index];
+
+			unsigned int option = rand() % size_;
+			if (option == 0)
+				retVal += '\'';
+			else if (index < 6 && option > 1) //not for X, Y and Z
+				retVal += to_string(option);
+		}
+
+		return retVal;
 	}
 
 }

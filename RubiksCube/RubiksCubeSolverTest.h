@@ -8,7 +8,7 @@ namespace mm {
 	class RubiksCubeSolverTest
 	{
 	public:
-		static string getScramblingAlgo();
+		//static string getScramblingAlgo();
 	};
 	
 }

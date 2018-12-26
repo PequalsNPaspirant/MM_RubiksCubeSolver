@@ -13,12 +13,17 @@ namespace mm {
 
 	enum Face
 	{
-		Top = 0,
-		Bottom = 1,
+		//Top = 0,
+		Up = 0,
+		//Bottom = 1,
+		Down = 1,
 		Left = 2,
 		Right = 3,
 		Front = 4,
-		Back = 5
+		Back = 5,
+
+		All = 6,
+		None = 7
 	};
 
 	enum Color
@@ -126,6 +131,8 @@ namespace mm {
 		int g_nRotationAngle;
 
 		int getSize() { return size_; }
+
+		string getScramblingAlgo();
 
 	private:
 		void applyStep(const char& face, bool isPrime, int numRotations, bool animate = false, int steps = 0, RubiksCubeSolverUI* ui = nullptr);

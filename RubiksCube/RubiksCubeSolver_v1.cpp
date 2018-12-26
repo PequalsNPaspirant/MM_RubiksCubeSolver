@@ -68,7 +68,7 @@ namespace mm {
 		// Bring it from bottom later (y = 0) to top layer
 		Cube currentCube = rubiksCube_.GetCube(1, 0, 2);
 		Color c1 = currentCube.GetFaceColor(Face::Front);
-		Color c2 = currentCube.GetFaceColor(Face::Bottom);
+		Color c2 = currentCube.GetFaceColor(Face::Down);
 
 		if (c1 == targetColorFront && c2 == targetColorBottom)
 		{
@@ -80,21 +80,21 @@ namespace mm {
 		}
 		currentCube = rubiksCube_.GetCube(2, 0, 1);
 		c1 = currentCube.GetFaceColor(Face::Right);
-		c2 = currentCube.GetFaceColor(Face::Bottom);
+		c2 = currentCube.GetFaceColor(Face::Down);
 		if ((c1 == targetColorFront && c2 == targetColorBottom) || (c1 == targetColorBottom && c2 == targetColorFront))
 		{
 			applyAlgorithm("R2");
 		}
 		currentCube = rubiksCube_.GetCube(1, 0, 0);
 		c1 = currentCube.GetFaceColor(Face::Back);
-		c2 = currentCube.GetFaceColor(Face::Bottom);
+		c2 = currentCube.GetFaceColor(Face::Down);
 		if ((c1 == targetColorFront && c2 == targetColorBottom) || (c1 == targetColorBottom && c2 == targetColorFront))
 		{
 			applyAlgorithm("B2");
 		}
 		currentCube = rubiksCube_.GetCube(0, 0, 1);
 		c1 = currentCube.GetFaceColor(Face::Left);
-		c2 = currentCube.GetFaceColor(Face::Bottom);
+		c2 = currentCube.GetFaceColor(Face::Down);
 		if ((c1 == targetColorFront && c2 == targetColorBottom) || (c1 == targetColorBottom && c2 == targetColorFront))
 		{
 			applyAlgorithm("L2");
@@ -141,7 +141,7 @@ namespace mm {
 
 		// Bring it from top later (y = 2) to bottom layer at appropriate position
 		currentCube = rubiksCube_.GetCube(1, 2, 0);
-		c1 = currentCube.GetFaceColor(Face::Top);
+		c1 = currentCube.GetFaceColor(Face::Up);
 		c2 = currentCube.GetFaceColor(Face::Back);
 		if (c1 == targetColorFront && c2 == targetColorBottom)
 		{
@@ -153,7 +153,7 @@ namespace mm {
 		}
 
 		currentCube = rubiksCube_.GetCube(0, 2, 1);
-		c1 = currentCube.GetFaceColor(Face::Top);
+		c1 = currentCube.GetFaceColor(Face::Up);
 		c2 = currentCube.GetFaceColor(Face::Left);
 		if (c1 == targetColorFront && c2 == targetColorBottom)
 		{
@@ -167,7 +167,7 @@ namespace mm {
 		}
 
 		currentCube = rubiksCube_.GetCube(1, 2, 2);
-		c1 = currentCube.GetFaceColor(Face::Top);
+		c1 = currentCube.GetFaceColor(Face::Up);
 		c2 = currentCube.GetFaceColor(Face::Front);
 		if (c1 == targetColorFront && c2 == targetColorBottom)
 		{
@@ -178,7 +178,7 @@ namespace mm {
 			applyAlgorithm("F2");	
 		}
 		currentCube = rubiksCube_.GetCube(2, 2, 1);
-		c1 = currentCube.GetFaceColor(Face::Top);
+		c1 = currentCube.GetFaceColor(Face::Up);
 		c2 = currentCube.GetFaceColor(Face::Right);
 		if (c1 == targetColorFront && c2 == targetColorBottom)
 		{
@@ -249,7 +249,7 @@ namespace mm {
 
 		//Check top face
 		currentCube = rubiksCube_.GetCube(1, 2, 1);
-		c = currentCube.GetFaceColor(Face::Top);
+		c = currentCube.GetFaceColor(Face::Up);
 		if (c != Color::Yellow)
 		{
 			if (c == Color::White)
@@ -294,7 +294,7 @@ namespace mm {
 		currentCube = rubiksCube_.GetCube(0, 0, 0);
 		c1 = currentCube.GetFaceColor(Face::Back);
 		c2 = currentCube.GetFaceColor(Face::Left);
-		c3 = currentCube.GetFaceColor(Face::Bottom);
+		c3 = currentCube.GetFaceColor(Face::Down);
 		if ((c1 == targetColorFront || c2 == targetColorFront || c3 == targetColorFront)
 			&& (c1 == targetColorRight || c2 == targetColorRight || c3 == targetColorRight)
 			&& (c1 == targetColorBottom || c2 == targetColorBottom || c3 == targetColorBottom)
@@ -305,7 +305,7 @@ namespace mm {
 		currentCube = rubiksCube_.GetCube(0, 0, 2);
 		c1 = currentCube.GetFaceColor(Face::Front);
 		c2 = currentCube.GetFaceColor(Face::Left);
-		c3 = currentCube.GetFaceColor(Face::Bottom);
+		c3 = currentCube.GetFaceColor(Face::Down);
 		if ((c1 == targetColorFront || c2 == targetColorFront || c3 == targetColorFront)
 			&& (c1 == targetColorRight || c2 == targetColorRight || c3 == targetColorRight)
 			&& (c1 == targetColorBottom || c2 == targetColorBottom || c3 == targetColorBottom)
@@ -315,7 +315,7 @@ namespace mm {
 		currentCube = rubiksCube_.GetCube(2, 0, 2);
 		c1 = currentCube.GetFaceColor(Face::Front);
 		c2 = currentCube.GetFaceColor(Face::Right);
-		c3 = currentCube.GetFaceColor(Face::Bottom);
+		c3 = currentCube.GetFaceColor(Face::Down);
 		if (c1 == targetColorFront || c2 == targetColorRight || c3 == targetColorBottom)
 		{
 			//do nothing
@@ -330,7 +330,7 @@ namespace mm {
 		currentCube = rubiksCube_.GetCube(2, 0, 0);
 		c1 = currentCube.GetFaceColor(Face::Back);
 		c2 = currentCube.GetFaceColor(Face::Right);
-		c3 = currentCube.GetFaceColor(Face::Bottom);
+		c3 = currentCube.GetFaceColor(Face::Down);
 		if ((c1 == targetColorFront || c2 == targetColorFront || c3 == targetColorFront)
 			&& (c1 == targetColorRight || c2 == targetColorRight || c3 == targetColorRight)
 			&& (c1 == targetColorBottom || c2 == targetColorBottom || c3 == targetColorBottom)
@@ -339,7 +339,7 @@ namespace mm {
 
 		// Check top layer and bring target to (2, 2, 2)
 		currentCube = rubiksCube_.GetCube(0, 2, 0);
-		c1 = currentCube.GetFaceColor(Face::Top);
+		c1 = currentCube.GetFaceColor(Face::Up);
 		c2 = currentCube.GetFaceColor(Face::Left);
 		c3 = currentCube.GetFaceColor(Face::Back);
 		if ((c1 == targetColorFront || c2 == targetColorFront || c3 == targetColorFront)
@@ -349,7 +349,7 @@ namespace mm {
 			applyAlgorithm("U2");
 
 		currentCube = rubiksCube_.GetCube(0, 2, 2);
-		c1 = currentCube.GetFaceColor(Face::Top);
+		c1 = currentCube.GetFaceColor(Face::Up);
 		c2 = currentCube.GetFaceColor(Face::Left);
 		c3 = currentCube.GetFaceColor(Face::Front);
 		if ((c1 == targetColorFront || c2 == targetColorFront || c3 == targetColorFront)
@@ -359,7 +359,7 @@ namespace mm {
 			applyAlgorithm("U'");
 
 		currentCube = rubiksCube_.GetCube(2, 2, 0);
-		c1 = currentCube.GetFaceColor(Face::Top);
+		c1 = currentCube.GetFaceColor(Face::Up);
 		c2 = currentCube.GetFaceColor(Face::Back);
 		c3 = currentCube.GetFaceColor(Face::Right);
 		if ((c1 == targetColorFront || c2 == targetColorFront || c3 == targetColorFront)
@@ -370,7 +370,7 @@ namespace mm {
 
 		// Target is now in top layer at (2, 2, 2)
 		currentCube = rubiksCube_.GetCube(2, 2, 2);
-		c1 = currentCube.GetFaceColor(Face::Top);
+		c1 = currentCube.GetFaceColor(Face::Up);
 		c2 = currentCube.GetFaceColor(Face::Front);
 		c3 = currentCube.GetFaceColor(Face::Right);
 
@@ -407,14 +407,14 @@ namespace mm {
 
 		// Check top layer
 		currentCube = rubiksCube_.GetCube(1, 2, 0);
-		c1 = currentCube.GetFaceColor(Face::Top);
+		c1 = currentCube.GetFaceColor(Face::Up);
 		c2 = currentCube.GetFaceColor(Face::Back);
 		if ((c1 == targetColorFront || c2 == targetColorFront)
 			&& (c1 == targetColorRight || c2 == targetColorRight))
 			applyAlgorithm("U");
 
 		currentCube = rubiksCube_.GetCube(0, 2, 1);
-		c1 = currentCube.GetFaceColor(Face::Top);
+		c1 = currentCube.GetFaceColor(Face::Up);
 		c2 = currentCube.GetFaceColor(Face::Left);
 		if ((c1 == targetColorFront || c2 == targetColorFront)
 			&& (c1 == targetColorRight || c2 == targetColorRight))
@@ -422,7 +422,7 @@ namespace mm {
 
 
 		currentCube = rubiksCube_.GetCube(1, 2, 2);
-		c1 = currentCube.GetFaceColor(Face::Top);
+		c1 = currentCube.GetFaceColor(Face::Up);
 		c2 = currentCube.GetFaceColor(Face::Front);
 		if (c1 == targetColorRight && c2 == targetColorFront)
 			applyAlgorithm(algo1);
@@ -437,7 +437,7 @@ namespace mm {
 
 		retVal = true;
 		currentCube = rubiksCube_.GetCube(2, 2, 1);
-		c1 = currentCube.GetFaceColor(Face::Top);
+		c1 = currentCube.GetFaceColor(Face::Up);
 		c2 = currentCube.GetFaceColor(Face::Right);
 		if (c1 == targetColorFront && c2 == targetColorRight)
 			applyAlgorithm(algo2);
@@ -521,15 +521,15 @@ namespace mm {
 
 			//Check if aleady at position
 			currentCube = rubiksCube_.GetCube(1, 2, 1);
-			c = currentCube.GetFaceColor(Face::Top);
+			c = currentCube.GetFaceColor(Face::Up);
 			currentCube = rubiksCube_.GetCube(1, 2, 0);
-			c1 = currentCube.GetFaceColor(Face::Top);
+			c1 = currentCube.GetFaceColor(Face::Up);
 			currentCube = rubiksCube_.GetCube(2, 2, 1);
-			c2 = currentCube.GetFaceColor(Face::Top);
+			c2 = currentCube.GetFaceColor(Face::Up);
 			currentCube = rubiksCube_.GetCube(1, 2, 2);
-			c3 = currentCube.GetFaceColor(Face::Top);
+			c3 = currentCube.GetFaceColor(Face::Up);
 			currentCube = rubiksCube_.GetCube(0, 2, 1);
-			c4 = currentCube.GetFaceColor(Face::Top);
+			c4 = currentCube.GetFaceColor(Face::Up);
 			if (c1 == Color::Yellow
 				&& c2 == Color::Yellow
 				&& c3 == Color::Yellow
@@ -581,29 +581,29 @@ namespace mm {
 
 			//Check if aleady at position
 			currentCube = rubiksCube_.GetCube(0, 2, 0);
-			c1 = currentCube.GetFaceColor(Face::Top);
+			c1 = currentCube.GetFaceColor(Face::Up);
 			s1 = currentCube.GetFaceColor(Face::Left);
 			s2 = currentCube.GetFaceColor(Face::Back);
 			currentCube = rubiksCube_.GetCube(1, 2, 0);
-			c2 = currentCube.GetFaceColor(Face::Top);
+			c2 = currentCube.GetFaceColor(Face::Up);
 			currentCube = rubiksCube_.GetCube(2, 2, 0);
-			c3 = currentCube.GetFaceColor(Face::Top);
+			c3 = currentCube.GetFaceColor(Face::Up);
 			s3 = currentCube.GetFaceColor(Face::Back);
 			s4 = currentCube.GetFaceColor(Face::Right);
 			currentCube = rubiksCube_.GetCube(0, 2, 1);
-			c4 = currentCube.GetFaceColor(Face::Top);
+			c4 = currentCube.GetFaceColor(Face::Up);
 			currentCube = rubiksCube_.GetCube(1, 2, 1);
-			c5 = currentCube.GetFaceColor(Face::Top);
+			c5 = currentCube.GetFaceColor(Face::Up);
 			currentCube = rubiksCube_.GetCube(2, 2, 1);
-			c6 = currentCube.GetFaceColor(Face::Top);
+			c6 = currentCube.GetFaceColor(Face::Up);
 			currentCube = rubiksCube_.GetCube(0, 2, 2);
-			c7 = currentCube.GetFaceColor(Face::Top);
+			c7 = currentCube.GetFaceColor(Face::Up);
 			s7 = currentCube.GetFaceColor(Face::Front);
 			s8 = currentCube.GetFaceColor(Face::Left);
 			currentCube = rubiksCube_.GetCube(1, 2, 2);
-			c8 = currentCube.GetFaceColor(Face::Top);
+			c8 = currentCube.GetFaceColor(Face::Up);
 			currentCube = rubiksCube_.GetCube(2, 2, 2);
-			c9 = currentCube.GetFaceColor(Face::Top);
+			c9 = currentCube.GetFaceColor(Face::Up);
 			s5 = currentCube.GetFaceColor(Face::Right);
 			s6 = currentCube.GetFaceColor(Face::Front);
 			if (c1 == Color::Yellow
@@ -709,29 +709,29 @@ namespace mm {
 
 			//Check if aleady at position
 			currentCube = rubiksCube_.GetCube(0, 2, 0);
-			//c1 = currentCube.GetFaceColor(Face::Top);
+			//c1 = currentCube.GetFaceColor(Face::Up);
 			s1 = currentCube.GetFaceColor(Face::Left);
 			s2 = currentCube.GetFaceColor(Face::Back);
 			//currentCube = Scene::getInstance().g_cCube.GetCube(1, 2, 0);
-			//c2 = currentCube.GetFaceColor(Face::Top);
+			//c2 = currentCube.GetFaceColor(Face::Up);
 			currentCube = rubiksCube_.GetCube(2, 2, 0);
-			//c3 = currentCube.GetFaceColor(Face::Top);
+			//c3 = currentCube.GetFaceColor(Face::Up);
 			s3 = currentCube.GetFaceColor(Face::Back);
 			s4 = currentCube.GetFaceColor(Face::Right);
 			//currentCube = Scene::getInstance().g_cCube.GetCube(0, 2, 1);
-			//c4 = currentCube.GetFaceColor(Face::Top);
+			//c4 = currentCube.GetFaceColor(Face::Up);
 			//currentCube = Scene::getInstance().g_cCube.GetCube(1, 2, 1);
-			//c5 = currentCube.GetFaceColor(Face::Top);
+			//c5 = currentCube.GetFaceColor(Face::Up);
 			//currentCube = Scene::getInstance().g_cCube.GetCube(2, 2, 1);
-			//c6 = currentCube.GetFaceColor(Face::Top);
+			//c6 = currentCube.GetFaceColor(Face::Up);
 			currentCube = rubiksCube_.GetCube(0, 2, 2);
-			//c7 = currentCube.GetFaceColor(Face::Top);
+			//c7 = currentCube.GetFaceColor(Face::Up);
 			s7 = currentCube.GetFaceColor(Face::Front);
 			s8 = currentCube.GetFaceColor(Face::Left);
 			//currentCube = Scene::getInstance().g_cCube.GetCube(1, 2, 2);
-			//c8 = currentCube.GetFaceColor(Face::Top);
+			//c8 = currentCube.GetFaceColor(Face::Up);
 			currentCube = rubiksCube_.GetCube(2, 2, 2);
-			//c9 = currentCube.GetFaceColor(Face::Top);
+			//c9 = currentCube.GetFaceColor(Face::Up);
 			s5 = currentCube.GetFaceColor(Face::Right);
 			s6 = currentCube.GetFaceColor(Face::Front);
 			if (s2 == s3
@@ -815,33 +815,33 @@ namespace mm {
 
 			//Check if aleady at position
 			//currentCube = Scene::getInstance().g_cCube.GetCube(0, 2, 0);
-			//c1 = currentCube.GetFaceColor(Face::Top);
+			//c1 = currentCube.GetFaceColor(Face::Up);
 			//s1 = currentCube.GetFaceColor(Face::Left);
 			//s2 = currentCube.GetFaceColor(Face::Back);
 			currentCube = rubiksCube_.GetCube(1, 2, 0);
-			//c2 = currentCube.GetFaceColor(Face::Top);
+			//c2 = currentCube.GetFaceColor(Face::Up);
 			e1 = currentCube.GetFaceColor(Face::Back);
 			//currentCube = Scene::getInstance().g_cCube.GetCube(2, 2, 0);
-			//c3 = currentCube.GetFaceColor(Face::Top);
+			//c3 = currentCube.GetFaceColor(Face::Up);
 			//s3 = currentCube.GetFaceColor(Face::Back);
 			//s4 = currentCube.GetFaceColor(Face::Right);
 			currentCube = rubiksCube_.GetCube(0, 2, 1);
-			//c4 = currentCube.GetFaceColor(Face::Top);
+			//c4 = currentCube.GetFaceColor(Face::Up);
 			e4 = currentCube.GetFaceColor(Face::Left);
 			//currentCube = Scene::getInstance().g_cCube.GetCube(1, 2, 1);
-			//c5 = currentCube.GetFaceColor(Face::Top);
+			//c5 = currentCube.GetFaceColor(Face::Up);
 			currentCube = rubiksCube_.GetCube(2, 2, 1);
-			//c6 = currentCube.GetFaceColor(Face::Top);
+			//c6 = currentCube.GetFaceColor(Face::Up);
 			e2 = currentCube.GetFaceColor(Face::Right);
 			//currentCube = Scene::getInstance().g_cCube.GetCube(0, 2, 2);
-			//c7 = currentCube.GetFaceColor(Face::Top);
+			//c7 = currentCube.GetFaceColor(Face::Up);
 			//s7 = currentCube.GetFaceColor(Face::Front);
 			//s8 = currentCube.GetFaceColor(Face::Left);
 			currentCube = rubiksCube_.GetCube(1, 2, 2);
-			//c8 = currentCube.GetFaceColor(Face::Top);
+			//c8 = currentCube.GetFaceColor(Face::Up);
 			e3 = currentCube.GetFaceColor(Face::Front);
 			//currentCube = Scene::getInstance().g_cCube.GetCube(2, 2, 2);
-			//c9 = currentCube.GetFaceColor(Face::Top);
+			//c9 = currentCube.GetFaceColor(Face::Up);
 			//s5 = currentCube.GetFaceColor(Face::Right);
 			//s6 = currentCube.GetFaceColor(Face::Front);
 

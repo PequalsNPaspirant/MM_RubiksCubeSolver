@@ -611,7 +611,8 @@ namespace mm {
 			//TCHAR newGameMsg[MAX_LOADSTRING];
 			//LoadString(g_hInstance, IDS_NEWGAME, newGameMsg, MAX_LOADSTRING);
 
-			string algo = RubiksCubeSolverTest::getScramblingAlgo();
+			//string algo = scene_.g_cCube.getScramblingAlgo();
+			string algo = scene_.g_cCube_v2.getScramblingAlgo();
 			wstring wAlgo(algo.begin(), algo.end());
 			wstring wMessage = L"Scramble using following Algorithm?";
 			wMessage = wMessage
@@ -703,6 +704,61 @@ namespace mm {
 
 	void RubiksCubeSolverUI::Solve_v2()
 	{
+		//return test();
+
+		//First solve and then animate
+		CRubiksCube_v2 copy = scene_.g_cCube_v2;
+		RubiksCubeSolver_v2 solver(copy);
+		using HRClock = std::chrono::high_resolution_clock;
+		int solutionSteps;
+		HRClock::time_point start_time = HRClock::now();
+		string solution = solver.solve(solutionSteps);
+		HRClock::time_point end_time = HRClock::now();
+		std::chrono::nanoseconds time_span = std::chrono::duration_cast<std::chrono::nanoseconds>(end_time - start_time);
+		unsigned long long duration = time_span.count();
+		wstring wDuration = to_wstring(duration % 1000);
+		duration /= 1000;
+		while (duration > 0)
+		{
+			wDuration = L"," + wDuration;
+			wDuration = to_wstring(duration % 1000) + wDuration;
+			duration /= 1000;
+		}
+
+		wstring wSolution(solution.begin(), solution.end());
+		wstring wMessage = L"Solution: " + wSolution
+			+ L"\nNumber of steps: " + to_wstring(solutionSteps)
+			+ L"\nTime required: " + wDuration + L" ns"
+			+ L"\nDo you want to see animation of solution?";
+		if (MessageBox(g_hWnd, wMessage.c_str(),
+			g_szTitle, MB_YESNO | MB_ICONQUESTION | MB_APPLMODAL) == IDYES)
+		{
+			//RubiksCubeSimulator::executeAlgorithm(solution, scene_);
+			//scene_.g_cCube.applyAlgorithm(solution, true, 20, this);
+			scene_.g_cCube_v2.applyAlgorithm(solution, true, 20, this);
+		}
+	}
+
+	void RubiksCubeSolverUI::SolveAndAnimate()
+	{
+		//Animate while solving
+		//RubiksCubeSolver_v1 solver(scene_.g_cCube, true, 20, this);
+		RubiksCubeSolver_v1 solver(scene_.g_cCube, true, 20, this);
+		int solutionSteps;
+		string solution = solver.solve(solutionSteps);
+	}
+
+	void RubiksCubeSolverUI::SolveAndAnimate_v2()
+	{
+		//Animate while solving
+		RubiksCubeSolver_v2 solver(scene_.g_cCube_v2, true, 20, this);
+		int solutionSteps;
+		string solution = solver.solve(solutionSteps);
+	}
+
+
+	void RubiksCubeSolverUI::test()
+	{
 		//Testing
 		//scene_.g_cCube.applyAlgorithm("U", true, 20, this);
 
@@ -737,57 +793,19 @@ namespace mm {
 		//algo = "Y2";
 		//algo = "Z2";
 
+		//algo = "FB");
+		//algo = "LR");
+		//algo = "UD");
+		//algo = "F'B'");
+		//algo = "L'R'");
+		//algo = "U'D'");
+		//algo = "F2B2");
+		//algo = "L2R2");
+		//algo = "U2D2");
+		//algo = "D F' R L' F L D' B' U' F R' F' U L' U2 R L B");
+		//algo = "B' L' R' U2 L U' F R F' U B D L' F' L R' F D'");
+
 		scene_.g_cCube_v2.applyAlgorithm(algo, true, 20, this);
-
-		return;
-
-		//First solve and then animate
-		CRubiksCube_v2 copy = scene_.g_cCube_v2;
-		RubiksCubeSolver_v2 solver(copy);
-		using HRClock = std::chrono::high_resolution_clock;
-		int solutionSteps;
-		HRClock::time_point start_time = HRClock::now();
-		string solution = solver.solve(solutionSteps);
-		HRClock::time_point end_time = HRClock::now();
-		std::chrono::nanoseconds time_span = std::chrono::duration_cast<std::chrono::nanoseconds>(end_time - start_time);
-		unsigned long long duration = time_span.count();
-		wstring wDuration = to_wstring(duration % 1000);
-		duration /= 1000;
-		while (duration > 0)
-		{
-			wDuration = L"," + wDuration;
-			wDuration = to_wstring(duration % 1000) + wDuration;
-			duration /= 1000;
-		}
-
-		wstring wSolution(solution.begin(), solution.end());
-		wstring wMessage = L"Solution: " + wSolution
-			+ L"\nNumber of steps: " + to_wstring(solutionSteps)
-			+ L"\nTime required: " + wDuration + L" ns"
-			+ L"\nDo you want to see animation of solution?";
-		if (MessageBox(g_hWnd, wMessage.c_str(),
-			g_szTitle, MB_YESNO | MB_ICONQUESTION | MB_APPLMODAL) == IDYES)
-		{
-			//RubiksCubeSimulator::executeAlgorithm(solution, scene_);
-			scene_.g_cCube.applyAlgorithm(solution, true, 20, this);
-		}
-	}
-
-	void RubiksCubeSolverUI::SolveAndAnimate()
-	{
-		//Animate while solving
-		//RubiksCubeSolver_v1 solver(scene_.g_cCube, true, 20, this);
-		RubiksCubeSolver_v1 solver(scene_.g_cCube, true, 20, this);
-		int solutionSteps;
-		string solution = solver.solve(solutionSteps);
-	}
-
-	void RubiksCubeSolverUI::SolveAndAnimate_v2()
-	{
-		//Animate while solving
-		RubiksCubeSolver_v2 solver(scene_.g_cCube_v2, true, 20, this);
-		int solutionSteps;
-		string solution = solver.solve(solutionSteps);
 	}
 }
 
