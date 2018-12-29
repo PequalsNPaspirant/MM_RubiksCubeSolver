@@ -24,12 +24,6 @@
     <ClCompile Include="Vector3.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="RubiksCubeSolver_v1.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="RubiksCubeSimulator.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="RubiksCubeRenderingModel_v1.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -45,7 +39,7 @@
     <ClCompile Include="RubiksCubeRenderingModel_v2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\%40_Programming\Everything\MM_RubikCubeSolver\RubiksCube\RubiksCubeSolver_v2.cpp">
+    <ClCompile Include="RubiksCubeModel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -60,12 +54,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Vector3.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="RubiksCubeSolver_v1.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="RubiksCubeSimulator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="RubiksCubeRenderingModel_v1.h">
@@ -83,7 +71,7 @@
     <ClInclude Include="RubiksCubeRenderingModel_v2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\%40_Programming\Everything\MM_RubikCubeSolver\RubiksCube\RubiksCubeSolver_v2.h">
+    <ClInclude Include="RubiksCubeModel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

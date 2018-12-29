@@ -3,9 +3,6 @@
 #include <string>
 using namespace std;
 
-#include <gl\gl.h>
-#include "Camera.h"
-#include "RubiksCubeRenderingModel_v1.h"
 #include "RubiksCubeSolverScene.h"
 
 namespace mm {
@@ -16,10 +13,14 @@ namespace mm {
 	class RubiksCubeSolverUI
 	{
 	public:
-		//ensure single instance
 		static RubiksCubeSolverUI& getInstance();
 		void createWindow(HINSTANCE hInstance);
+		WPARAM enterMainLoop();
 		void redrawWindow();
+
+	public:
+		static LRESULT CALLBACK WndProcCallback(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+		static LRESULT CALLBACK AboutProcCallback(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 	private:
 		RubiksCubeSolverUI();
@@ -28,33 +29,22 @@ namespace mm {
 		RubiksCubeSolverUI(RubiksCubeSolverUI&&) = delete;
 		RubiksCubeSolverUI& operator=(RubiksCubeSolverUI&&) = delete;
 
-	private:
 		/**/HWND createWindow(LPTSTR strTitle, int nWidth, int nHeight, DWORD dwStyle, BOOL bFullScreen, HINSTANCE hInstance);
 		/**//**/bool changeToFullScreen();
 		/**//**/bool setupPixelFormat(HDC hdc);
 
-	public:
-		WPARAM enterMainLoop();
-
-	public:
-		static LRESULT CALLBACK WndProcCallback(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-		static LRESULT CALLBACK AboutProcCallback(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
-	
 	public:
 		void deInit();
 
 	private:
 		HGLRC g_hRC;
 		HDC g_hDC;
-		TCHAR g_szWindowClass[MAX_LOADSTRING];				// the main window class name
-		//GLuint g_pTextures[7];
+		TCHAR g_szWindowClass[MAX_LOADSTRING]; // the main window class name
 		HACCEL g_hAccelTable;
 
 		const int WND_WIDTH = 400;
 		const int WND_HEIGHT = 400;
 		const int SCREEN_DEPTH = 16;
-		//const double CUBE_SIZE = 2.0;
-		//const float LINE_WIDTH = 2.0f;
 
 	private:
 		/* void Cls_OnMouseLeave(HWND hWnd, int x, int y, UINT keyFlags) */
@@ -79,25 +69,8 @@ namespace mm {
 		void Solve();
 		void SolveAndAnimate();
 
-		void Reset_v2();
-		void Scramble_v2(const string& str);
-		void Solve_v2();
-		void SolveAndAnimate_v2();
-
-	public:
-		//CRubiksCube g_cCube;
-		//BOOL g_bRotating;
-		//BOOL g_bFlipRotation;
-		//CVector3 g_vRotationAxis;
-		//int g_nRotatingSection;
-		//int g_nRotationAngle;
-
 	private:
-		//static const GLsizei SELECT_BUFFER_SIZE = 128;
-		//static GLuint g_pSelectBuffer[SELECT_BUFFER_SIZE];
-
 		bool g_bMouseDown;
-		//CCamera g_cCamera;		
 		int g_nPrevX;
 		int g_nPrevY;
 		
@@ -107,14 +80,12 @@ namespace mm {
 		int g_nHitCount;
 		HCURSOR g_hArrow;
 		HCURSOR g_hHand;
-		TCHAR g_szTitle[MAX_LOADSTRING];					// The title bar text
+		TCHAR g_szTitle[MAX_LOADSTRING]; // The title bar text
 		HWND g_hWnd;
-		HINSTANCE g_hInstance;								// current instance
+		HINSTANCE g_hInstance; // current instance
 
 	private:
 		RubiksCubeSolverScene scene_;
-
-		void test();
 	};
 
 }

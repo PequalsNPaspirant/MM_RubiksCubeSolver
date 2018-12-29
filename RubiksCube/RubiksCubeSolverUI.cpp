@@ -5,17 +5,8 @@
 #include "Resource.h"
 #include <windows.h>
 #include <windowsx.h>
-#include <gl\gl.h>
-#include <gl\glu.h>
-
-#include <chrono>
-using namespace std;
 
 #include "RubiksCubeSolverUI.h"
-#include "RubiksCubeSimulator.h"
-#include "RubiksCubeSolver_v1.h"
-#include "RubiksCubeSolver_v2.h"
-#include "RubiksCubeSolverTest.h"
 
 int APIENTRY _tWinMain(HINSTANCE hInstance,
                      HINSTANCE hPrevInstance,
@@ -33,8 +24,6 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 
 namespace mm {
 
-	//GLuint RubiksCubeSolverUI::g_pSelectBuffer[RubiksCubeSolverUI::SELECT_BUFFER_SIZE];
-
 	RubiksCubeSolverUI& RubiksCubeSolverUI::getInstance()
 	{
 		static RubiksCubeSolverUI mainWindow;
@@ -43,7 +32,8 @@ namespace mm {
 
 	RubiksCubeSolverUI::RubiksCubeSolverUI()
 		: WND_WIDTH(400),
-		WND_HEIGHT(400)
+		WND_HEIGHT(400),
+		scene_(*this)
 	{
 	}
 
@@ -146,12 +136,12 @@ namespace mm {
 
 	bool RubiksCubeSolverUI::changeToFullScreen()
 	{
-		DEVMODE dmSettings;									// Device Mode variable
+		DEVMODE dmSettings;	// Device Mode variable
 
-		memset(&dmSettings, 0, sizeof(dmSettings));			// Makes Sure Memory's Cleared
+		memset(&dmSettings, 0, sizeof(dmSettings)); // Makes Sure Memory's Cleared
 
-															// Get current settings -- This function fills our the settings
-															// This makes sure NT and Win98 machines change correctly
+		// Get current settings -- This function fills our the settings
+		// This makes sure NT and Win98 machines change correctly
 		if (!EnumDisplaySettings(NULL, ENUM_CURRENT_SETTINGS, &dmSettings))
 			return false;
 
@@ -176,10 +166,10 @@ namespace mm {
 		PIXELFORMATDESCRIPTOR pfd = { 0 };
 		int pixelformat;
 
-		pfd.nSize = sizeof(PIXELFORMATDESCRIPTOR);			// Set the size of the structure
-		pfd.nVersion = 1;									// Always set this to 1
-															// Pass in the appropriate OpenGL flags
-		pfd.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
+		pfd.nSize = sizeof(PIXELFORMATDESCRIPTOR); // Set the size of the structure
+		pfd.nVersion = 1; // Always set this to 1
+															
+		pfd.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER; // Pass in the appropriate OpenGL flags
 		pfd.dwLayerMask = PFD_MAIN_PLANE;					// We want the standard mask (this is ignored anyway)
 		pfd.iPixelType = PFD_TYPE_RGBA;						// We want RGB and Alpha pixel type
 		pfd.cColorBits = SCREEN_DEPTH;						// Here we use our #define for the color bits
@@ -187,7 +177,7 @@ namespace mm {
 		pfd.cAccumBits = 0;									// No special bitplanes needed
 		pfd.cStencilBits = 0;								// We desire no stencil bits
 
-															// This gets us a pixel format that best matches the one passed in from the device
+		// This gets us a pixel format that best matches the one passed in from the device
 		if ((pixelformat = ChoosePixelFormat(hdc, &pfd)) == false)
 			return false;
 
@@ -218,8 +208,6 @@ namespace mm {
 					else if (msg.message == RC_CHANGED)
 					{
 						redrawWindow();
-						//scene_.renderScene();
-						//SwapBuffers(g_hDC);
 					}
 
 					// find out what the message does
@@ -237,8 +225,6 @@ namespace mm {
 				// doesn't change, it will bottle neck the message queue if we don't do something.
 				// Usually WaitMessage() is used to make sure the app doesn't eat up the CPU.
 				redrawWindow();
-				//scene_.renderScene();
-				//SwapBuffers(g_hDC);
 			}
 		}
 
@@ -308,18 +294,15 @@ namespace mm {
 	void RubiksCubeSolverUI::OnRubiksCubeChanged(HWND hWnd)
 	{
 		// check for solution
-		if (scene_.g_cCube.IsSolved())
+		//if (scene_.g_cCube.IsSolved())
 		{
 			TCHAR solvedMsg[MAX_LOADSTRING];
 			LoadString(g_hInstance, IDS_SOLVED, solvedMsg, MAX_LOADSTRING);
-
 			//MessageBox(g_hWnd, solvedMsg, g_szTitle, MB_OK);
 		}
 	}
 
-	//
 	//  Process WM_LBUTTONDOWN message for window/dialog: 
-	//
 	void RubiksCubeSolverUI::OnLButtonDown(HWND hWnd, BOOL fDoubleClick, int x, int y, UINT keyFlags)
 	{
 		// set up tracking for when mouse leaves window
@@ -338,9 +321,7 @@ namespace mm {
 		g_nPrevY = y;
 	}
 
-	//
 	//  Process WM_LBUTTONUP message for window/dialog: 
-	//
 	void RubiksCubeSolverUI::OnLButtonUp(HWND hWnd, int x, int y, UINT keyFlags)
 	{
 		g_bMouseDown = false;
@@ -376,17 +357,13 @@ namespace mm {
 		*/
 	}
 
-	//
 	//  Process WM_DESTROY message for window/dialog: 
-	//
 	void RubiksCubeSolverUI::OnDestroy(HWND hWnd)
 	{
 		deInit();
 	}
 
-	//
 	//  Process WM_MOUSEMOVE message for window/dialog: 
-	//
 	void RubiksCubeSolverUI::OnMouseMove(HWND hWnd, int x, int y, UINT keyFlags)
 	{
 		if (!g_bMouseDown)
@@ -565,9 +542,7 @@ namespace mm {
 		g_nPrevY = y;
 	}
 
-	//
 	//  Process WM_MOUSEWHEEL message for window/dialog: 
-	//
 	void RubiksCubeSolverUI::OnMouseWheel(HWND hWnd, int xPos, int yPos, int zDelta, UINT fwKeys)
 	{
 		int rotations = zDelta / WHEEL_DELTA;
@@ -576,9 +551,7 @@ namespace mm {
 		scene_.g_cCamera.Move(distance);
 	}
 
-	//
 	//  Process WM_SIZE message for window/dialog: 
-	//
 	void RubiksCubeSolverUI::OnSize(HWND hWnd, UINT state, int cx, int cy)
 	{
 		if (!g_bFullScreen)
@@ -594,16 +567,13 @@ namespace mm {
 		//g_nRotationAngle = 0;
 	}
 
-	//
 	//  Process WM_COMMAND message for window/dialog: 
-	//
 	void RubiksCubeSolverUI::OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 	{
 		// menu
 		if (id == IDM_FILE_RESET)
 		{
-			//Reset();
-			Reset_v2();
+			Reset();
 		}
 		else if (id == IDM_FILE_SCRAMBLE)
 		{
@@ -612,7 +582,7 @@ namespace mm {
 			//LoadString(g_hInstance, IDS_NEWGAME, newGameMsg, MAX_LOADSTRING);
 
 			//string algo = scene_.g_cCube.getScramblingAlgo();
-			string algo = scene_.g_cCube_v2.getScramblingAlgo();
+			string algo = scene_.getScramblingAlgo(25);
 			wstring wAlgo(algo.begin(), algo.end());
 			wstring wMessage = L"Scramble using following Algorithm?";
 			wMessage = wMessage
@@ -621,19 +591,16 @@ namespace mm {
 			if (MessageBox(hwnd, wMessage.c_str(),
 				g_szTitle, MB_YESNO | MB_ICONQUESTION | MB_APPLMODAL) == IDYES)
 			{
-				//Scramble(algo);
-				Scramble_v2(algo);
+				Scramble(algo);
 			}
 		}
 		else if (id == IDM_FILE_SOLVE)
 		{
-			//Solve();
-			Solve_v2();
+			Solve();
 		}
 		else if (id == IDM_FILE_SOLVE_ANIM)
 		{
-			//SolveAndAnimate();
-			SolveAndAnimate_v2();
+			SolveAndAnimate();
 		}
 		else if (id == IDM_ABOUT)
 		{
@@ -648,38 +615,22 @@ namespace mm {
 
 	void RubiksCubeSolverUI::Reset()
 	{
-		scene_.g_cCube.ResetCube();
+		scene_.Reset();
 		redrawWindow();
 	}
 
-	void RubiksCubeSolverUI::Reset_v2()
+	void RubiksCubeSolverUI::Scramble(const string& algo)
 	{
-		scene_.g_cCube_v2.ResetCube();
-		redrawWindow();
-	}
-
-	void RubiksCubeSolverUI::Scramble(const string& str)
-	{
-		scene_.g_cCube.applyAlgorithm(str, true, 20, this);
-	}
-
-	void RubiksCubeSolverUI::Scramble_v2(const string& str)
-	{
-		scene_.g_cCube_v2.applyAlgorithm(str, true, 20, this);
+		scene_.applyAlgorithmToCube(algo, true);
 	}
 
 	void RubiksCubeSolverUI::Solve()
 	{
-		//First solve and then animate
-		CRubiksCube copy = scene_.g_cCube;
-		RubiksCubeSolver_v1 solver(copy);
-		using HRClock = std::chrono::high_resolution_clock;
 		int solutionSteps;
-		HRClock::time_point start_time = HRClock::now();
-		string solution = solver.solve(solutionSteps);
-		HRClock::time_point end_time = HRClock::now();
-		std::chrono::nanoseconds time_span = std::chrono::duration_cast<std::chrono::nanoseconds>(end_time - start_time);
-		unsigned long long duration = time_span.count();
+		unsigned long long duration;
+		string solution = scene_.Solve(solutionSteps, duration);
+
+		
 		wstring wDuration = to_wstring(duration % 1000);
 		duration /= 1000;
 		while (duration > 0)
@@ -697,115 +648,13 @@ namespace mm {
 		if (MessageBox(g_hWnd, wMessage.c_str(),
 			g_szTitle, MB_YESNO | MB_ICONQUESTION | MB_APPLMODAL) == IDYES)
 		{
-			//RubiksCubeSimulator::executeAlgorithm(solution, scene_);
-			scene_.g_cCube.applyAlgorithm(solution, true, 20, this);
+			scene_.applyAlgorithmToCube(solution, true);
 		}		
-	}
-
-	void RubiksCubeSolverUI::Solve_v2()
-	{
-		//return test();
-
-		//First solve and then animate
-		CRubiksCube_v2 copy = scene_.g_cCube_v2;
-		RubiksCubeSolver_v2 solver(copy);
-		using HRClock = std::chrono::high_resolution_clock;
-		int solutionSteps;
-		HRClock::time_point start_time = HRClock::now();
-		string solution = solver.solve(solutionSteps);
-		HRClock::time_point end_time = HRClock::now();
-		std::chrono::nanoseconds time_span = std::chrono::duration_cast<std::chrono::nanoseconds>(end_time - start_time);
-		unsigned long long duration = time_span.count();
-		wstring wDuration = to_wstring(duration % 1000);
-		duration /= 1000;
-		while (duration > 0)
-		{
-			wDuration = L"," + wDuration;
-			wDuration = to_wstring(duration % 1000) + wDuration;
-			duration /= 1000;
-		}
-
-		wstring wSolution(solution.begin(), solution.end());
-		wstring wMessage = L"Solution: " + wSolution
-			+ L"\nNumber of steps: " + to_wstring(solutionSteps)
-			+ L"\nTime required: " + wDuration + L" ns"
-			+ L"\nDo you want to see animation of solution?";
-		if (MessageBox(g_hWnd, wMessage.c_str(),
-			g_szTitle, MB_YESNO | MB_ICONQUESTION | MB_APPLMODAL) == IDYES)
-		{
-			//RubiksCubeSimulator::executeAlgorithm(solution, scene_);
-			//scene_.g_cCube.applyAlgorithm(solution, true, 20, this);
-			scene_.g_cCube_v2.applyAlgorithm(solution, true, 20, this);
-		}
 	}
 
 	void RubiksCubeSolverUI::SolveAndAnimate()
 	{
-		//Animate while solving
-		//RubiksCubeSolver_v1 solver(scene_.g_cCube, true, 20, this);
-		RubiksCubeSolver_v1 solver(scene_.g_cCube, true, 20, this);
-		int solutionSteps;
-		string solution = solver.solve(solutionSteps);
-	}
-
-	void RubiksCubeSolverUI::SolveAndAnimate_v2()
-	{
-		//Animate while solving
-		RubiksCubeSolver_v2 solver(scene_.g_cCube_v2, true, 20, this);
-		int solutionSteps;
-		string solution = solver.solve(solutionSteps);
-	}
-
-
-	void RubiksCubeSolverUI::test()
-	{
-		//Testing
-		//scene_.g_cCube.applyAlgorithm("U", true, 20, this);
-
-		string algo;
-		algo = "U";
-		algo = "D";
-		algo = "L";
-		algo = "R";
-		algo = "F";
-		algo = "B";
-		algo = "X";
-		algo = "Y";
-		algo = "Z";
-
-		algo = "U'";
-		algo = "D'";
-		algo = "L'";
-		algo = "R'";
-		algo = "F'";
-		algo = "B'";
-		algo = "X'";
-		algo = "Y'";
-		algo = "Z'";
-
-		algo = "U2";
-		algo = "D2";
-		algo = "L2";
-		algo = "R2";
-		algo = "F2";
-		algo = "B2";
-		algo = "X2";
-		//algo = "Y2";
-		//algo = "Z2";
-
-		//algo = "FB");
-		//algo = "LR");
-		//algo = "UD");
-		//algo = "F'B'");
-		//algo = "L'R'");
-		//algo = "U'D'");
-		//algo = "F2B2");
-		//algo = "L2R2");
-		//algo = "U2D2");
-		//algo = "D F' R L' F L D' B' U' F R' F' U L' U2 R L B");
-		//algo = "B' L' R' U2 L U' F R F' U B D L' F' L R' F D'");
-
-		scene_.g_cCube_v2.applyAlgorithm(algo, true, 20, this);
+		scene_.SolveAndAnimate();
 	}
 }
 

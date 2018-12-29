@@ -6,287 +6,280 @@
 #include <memory>
 using namespace std;
 
+#include <gl\gl.h>
+#include <gl\glu.h>
 #include "Vector3.h"
-#include "RubiksCubeRenderingModel_v1.h"
+#include "RubiksCubeModel.h"
 
 namespace mm {
 
-	typedef unsigned char byte;
-	//typedef byte BYTE;
+	class RubiksCubeSolverUI;
 
-	//TODO: Define enum Axis
-	/*
-	enum Axis
+	class RubiksCubeModel_v2 : public RubiksCubeModel
 	{
+	public:
+		typedef unsigned char byte;
+
+		//TODO: Define enum Axis
+		/*
+		enum Axis
+		{
 		XAxis = 0,
 		YAxis = 1,
 		ZAxis = 2
-	};
-	*/
-	/*
-	enum Face
-	{
-		Top = 0,
-		Bottom = 1,
-		Left = 2,
-		Right = 3,
-		Front = 4,
-		Back = 5
-	};
+		};
+		*/
 
-	enum Color
-	{
-		Yellow = 0,
-		Red = 1,
-		Blue = 2,
-		Green = 3,
-		Orange = 4,
-		White = 5,
-		Black = 6
-	};
-
-	struct ColorRGB
-	{
-		ColorRGB(byte red, byte green, byte blue)
-		{
-			r = red;
-			g = green;
-			b = blue;
-		}
-
-		ColorRGB()
-		{
-			r = g = b = 0;
-		}
-
-		byte r;
-		byte g;
-		byte b;
-
-		bool operator==(const ColorRGB& c)
-		{
-			return (r == c.r) && (g == c.g) && (b == c.b);
-		}
-
-		bool operator!=(const ColorRGB& c)
-		{
-			return !((r == c.r) && (g == c.g) && (b == c.b));
-		}
-
-		//static const ColorRGB RED;
-		//static const ColorRGB ORANGE;
-
-		//static const ColorRGB BLUE;
-		//static const ColorRGB GREEN;
-
-		//static const ColorRGB YELLOW;
-		//static const ColorRGB WHITE;
-
-		//static const ColorRGB BLACK;
-
-		static const ColorRGB RGBColors[7];
-	};
-	*/
-
-	//enum Groups
-	//{
-	//	None = 0,
-
-	//	L = 1,
-	//	R = 2,
-
-	//	D = 4,
-	//	U = 8,
-
-	//	B = 16,
-	//	F = 32,
-
-	//	All = 64 - 1 //Stores All flags from 1 to 32
-	//};
-
-	class Utility
-	{
-	public:
-		//static Groups getGroup(char layer, int index)
+		//enum Groups
 		//{
+		//	None = 0,
 
-		//}
+		//	L = 1,
+		//	R = 2,
 
-		//static const CVector3& getAxis(char layer, int index)
-		//{
-		//	static vector<CVector3*> data{};
-		//}
-	};
+		//	D = 4,
+		//	U = 8,
 
-	struct Location_v2
-	{
-		Location_v2()
-			: x_(0.0), y_(0.0), z_(0.0)
-		{}
-		Location_v2(double x, double y, double z)
-			: x_(x), y_(y), z_(z)
-		{}
-		Location_v2(const Location_v2&) = default;
-		Location_v2(Location_v2&&) = default;
-		Location_v2& operator=(const Location_v2&) = default;
-		Location_v2& operator=(Location_v2&&) = default;
+		//	B = 16,
+		//	F = 32,
 
-		bool operator==(const Location_v2& rhs) const
+		//	All = 64 - 1 //Stores All flags from 1 to 32
+		//};
+
+		enum Color
 		{
-			return fabs(x_ - rhs.x_) < 0.0001
-				&& fabs(y_ - rhs.y_) < 0.0001
-				&& fabs(z_ - rhs.z_) < 0.0001;
-		}
+			Yellow = 0,
+			Red = 1,
+			Blue = 2,
+			Green = 3,
+			Orange = 4,
+			White = 5,
+			Black = 6
+		};
 
-		bool operator!=(const Location_v2& rhs) const
+		enum Face
 		{
-			return !(*this == rhs);
-		}
+			Up = 0,
+			Down = 1,
+			Left = 2,
+			Right = 3,
+			Front = 4,
+			Back = 5,
 
-		void rotate(CVector3 rotationAxis, double rotationAngle)
+			All = 6,
+			None = 7
+		};
+
+		struct ColorRGB
 		{
-			static vector<vector<double>> rotationMatrix(4, vector<double>(4));
-
-			// Initialize rotation matrix
-			for (int Row = 0; Row < 4; Row++)
-				for (int Column = 0; Column < 4; Column++)
-					if (Row == Column)
-						rotationMatrix[Row][Column] = 1.0;
-					else
-						rotationMatrix[Row][Column] = 0.0;
-
-			if (rotationAxis == CVector3::XAxis)
+			ColorRGB(byte red, byte green, byte blue)
 			{
-				rotationMatrix[1][1] = cos(rotationAngle);
-				rotationMatrix[1][2] = sin(rotationAngle);
-				rotationMatrix[2][1] = -sin(rotationAngle);
-				rotationMatrix[2][2] = cos(rotationAngle);
-			}
-			else if (rotationAxis == CVector3::YAxis)
-			{
-				rotationMatrix[0][0] = cos(rotationAngle);
-				rotationMatrix[0][2] = -sin(rotationAngle);
-				rotationMatrix[2][0] = sin(rotationAngle);
-				rotationMatrix[2][2] = cos(rotationAngle);
-			}
-			else if (rotationAxis == CVector3::ZAxis)
-			{
-				rotationMatrix[0][0] = cos(rotationAngle);
-				rotationMatrix[0][1] = sin(rotationAngle);
-				rotationMatrix[1][0] = -sin(rotationAngle);
-				rotationMatrix[1][1] = cos(rotationAngle);
+				r = red;
+				g = green;
+				b = blue;
 			}
 
-			for (int Row = 0; Row < 4; Row++)
-				for (int Column = 0; Column < 4; Column++)
-					if (fabs(rotationMatrix[Row][Column]) < 0.000001)
-						rotationMatrix[Row][Column] = 0.0;
+			ColorRGB()
+			{
+				r = g = b = 0;
+			}
 
-			vector< vector<double>> geomVecMatrix(1, vector<double>(4, 1.0));
-			geomVecMatrix[0][0] = x_;
-			geomVecMatrix[0][1] = y_;
-			geomVecMatrix[0][2] = z_;
-			vector< vector<double>> result(1, vector<double>(4, 0.0));
+			byte r;
+			byte g;
+			byte b;
 
-			for (int i = 0; i < 1; i++)
-				for (int j = 0; j < 4; j++)
-					for (int k = 0; k < 4; k++) // OR use Matrix2.m_row. Both are equal.
-						result[i][j] += geomVecMatrix[i][k] * rotationMatrix[k][j];
+			bool operator==(const ColorRGB& c)
+			{
+				return (r == c.r) && (g == c.g) && (b == c.b);
+			}
 
-			x_ = result[0][0];
-			y_ = result[0][1];
-			z_ = result[0][2];
-		}
+			bool operator!=(const ColorRGB& c)
+			{
+				return !((r == c.r) && (g == c.g) && (b == c.b));
+			}
 
-		//int recalcGroup(int size)
-		//{
-		//	double extend = (size - 1) / 2.0;
-		//	int group = 0;
-		//	if (fabs(x_ - (-extend)) < 0.0001)
-		//		group |= Groups::L;
-		//	else if (fabs(x_ - extend) < 0.0001)
-		//		group |= Groups::R;
+			static const ColorRGB RGBColors[7];
+		};
 
-		//	if (fabs(y_ - (-extend)) < 0.0001)
-		//		group |= Groups::D;
-		//	else if (fabs(y_ - extend) < 0.0001)
-		//		group |= Groups::U;
+		class Utility
+		{
+		public:
+			//static Groups getGroup(char layer, int index)
+			//{
+			//}
 
-		//	if (fabs(z_ - (-extend)) < 0.0001)
-		//		group |= Groups::B;
-		//	else if (fabs(z_ - extend) < 0.0001)
-		//		group |= Groups::F;
+			//static const CVector3& getAxis(char layer, int index)
+			//{
+			//	static vector<CVector3*> data{};
+			//}
+		};
 
-		//	return group;
-		//}
+		struct Location
+		{
+			Location()
+				: x_(0.0), y_(0.0), z_(0.0)
+			{}
+			Location(double x, double y, double z)
+				: x_(x), y_(y), z_(z)
+			{}
+			Location(const Location&) = default;
+			Location(Location&&) = default;
+			Location& operator=(const Location&) = default;
+			Location& operator=(Location&&) = default;
 
-		double x_;
-		double y_;
-		double z_;
-	};
+			bool operator==(const Location& rhs) const
+			{
+				return fabs(x_ - rhs.x_) < 0.0001
+					&& fabs(y_ - rhs.y_) < 0.0001
+					&& fabs(z_ - rhs.z_) < 0.0001;
+			}
 
-	
+			bool operator!=(const Location& rhs) const
+			{
+				return !(*this == rhs);
+			}
 
-	class Cube_v2
-	{
+			void rotate(CVector3 rotationAxis, double rotationAngle)
+			{
+				static vector<vector<double>> rotationMatrix(4, vector<double>(4));
+
+				// Initialize rotation matrix
+				for (int Row = 0; Row < 4; Row++)
+					for (int Column = 0; Column < 4; Column++)
+						if (Row == Column)
+							rotationMatrix[Row][Column] = 1.0;
+						else
+							rotationMatrix[Row][Column] = 0.0;
+
+				if (rotationAxis == CVector3::XAxis)
+				{
+					rotationMatrix[1][1] = cos(rotationAngle);
+					rotationMatrix[1][2] = sin(rotationAngle);
+					rotationMatrix[2][1] = -sin(rotationAngle);
+					rotationMatrix[2][2] = cos(rotationAngle);
+				}
+				else if (rotationAxis == CVector3::YAxis)
+				{
+					rotationMatrix[0][0] = cos(rotationAngle);
+					rotationMatrix[0][2] = -sin(rotationAngle);
+					rotationMatrix[2][0] = sin(rotationAngle);
+					rotationMatrix[2][2] = cos(rotationAngle);
+				}
+				else if (rotationAxis == CVector3::ZAxis)
+				{
+					rotationMatrix[0][0] = cos(rotationAngle);
+					rotationMatrix[0][1] = sin(rotationAngle);
+					rotationMatrix[1][0] = -sin(rotationAngle);
+					rotationMatrix[1][1] = cos(rotationAngle);
+				}
+
+				for (int Row = 0; Row < 4; Row++)
+					for (int Column = 0; Column < 4; Column++)
+						if (fabs(rotationMatrix[Row][Column]) < 0.000001)
+							rotationMatrix[Row][Column] = 0.0;
+
+				vector< vector<double>> geomVecMatrix(1, vector<double>(4, 1.0));
+				geomVecMatrix[0][0] = x_;
+				geomVecMatrix[0][1] = y_;
+				geomVecMatrix[0][2] = z_;
+				vector< vector<double>> result(1, vector<double>(4, 0.0));
+
+				for (int i = 0; i < 1; i++)
+					for (int j = 0; j < 4; j++)
+						for (int k = 0; k < 4; k++) // OR use Matrix2.m_row. Both are equal.
+							result[i][j] += geomVecMatrix[i][k] * rotationMatrix[k][j];
+
+				x_ = result[0][0];
+				y_ = result[0][1];
+				z_ = result[0][2];
+			}
+
+			//int recalcGroup(int size)
+			//{
+			//	double extend = (size - 1) / 2.0;
+			//	int group = 0;
+			//	if (fabs(x_ - (-extend)) < 0.0001)
+			//		group |= Groups::L;
+			//	else if (fabs(x_ - extend) < 0.0001)
+			//		group |= Groups::R;
+
+			//	if (fabs(y_ - (-extend)) < 0.0001)
+			//		group |= Groups::D;
+			//	else if (fabs(y_ - extend) < 0.0001)
+			//		group |= Groups::U;
+
+			//	if (fabs(z_ - (-extend)) < 0.0001)
+			//		group |= Groups::B;
+			//	else if (fabs(z_ - extend) < 0.0001)
+			//		group |= Groups::F;
+
+			//	return group;
+			//}
+
+			double x_;
+			double y_;
+			double z_;
+		};
+
+		class Cube
+		{
+		public:
+			Cube() {}
+			Cube(const Cube& copy)
+				: faces_(copy.faces_),
+				location_(copy.location_)
+				//group_(copy.group_)
+			{}
+			Cube(Cube&&) = default;
+			Cube& operator=(const Cube&) = default;
+			Cube& operator=(Cube&&) = default;
+			Cube(Color cTop, Color cBottom, Color cLeft,
+				Color cRight, Color cFront, Color cBack, const Location& location);
+			~Cube();
+			Color GetFaceColor(Face eFace) const;
+			//ColorRGB GetFaceColorRGB(Face eFace) const;
+			void TiltUp();
+			void TiltDown();
+			void TurnLeft();
+			void TurnRight();
+			void TiltLeft();
+			void TiltRight();
+
+			const Location& getLocation() const { return location_; }
+
+			void rotate(CVector3 rotationAxis, double rotationAngle);
+			bool belongsTo(Face rotatingSection, int layerIndex, int size) const;
+
+			//private:
+			static const int FACE_COUNT = 6;
+			vector<Color> faces_;
+			Location location_;
+			//int group_;
+		};
+
 	public:
-		Cube_v2() {}
-		Cube_v2(const Cube_v2& copy) 
-			: faces_(copy.faces_), 
-			location_(copy.location_)
-			//group_(copy.group_)
-		{}
-		Cube_v2(Cube_v2&&) = default;
-		Cube_v2& operator=(const Cube_v2&) = default;
-		Cube_v2& operator=(Cube_v2&&) = default;
-		Cube_v2(Color cTop, Color cBottom, Color cLeft,
-			Color cRight, Color cFront, Color cBack, const Location_v2& location);
-		~Cube_v2();
-		Color GetFaceColor(Face eFace) const;
-		//ColorRGB GetFaceColorRGB(Face eFace) const;
-		void TiltUp();
-		void TiltDown();
-		void TurnLeft();
-		void TurnRight();
-		void TiltLeft();
-		void TiltRight();
+		RubiksCubeModel_v2(int size);
+		~RubiksCubeModel_v2();
+		RubiksCubeModel_v2(const RubiksCubeModel_v2& copy);
 
-		const Location_v2& getLocation() const { return location_; }
+		void loadAllTextures();
+		void ResetCube() override;
+		int applyAlgorithm(const string& algorithm, bool animate = false, int steps = 0, RubiksCubeSolverUI* ui = nullptr) override;
+		string getScramblingAlgo(int length) override;
+		string solve(int& solutionSteps, unsigned long long& duration) override;
+		string solveAndAnimate(int steps = 0, RubiksCubeSolverUI* ui = nullptr) override;
+		void render() override;
+		void renderIndividualCube(const Cube& pCube, const Location& location);
 
-		void rotate(CVector3 rotationAxis, double rotationAngle);
-		bool belongsTo(Face rotatingSection, int layerIndex, int size) const;
+		void loadTexture(int nId, GLuint* texture);
+		GLuint getTextureID(Color color);
+		GLuint g_pTextures[7];
 
-	//private:
-		static const int FACE_COUNT = 6;
-		vector<Color> faces_;
-		Location_v2 location_;
-		//int group_;
-	};
+		const Cube& GetCube(double x, double y, double z);
+		//const Cube& GetCube(Face layer0, Face layer1, Face layer2);
 
-	class RubiksCubeSolverUI;
-
-	class CRubiksCube_v2
-	{
-	public:
-		CRubiksCube_v2(int size);
-		~CRubiksCube_v2();
-		CRubiksCube_v2(const CRubiksCube_v2& copy);
-
-		void ResetCube();
-		const Cube_v2& GetCube(double x, double y, double z);
-		//const Cube_v2& GetCube(Face layer0, Face layer1, Face layer2);
-
-		//void Rotate(int section, int turns);	// around y axis
-		//void Tilt(int section, int turns);	// around x axis
-		//void Turn(int section, int turns);	// around z axis
 		void Rotate(CVector3 rotationAxis, Face rotatingSection, int layerIndex, double rotationAngle);
-		//void Randomize();
 		bool IsSolved();
-
-		//void RotateWholeRubiksCube(int axis, int turns); This function is not required. Rotate can do it.
-
-		//Apply algorithm
-		int applyAlgorithm(const string& algorithm, bool animate = false, int steps = 0, RubiksCubeSolverUI* ui = nullptr);
 
 		bool g_bRotating;
 		bool g_bFlipRotation;
@@ -296,8 +289,6 @@ namespace mm {
 		double g_nRotationAngle;
 
 		int getSize() { return size_; }
-
-		string getScramblingAlgo();
 
 	private:
 		void applyStep(const char& face, bool isPrime, int numRotations, bool animate = false, int steps = 0, RubiksCubeSolverUI* ui = nullptr);
@@ -322,7 +313,7 @@ namespace mm {
 
 		struct Hasher
 		{
-			size_t operator()(const Location_v2& key) const noexcept
+			size_t operator()(const Location& key) const noexcept
 			{
 				std::size_t seed = 0;
 				hash_combine(seed, key.x_);
@@ -334,9 +325,8 @@ namespace mm {
 
 	//private:
 	public:
-		//Cube*** *m_pCubes;
 		//vector< vector< vector<Cube> > > cubes_; // Total elements = size_ * size_ * size_
-		unordered_map<Location_v2, unique_ptr<Cube_v2>, Hasher> cubes_; // Total elements = size_ * size_ * size_ - ( (size_-2) * (size_-2) * (size_-2) )
+		unordered_map<Location, unique_ptr<Cube>, Hasher> cubes_; // Total elements = size_ * size_ * size_ - ( (size_-2) * (size_-2) * (size_-2) )
 		//vector< vector<Cube*> > layerF_; //Front layer //Total elements = size_ * size_
 		//vector< vector<Cube*> > layerB_; //Back layer
 		//vector< vector<Cube*> > layerL_; //Left layer
@@ -347,8 +337,47 @@ namespace mm {
 
 	private:
 		bool IsValidCube(int x, int y, int z);
-		unique_ptr<Cube_v2> CreateCube(double x, double y, double z, const Location_v2& location);
+		unique_ptr<Cube> CreateCube(double x, double y, double z, const Location& location);
 		bool IsFaceSolved(Face face);
+
+		static const double CUBE_SIZE;
+
+
+		//=======================================================================================================
+		// Solver
+		//=======================================================================================================
+
+	public:
+
+		class RubiksCubeSolver
+		{
+		public:
+			RubiksCubeSolver(RubiksCubeModel_v2& rubiksCube, bool animate = false, int steps = 0, RubiksCubeSolverUI* ui = nullptr);
+			string solve(int& solutionSteps);
+
+		private:
+			void positionTheCube();
+			void buildCross();
+			void buildF2L();
+			void buildOLL();
+			void buildPLL();
+
+			void buildCross_PlaceEdgePiece(const Color& targetColorFront, const Color& targetColorBottom);
+			void buildF2L_PositionCornerPieces(const Color& targetColorFront, const Color& targetColorRight, const Color& targetColorBottom = Color::White);
+			bool buildF2L_PositionEdgePieces(const Color& targetColorFront, const Color& targetColorRight);
+
+		private:
+			void applyAlgorithm(const string& step);
+			bool isEdgeCube(const Cube& currentCube, const Color& first, const Color& second);
+
+			RubiksCubeModel_v2& rubiksCube_;
+			string solution_;
+			int solutionSteps_;
+
+			bool animate_;
+			int steps_;
+			RubiksCubeSolverUI* ui_;
+		};
 	};
 
 }

@@ -2,25 +2,25 @@
 //
 #include "stdafx.h"
 
-#include "Resource.h"
+//#include "Resource.h"
 #include <windows.h>
 #include <windowsx.h>
 #include <gl\gl.h>
 #include <gl\glu.h>
 
+#include "Resource.h"
 #include "RubiksCubeSolverScene.h"
-#include "RubiksCubeSimulator.h"
-#include "RubiksCubeSolver_v1.h"
-#include "RubiksCubeSolverTest.h"
 
 namespace mm {
 
 	GLuint RubiksCubeSolverScene::g_pSelectBuffer[RubiksCubeSolverScene::SELECT_BUFFER_SIZE];
 	const int RUBIKS_CUBE_SIZE = 3;
 
-	RubiksCubeSolverScene::RubiksCubeSolverScene()
-		: g_cCube(RUBIKS_CUBE_SIZE),
-		g_cCube_v2(RUBIKS_CUBE_SIZE)
+	RubiksCubeSolverScene::RubiksCubeSolverScene(RubiksCubeSolverUI& refUI)
+		: rubicCubeModel_(RubiksCubeModelFactory::getRubiksCubeModel("RubiksCubeModel_v2", 3)),
+		//g_cCube(RUBIKS_CUBE_SIZE),
+		//g_cCube_v2(RUBIKS_CUBE_SIZE),
+		refUI_(refUI)
 	{
 	}
 
@@ -39,53 +39,54 @@ namespace mm {
 		glDepthFunc(GL_LEQUAL);										// The Type Of Depth Testing To Do
 		glLineWidth(LINE_WIDTH);									// Set outline width
 
-		loadTexture(IDB_WHITE, &g_pTextures[Color::White]);
-		loadTexture(IDB_BLUE, &g_pTextures[Color::Blue]);
-		loadTexture(IDB_ORANGE, &g_pTextures[Color::Orange]);
-		loadTexture(IDB_RED, &g_pTextures[Color::Red]);
-		loadTexture(IDB_GREEN, &g_pTextures[Color::Green]);
-		loadTexture(IDB_YELLOW, &g_pTextures[Color::Yellow]);
-		loadTexture(IDB_BLACK, &g_pTextures[Color::Black]);
+		rubicCubeModel_->loadAllTextures();
+		//loadTexture(IDB_WHITE, &g_pTextures[Color::White]);
+		//loadTexture(IDB_BLUE, &g_pTextures[Color::Blue]);
+		//loadTexture(IDB_ORANGE, &g_pTextures[Color::Orange]);
+		//loadTexture(IDB_RED, &g_pTextures[Color::Red]);
+		//loadTexture(IDB_GREEN, &g_pTextures[Color::Green]);
+		//loadTexture(IDB_YELLOW, &g_pTextures[Color::Yellow]);
+		//loadTexture(IDB_BLACK, &g_pTextures[Color::Black]);
 	}
 
-	void RubiksCubeSolverScene::loadTexture(int nId, GLuint* texture)
-	{
-		// bitmap handle
-		HBITMAP hBMP;
+	//void RubiksCubeSolverScene::loadTexture(int nId, GLuint* texture)
+	//{
+	//	// bitmap handle
+	//	HBITMAP hBMP;
 
-		// bitmap struct
-		BITMAP   bmp;
+	//	// bitmap struct
+	//	BITMAP   bmp;
 
-		glGenTextures(1, texture);    // Create The Texture 
-		hBMP = (HBITMAP)LoadImage(
-			GetModuleHandle(NULL),
-			MAKEINTRESOURCE(nId),
-			IMAGE_BITMAP, 0, 0, LR_CREATEDIBSECTION);
+	//	glGenTextures(1, texture);    // Create The Texture 
+	//	hBMP = (HBITMAP)LoadImage(
+	//		GetModuleHandle(NULL),
+	//		MAKEINTRESOURCE(nId),
+	//		IMAGE_BITMAP, 0, 0, LR_CREATEDIBSECTION);
 
-		GetObject(hBMP, sizeof(bmp), &bmp);
+	//	GetObject(hBMP, sizeof(bmp), &bmp);
 
-		// Pixel Storage Mode (Word Alignment / 4 Bytes) 
-		glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+	//	// Pixel Storage Mode (Word Alignment / 4 Bytes) 
+	//	glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 
-		// bind to the texture ID
-		glBindTexture(GL_TEXTURE_2D, *texture);
+	//	// bind to the texture ID
+	//	glBindTexture(GL_TEXTURE_2D, *texture);
 
-		glTexImage2D(
-			GL_TEXTURE_2D,
-			0,
-			3,
-			bmp.bmWidth, bmp.bmHeight,
-			0,
-			GL_BGR_EXT,
-			GL_UNSIGNED_BYTE,
-			bmp.bmBits
-		);
+	//	glTexImage2D(
+	//		GL_TEXTURE_2D,
+	//		0,
+	//		3,
+	//		bmp.bmWidth, bmp.bmHeight,
+	//		0,
+	//		GL_BGR_EXT,
+	//		GL_UNSIGNED_BYTE,
+	//		bmp.bmBits
+	//	);
 
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-		DeleteObject(hBMP);
-	}
+	//	DeleteObject(hBMP);
+	//}
 
 	void RubiksCubeSolverScene::sizeOpenGlScreen(int nWidth, int nHeight)
 	{
@@ -132,7 +133,6 @@ namespace mm {
 		g_cCamera.SetDistance(45.0);
 		g_cCamera.SetPhi((float)(PI / 4));
 		g_cCamera.SetTheta((float)(PI / 4));
-
 		//g_cCube.Randomize();
 	}
 
@@ -151,35 +151,35 @@ namespace mm {
 			up.x, up.y, up.z
 		);
 
-#ifdef _DEBUG
-		// Draw Axis
-		glBegin(GL_LINES);
-		// x
-		glColor3f(1.0f, 0.6f, 0.0f); // orange
-		glVertex3d(0.0, 0.0, 0.0);
-		glVertex3d(CUBE_SIZE * 3, 0.0, 0.0);
-		glColor3f(1.0f, 0.0f, 0.0f); // red
-		glVertex3d(CUBE_SIZE * 3, 0.0, 0.0);
-		glVertex3d(CUBE_SIZE * 4.5f, 0.0, 0.0);
-
-		// y
-		//glColor3f(0.0f, 1.0f, 0.0f);  // green
-		glColor3f(1.0f, 1.0f, 1.0f);  // white
-		glVertex3d(0.0, 0.0, 0.0);
-		glVertex3d(0.0, CUBE_SIZE * 3, 0.0);
-		glColor3f(1.0f, 1.0f, 0.0f);  // yellow
-		glVertex3d(0.0, CUBE_SIZE * 3, 0.0);
-		glVertex3d(0.0, CUBE_SIZE * 4.5f, 0.0);
-
-		// z
-		glColor3f(0.0f, 1.0f, 0.0f);  // green
-		glVertex3d(0.0, 0.0, 0.0);
-		glVertex3d(0.0, 0.0, CUBE_SIZE * 3);
-		glColor3f(0.0f, 0.0f, 1.0f); // blue
-		glVertex3d(0.0, 0.0, CUBE_SIZE * 3);
-		glVertex3d(0.0, 0.0, CUBE_SIZE * 4.5f);
-		glEnd();
-#endif
+//#ifdef _DEBUG
+//		// Draw Axis
+//		glBegin(GL_LINES);
+//		// x
+//		glColor3f(1.0f, 0.6f, 0.0f); // orange
+//		glVertex3d(0.0, 0.0, 0.0);
+//		glVertex3d(CUBE_SIZE * 3, 0.0, 0.0);
+//		glColor3f(1.0f, 0.0f, 0.0f); // red
+//		glVertex3d(CUBE_SIZE * 3, 0.0, 0.0);
+//		glVertex3d(CUBE_SIZE * 4.5f, 0.0, 0.0);
+//
+//		// y
+//		//glColor3f(0.0f, 1.0f, 0.0f);  // green
+//		glColor3f(1.0f, 1.0f, 1.0f);  // white
+//		glVertex3d(0.0, 0.0, 0.0);
+//		glVertex3d(0.0, CUBE_SIZE * 3, 0.0);
+//		glColor3f(1.0f, 1.0f, 0.0f);  // yellow
+//		glVertex3d(0.0, CUBE_SIZE * 3, 0.0);
+//		glVertex3d(0.0, CUBE_SIZE * 4.5f, 0.0);
+//
+//		// z
+//		glColor3f(0.0f, 1.0f, 0.0f);  // green
+//		glVertex3d(0.0, 0.0, 0.0);
+//		glVertex3d(0.0, 0.0, CUBE_SIZE * 3);
+//		glColor3f(0.0f, 0.0f, 1.0f); // blue
+//		glVertex3d(0.0, 0.0, CUBE_SIZE * 3);
+//		glVertex3d(0.0, 0.0, CUBE_SIZE * 4.5f);
+//		glEnd();
+//#endif
 
 		glEnable(GL_LIGHTING);
 		float color[] = { 1.0f, 1.0f, 1.0f, 1.0f };
@@ -203,7 +203,8 @@ namespace mm {
 		//glMaterialfv(GL_FRONT, GL_SHININESS, &shininess);
 
 		//renderRubiksCube();
-		renderRubiksCube_v2();
+		//renderRubiksCube_v2();
+		rubicCubeModel_->render();
 
 		glDisable(GL_LIGHT1);
 		glDisable(GL_LIGHTING);
@@ -211,6 +212,7 @@ namespace mm {
 		//SwapBuffers(g_hDC);
 	}
 
+	/*
 	void RubiksCubeSolverScene::renderRubiksCube()
 	{
 		glInitNames();
@@ -256,13 +258,6 @@ namespace mm {
 		glPushMatrix();
 
 		glTranslated(x * CUBE_SIZE, y * CUBE_SIZE, z * CUBE_SIZE);
-
-		//ColorRGB top = pCube.GetFaceColorRGB(Up);
-		//ColorRGB bottom = pCube.GetFaceColorRGB(Down);
-		//ColorRGB left = pCube.GetFaceColorRGB(Left);
-		//ColorRGB right = pCube.GetFaceColorRGB(Right);
-		//ColorRGB back = pCube.GetFaceColorRGB(Back);
-		//ColorRGB front = pCube.GetFaceColorRGB(Front);
 
 		Color top = pCube.GetFaceColor(Up);
 		Color bottom = pCube.GetFaceColor(Down);
@@ -370,42 +365,26 @@ namespace mm {
 	{
 		glInitNames();
 
-		//for (int i = 0; i < g_cCube_v2.getSize(); i++)
+		for (auto& obj : g_cCube_v2.cubes_)
 		{
-			//for (int j = 0; j < g_cCube_v2.getSize(); j++)
+			const Location_v2& loc = obj.first;
+			const Cube_v2& cube = *obj.second.get();
+
+			glPushMatrix();
+
+			if (g_cCube_v2.g_bRotating)
 			{
-				//for (int k = 0; k < g_cCube_v2.getSize(); k++)
-				for(auto& obj : g_cCube_v2.cubes_)
+				if (cube.belongsTo(g_cCube_v2.g_nRotatingSection, g_cCube_v2.g_nLayerIndex, g_cCube_v2.size_))
 				{
-					const Location_v2& loc = obj.first;
-					const Cube_v2& cube = *obj.second.get();
-
-					glPushMatrix();
-
-					if (g_cCube_v2.g_bRotating)
-					{
-						//if (g_cCube_v2.g_vRotationAxis.x && i == g_cCube_v2.g_nRotatingSection //Rotate left, right or middle section
-						//	|| g_cCube_v2.g_vRotationAxis.y && j == g_cCube_v2.g_nRotatingSection //Rotate top, bottom or middle section
-						//	|| g_cCube_v2.g_vRotationAxis.z && k == g_cCube_v2.g_nRotatingSection //Rotate front, back or middle section
-						//																	//||	(	g_cCube_v2.g_nRotatingSection == -1 && 
-						//																	//		(g_cCube_v2.g_vRotationAxis.x || g_cCube_v2.g_vRotationAxis.y || g_cCube_v2.g_vRotationAxis.z) //Rotate whole cube
-						//																	//	)
-							//)
-						//if(g_cCube_v2.g_nRotatingSection == Groups::All || g_cCube_v2.g_nRotatingSection & cube.group_)
-						//if (g_cCube_v2.g_nRotatingSection & cube.group_)
-						if(cube.belongsTo(g_cCube_v2.g_nRotatingSection, g_cCube_v2.g_nLayerIndex, g_cCube_v2.size_))
-						{
-							int angle = g_cCube_v2.g_bFlipRotation ? -g_cCube_v2.g_nRotationAngle : g_cCube_v2.g_nRotationAngle;
-							glRotated(angle, g_cCube_v2.g_vRotationAxis.x, g_cCube_v2.g_vRotationAxis.y, g_cCube_v2.g_vRotationAxis.z);
-						}
-					}
-
-					//const Cube_v2& cube = g_cCube_v2.GetCube(i, j, k);
-					renderIndividualCube_v2(cube, cube.getLocation());
-
-					glPopMatrix();
+					int angle = g_cCube_v2.g_bFlipRotation ? -g_cCube_v2.g_nRotationAngle : g_cCube_v2.g_nRotationAngle;
+					glRotated(angle, g_cCube_v2.g_vRotationAxis.x, g_cCube_v2.g_vRotationAxis.y, g_cCube_v2.g_vRotationAxis.z);
 				}
 			}
+
+			//const Cube_v2& cube = g_cCube_v2.GetCube(i, j, k);
+			renderIndividualCube_v2(cube, cube.getLocation());
+
+			glPopMatrix();
 		}
 	}
 
@@ -427,13 +406,6 @@ namespace mm {
 		glPushMatrix();
 
 		glTranslated(x * CUBE_SIZE, y * CUBE_SIZE, z * CUBE_SIZE);
-
-		//ColorRGB top = pCube.GetFaceColorRGB(Top);
-		//ColorRGB bottom = pCube.GetFaceColorRGB(Bottom);
-		//ColorRGB left = pCube.GetFaceColorRGB(Left);
-		//ColorRGB right = pCube.GetFaceColorRGB(Right);
-		//ColorRGB back = pCube.GetFaceColorRGB(Back);
-		//ColorRGB front = pCube.GetFaceColorRGB(Front);
 
 		Color top = pCube.GetFaceColor(Up);
 		Color bottom = pCube.GetFaceColor(Down);
@@ -536,31 +508,12 @@ namespace mm {
 
 		glPopMatrix();
 	}
+	*/
 
-	//GLuint RubiksCubeSolverScene::getTextureID(ColorRGB color)
+	//GLuint RubiksCubeSolverScene::getTextureID(Color color)
 	//{
-	//	if (color == ColorRGB::BLACK) 
-	//		return g_pTextures[6];
-	//	else if (color == ColorRGB::WHITE) // TODO: replace colours by static objects like above
-	//		return g_pTextures[0];
-	//	else if (color == ColorRGB::BLUE)
-	//		return g_pTextures[1];
-	//	else if (color == ColorRGB::ORANGE)
-	//		return g_pTextures[2];
-	//	else if (color == ColorRGB::RED)
-	//		return g_pTextures[3];
-	//	else if (color == ColorRGB::GREEN)
-	//		return g_pTextures[4];
-	//	else if (color == ColorRGB::YELLOW)
-	//		return g_pTextures[5];
-	//	else
-	//		return g_pTextures[6];
+	//	return g_pTextures[color];
 	//}
-
-	GLuint RubiksCubeSolverScene::getTextureID(Color color)
-	{
-		return g_pTextures[color];
-	}
 
 	INT RubiksCubeSolverScene::getSelectedObjects(int x, int y, int nWidth, int nHeight)
 	{
@@ -612,50 +565,87 @@ namespace mm {
 		return CVector3(posX, posY, posZ);
 	}
 
-	void RubiksCubeSolverScene::getCubeSelection(int *x, int *y, int *z, Face *face, int g_nHitCount)
+	//void RubiksCubeSolverScene::getCubeSelection(int *x, int *y, int *z, Face *face, int g_nHitCount)
+	//{
+	//	GLuint names, *ptr, minZ, *ptrNames, numberOfNames;
+	//	ptr = (GLuint *)g_pSelectBuffer;
+	//	minZ = 0xffffffff;
+
+	//	for (int i = 0; i < g_nHitCount && i < SELECT_BUFFER_SIZE; i++)
+	//	{
+	//		names = *ptr;
+	//		ptr++;
+	//		if (*ptr < minZ)
+	//		{
+	//			numberOfNames = names;
+	//			minZ = *ptr;
+	//			ptrNames = ptr + 2;
+	//		}
+
+	//		ptr += names + 2;
+	//	}
+
+	//	*x = ptrNames[0];
+	//	*y = ptrNames[1];
+	//	*z = ptrNames[2];
+	//	*face = (Face)ptrNames[3];
+	//}
+
+	void RubiksCubeSolverScene::Reset()
 	{
-		GLuint names, *ptr, minZ, *ptrNames, numberOfNames;
-		ptr = (GLuint *)g_pSelectBuffer;
-		minZ = 0xffffffff;
-
-		for (int i = 0; i < g_nHitCount && i < SELECT_BUFFER_SIZE; i++)
-		{
-			names = *ptr;
-			ptr++;
-			if (*ptr < minZ)
-			{
-				numberOfNames = names;
-				minZ = *ptr;
-				ptrNames = ptr + 2;
-			}
-
-			ptr += names + 2;
-		}
-
-		*x = ptrNames[0];
-		*y = ptrNames[1];
-		*z = ptrNames[2];
-		*face = (Face)ptrNames[3];
+		//g_cCube.ResetCube();
+		//g_cCube_v2.ResetCube();
+		rubicCubeModel_->ResetCube();
 	}
 
-	/*
-	void RubiksCubeSolverScene::deInit()
+	string RubiksCubeSolverScene::getScramblingAlgo(int length)
 	{
-		if (g_hRC)
-		{
-			wglMakeCurrent(NULL, NULL);
-			wglDeleteContext(g_hRC);
-		}
-
-		if (g_hDC)
-			ReleaseDC(g_hWnd, g_hDC);
-
-		if (g_bFullScreen)
-			ChangeDisplaySettings(NULL, 0);
-
-		UnregisterClass(g_szWindowClass, g_hInstance);
-
+		//return g_cCube_v2.getScramblingAlgo(length);
+		return rubicCubeModel_->getScramblingAlgo(length);
 	}
-	*/
+
+	void RubiksCubeSolverScene::applyAlgorithmToCube(const string& algo, bool animate)
+	{
+		//g_cCube_v2.applyAlgorithm(algo, true, 20, &refUI_);
+		rubicCubeModel_->applyAlgorithm(algo, true, 20, &refUI_);
+	}
+
+	string RubiksCubeSolverScene::Solve(int& solutionSteps, unsigned long long& duration)
+	{
+		//First solve and then animate
+		//CRubiksCube copy = g_cCube;
+		//RubiksCubeSolver_v1 solver(copy);
+		/*
+		CRubiksCube_v2 copy = g_cCube_v2;
+		RubiksCubeSolver_v2 solver(copy);
+		using HRClock = std::chrono::high_resolution_clock;
+		HRClock::time_point start_time = HRClock::now();
+		string solution = solver.solve(solutionSteps);
+		HRClock::time_point end_time = HRClock::now();
+		std::chrono::nanoseconds time_span = std::chrono::duration_cast<std::chrono::nanoseconds>(end_time - start_time);
+		duration = time_span.count();
+
+		return solution;
+		*/
+
+		return rubicCubeModel_->solve(solutionSteps, duration);
+	}
+
+	void RubiksCubeSolverScene::SolveAndAnimate()
+	{
+		//Animate while solving
+		//RubiksCubeSolver_v1 solver(g_cCube, true, 20, this);
+		//int solutionSteps;
+		//string solution = solver.solve(solutionSteps);
+
+		//Animate while solving
+		/*
+		RubiksCubeSolver_v2 solver(g_cCube_v2, true, 20, &refUI_);
+		int solutionSteps;
+		string solution = solver.solve(solutionSteps);
+		*/
+
+		string solution = rubicCubeModel_->solveAndAnimate(20, &refUI_);
+	}
 }
 
