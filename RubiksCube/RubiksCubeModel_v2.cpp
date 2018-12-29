@@ -7,7 +7,7 @@
 using namespace std;
 
 #include "Resource.h"
-#include "RubiksCubeRenderingModel_v2.h"
+#include "RubiksCubeModel_v2.h"
 #include "RubiksCubeSolverUI.h"
 
 namespace mm {

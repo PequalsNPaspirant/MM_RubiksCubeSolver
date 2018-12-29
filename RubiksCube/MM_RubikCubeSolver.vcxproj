@@ -162,12 +162,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="RubiksCubeModel.cpp" />
-    <ClCompile Include="RubiksCubeRenderingModel_v2.cpp" />
+    <ClCompile Include="RubiksCubeModel_v2.cpp" />
     <ClCompile Include="RubiksCubeSolverScene.cpp" />
     <ClCompile Include="RubiksCubeSolverTest.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="RubiksCubeSolverUI.cpp" />
-    <ClCompile Include="RubiksCubeRenderingModel_v1.cpp" />
+    <ClCompile Include="RubiksCubeModel_v1.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -178,13 +178,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="RubiksCubeModel.h" />
-    <ClInclude Include="RubiksCubeRenderingModel_v2.h" />
+    <ClInclude Include="RubiksCubeModel_v2.h" />
     <ClInclude Include="RubiksCubeSolverScene.h" />
     <ClInclude Include="RubiksCubeSolverTest.h" />
     <ClInclude Include="RubiksCubeSolverUI.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Resource.h" />
-    <ClInclude Include="RubiksCubeRenderingModel_v1.h" />
+    <ClInclude Include="RubiksCubeModel_v1.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="Vector3.h" />
   </ItemGroup>
