@@ -39,6 +39,7 @@ namespace mm {
 		glDepthFunc(GL_LEQUAL);										// The Type Of Depth Testing To Do
 		glLineWidth(LINE_WIDTH);									// Set outline width
 
+		//Load all textures after window is fully created
 		rubicCubeModel_->loadAllTextures();
 		//loadTexture(IDB_WHITE, &g_pTextures[Color::White]);
 		//loadTexture(IDB_BLUE, &g_pTextures[Color::Blue]);
