@@ -15,11 +15,16 @@ namespace mm {
 	public:
 		virtual void loadAllTextures() = 0;
 		virtual void ResetCube() = 0;
-		virtual int applyAlgorithm(const string& algorithm, bool animate = false, int steps = 0, RubiksCubeSolverUI* ui = nullptr) = 0;
+		virtual int applyAlgorithm(const string& algorithm, bool animate, RubiksCubeSolverUI& ui) = 0;
 		virtual string getScramblingAlgo(int length) = 0;
-		virtual string solve(int& solutionSteps, unsigned long long& duration) = 0;
-		virtual string solveAndAnimate(int steps = 0, RubiksCubeSolverUI* ui = nullptr) = 0;
+		virtual string solve(int& solutionSteps, unsigned long long& duration, bool animate, RubiksCubeSolverUI& ui) = 0;
+		//virtual string solveAndAnimate(int& solutionSteps, unsigned long long& duration, RubiksCubeSolverUI& ui) = 0;
 		virtual void render() = 0;
+		virtual bool isSolved() = 0;
+
+		virtual unique_ptr<RubiksCubeModel> copy() = 0;
+		virtual string getModelName() = 0;
+		virtual int getDimension() = 0;
 
 		virtual ~RubiksCubeModel() = 0
 		{

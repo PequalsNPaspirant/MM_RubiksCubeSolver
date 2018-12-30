@@ -30,12 +30,17 @@ IDC_RUBIKSCUBE MENU
 BEGIN
     POPUP "&File"
     BEGIN
+        MENUITEM SEPARATOR
+        MENUITEM "E&xit",                       IDM_EXIT
+    END
+    POPUP "Rubiks Cube"
+    BEGIN
         MENUITEM "Reset",                       IDM_FILE_RESET
         MENUITEM "&Scramble",                   IDM_FILE_SCRAMBLE
         MENUITEM "Solve",                       IDM_FILE_SOLVE
-        MENUITEM "Solve and Animate",           IDM_FILE_SOLVE_ANIM
-        MENUITEM SEPARATOR
-        MENUITEM "E&xit",                       IDM_EXIT
+        MENUITEM "Solve (Show Animation)",      IDM_FILE_SOLVE_ANIM
+        MENUITEM "Test",                        ID_RUBIKSCUBE_TEST
+        MENUITEM "Test (Show Animation)",       ID_RUBIKSCUBE_TEST_ANIM
     END
     POPUP "&Help"
     BEGIN

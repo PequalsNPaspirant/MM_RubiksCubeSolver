@@ -234,10 +234,10 @@ namespace mm {
 		}
 	}
 
-	string RubiksCubeModel_v1::solve(int& solutionSteps, unsigned long long& duration)
+	string RubiksCubeModel_v1::solve(int& solutionSteps, unsigned long long& duration, bool animate, RubiksCubeSolverUI& ui)
 	{
-		RubiksCubeModel_v1 copy = *this;
-		RubiksCubeSolver solver(copy);
+		//RubiksCubeModel_v1 copy = *this;
+		RubiksCubeSolver solver(*this, animate, ui);
 		using HRClock = std::chrono::high_resolution_clock;
 		HRClock::time_point start_time = HRClock::now();
 		string solution = solver.solve(solutionSteps);
@@ -248,14 +248,18 @@ namespace mm {
 		return solution;
 	}
 
-	string RubiksCubeModel_v1::solveAndAnimate(int steps /*= 0*/, RubiksCubeSolverUI* ui /*= nullptr*/)
-	{
-		RubiksCubeSolver solver(*this, true, 20, ui);
-		int solutionSteps;
-		string solution = solver.solve(solutionSteps);
+	//string RubiksCubeModel_v1::solveAndAnimate(int& solutionSteps, unsigned long long& duration, RubiksCubeSolverUI& ui)
+	//{
+	//	RubiksCubeSolver solver(*this, true, 20, ui);
+	//	using HRClock = std::chrono::high_resolution_clock;
+	//	HRClock::time_point start_time = HRClock::now();
+	//	string solution = solver.solve(solutionSteps);
+	//	HRClock::time_point end_time = HRClock::now();
+	//	std::chrono::nanoseconds time_span = std::chrono::duration_cast<std::chrono::nanoseconds>(end_time - start_time);
+	//	duration = time_span.count();
 
-		return solution;
-	}
+	//	return solution;
+	//}
 
 	void RubiksCubeModel_v1::render()
 	{
@@ -697,7 +701,7 @@ namespace mm {
 		}
 	}
 
-	bool RubiksCubeModel_v1::IsSolved()
+	bool RubiksCubeModel_v1::isSolved()
 	{
 		return IsFaceSolved(Up) &&
 			IsFaceSolved(Down) &&
@@ -760,7 +764,22 @@ namespace mm {
 		return true;
 	}
 
-	int RubiksCubeModel_v1::applyAlgorithm(const string& algorithm, bool animate /*= false*/, int steps /*= 0*/, RubiksCubeSolverUI* ui /*= nullptr*/)
+	unique_ptr<RubiksCubeModel> RubiksCubeModel_v1::copy()
+	{
+		return make_unique<RubiksCubeModel_v1>(*this);
+	}
+
+	string RubiksCubeModel_v1::getModelName()
+	{
+		return "RubiksCubeModel_v1";
+	}
+
+	int RubiksCubeModel_v1::getDimension()
+	{
+		return size_;
+	}
+
+	int RubiksCubeModel_v1::applyAlgorithm(const string& algorithm, bool animate, RubiksCubeSolverUI& ui)
 	{
 		int solutionSteps = 0;
 		g_bFlipRotation = false;
@@ -791,14 +810,14 @@ namespace mm {
 				++i;
 			}
 
-			applyStep(face, isPrime, numRotations, animate, steps, ui);
+			applyStep(face, isPrime, numRotations, animate, ui);
 			++solutionSteps;
 		}
 
 		return solutionSteps;
 	}
 
-	void RubiksCubeModel_v1::applyStep(const char& face, bool isPrime, int numRotations, bool animate /*= false*/, int steps /*= 0*/, RubiksCubeSolverUI* ui /*= nullptr*/)
+	void RubiksCubeModel_v1::applyStep(const char& face, bool isPrime, int numRotations, bool animate, RubiksCubeSolverUI& ui)
 	{
 		//cout << "\nApplying move: " << face;
 		//if(isPrime)
@@ -891,14 +910,13 @@ namespace mm {
 			g_bRotating = true;
 			int angle = g_nRotationAngle;
 			g_nRotationAngle = 0;
-			int step = (angle - g_nRotationAngle) / steps;
-			for (int i = 0; i < steps; ++i)
+			int step = (angle - g_nRotationAngle) / ui.framesPerRotation_;
+			for (int i = 0; i < ui.framesPerRotation_; ++i)
 			{
 				g_nRotationAngle += step;
 				//scene.renderScene();
-				if(ui)
-					ui->redrawWindow();
-				Sleep(5);
+				ui.redrawWindow();
+				Sleep(ui.sleepTimeMilliSec_);
 			}
 
 			//If after above loop, the target angle is not achieved
@@ -906,8 +924,7 @@ namespace mm {
 			{
 				g_nRotationAngle = angle;
 				//scene.renderScene();
-				if (ui)
-					ui->redrawWindow();
+				ui.redrawWindow();
 			}
 			g_bRotating = false;
 		}
@@ -972,11 +989,10 @@ namespace mm {
 	// Solver
 	//=======================================================================================================
 
-	RubiksCubeModel_v1::RubiksCubeSolver::RubiksCubeSolver(RubiksCubeModel_v1& rubiksCube, bool animate /*= false*/, int steps /*= 0*/, RubiksCubeSolverUI* ui /*= nullptr*/)
+	RubiksCubeModel_v1::RubiksCubeSolver::RubiksCubeSolver(RubiksCubeModel_v1& rubiksCube, bool animate, RubiksCubeSolverUI& ui)
 		: rubiksCube_(rubiksCube),
 		solutionSteps_(0),
 		animate_(animate),
-		steps_(steps),
 		ui_(ui)
 	{
 	}
@@ -993,7 +1009,7 @@ namespace mm {
 		RubiksCubeModel_v1::RubiksCubeSolver::buildPLL();
 
 		//verify
-		assert(rubiksCube_.IsSolved());
+		assert(rubiksCube_.isSolved());
 
 		solutionSteps = solutionSteps_;
 		return solution_;
@@ -1002,7 +1018,7 @@ namespace mm {
 	void RubiksCubeModel_v1::RubiksCubeSolver::applyAlgorithm(const string& step)
 	{
 		solution_ += step;
-		solutionSteps_ += rubiksCube_.applyAlgorithm(step, animate_, steps_, ui_);
+		solutionSteps_ += rubiksCube_.applyAlgorithm(step, animate_, ui_);
 	}
 
 	bool RubiksCubeModel_v1::RubiksCubeSolver::isEdgeCube(const Cube& currentCube, const Color& first, const Color& second)

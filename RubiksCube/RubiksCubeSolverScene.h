@@ -15,12 +15,14 @@ namespace mm {
 	class RubiksCubeSolverScene
 	{
 	public:
-		RubiksCubeSolverScene(RubiksCubeSolverUI& refUI);
+		RubiksCubeSolverScene(RubiksCubeSolverUI& refUI, const string& modelName, int size);
 
 		RubiksCubeSolverScene(const RubiksCubeSolverScene&) = delete;
 		RubiksCubeSolverScene& operator=(const RubiksCubeSolverScene&) = delete;
 		RubiksCubeSolverScene(RubiksCubeSolverScene&&) = delete;
 		RubiksCubeSolverScene& operator=(RubiksCubeSolverScene&&) = delete;
+
+		void replaceModelBy(const string& modelName, int size);
 
 		/**/void initOpenGl(int nWidth, int nHeight);
 		/**//**/void sizeOpenGlScreen(int nWidth, int nHeight);
@@ -42,8 +44,9 @@ namespace mm {
 		void Reset();
 		string getScramblingAlgo(int length);
 		void applyAlgorithmToCube(const string& algo, bool animate);
-		string Solve(int& solutionSteps, unsigned long long& duration);
-		void SolveAndAnimate();
+		string Solve(int& solutionSteps, unsigned long long& duration, bool animate);
+		string SolveOnCopy(int& solutionSteps, unsigned long long& duration);
+		//string SolveAndAnimate(int& solutionSteps, unsigned long long& duration);
 
 	private:
 		//GLuint g_pTextures[7];

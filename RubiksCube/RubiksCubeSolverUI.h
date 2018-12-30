@@ -4,6 +4,7 @@
 using namespace std;
 
 #include "RubiksCubeSolverScene.h"
+#include "RubiksCubeSolverTest.h"
 
 namespace mm {
 
@@ -17,6 +18,11 @@ namespace mm {
 		void createWindow(HINSTANCE hInstance);
 		WPARAM enterMainLoop();
 		void redrawWindow();
+		bool CreateYesNoDialog(const string& message);
+		void CreateOkDialog(const string& message);
+		void applyAlgorithm(const string& algo, bool animate);
+		void replaceModelBy(const string& modelName, int size);
+		bool isSolved();
 
 	public:
 		static LRESULT CALLBACK WndProcCallback(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -63,11 +69,16 @@ namespace mm {
 		void OnRubiksCubeChanged(HWND hWnd);
 		void OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify);
 
+	public:
 		//Menu Handlers
 		void Reset();
-		void Scramble(const string& str);
-		void Solve();
-		void SolveAndAnimate();
+		void Scramble();
+		string SolveOnCopy(int& solutionSteps, unsigned long long& duration, bool askForAnimation);
+		string Solve(int& solutionSteps, unsigned long long& duration, bool animate);
+		void testRubiksCube(bool animate);
+
+		int framesPerRotation_;
+		int sleepTimeMilliSec_;
 
 	private:
 		bool g_bMouseDown;
@@ -86,6 +97,7 @@ namespace mm {
 
 	private:
 		RubiksCubeSolverScene scene_;
+		RubiksCubeSolverTest tester_;
 	};
 
 }

@@ -7,6 +7,8 @@
 #include <windowsx.h>
 #include <gl\gl.h>
 #include <gl\glu.h>
+#include <cassert>
+using namespace std;
 
 #include "Resource.h"
 #include "RubiksCubeSolverScene.h"
@@ -16,12 +18,22 @@ namespace mm {
 	GLuint RubiksCubeSolverScene::g_pSelectBuffer[RubiksCubeSolverScene::SELECT_BUFFER_SIZE];
 	const int RUBIKS_CUBE_SIZE = 3;
 
-	RubiksCubeSolverScene::RubiksCubeSolverScene(RubiksCubeSolverUI& refUI)
-		: rubicCubeModel_(RubiksCubeModelFactory::getRubiksCubeModel("RubiksCubeModel_v2", 3)),
+	RubiksCubeSolverScene::RubiksCubeSolverScene(RubiksCubeSolverUI& refUI, const string& modelName, int size)
+		: 
+		rubicCubeModel_(RubiksCubeModelFactory::getRubiksCubeModel(modelName, size)),
+		//rubicCubeModel_(RubiksCubeModelFactory::getRubiksCubeModel("RubiksCubeModel_v2", 3)),
 		//g_cCube(RUBIKS_CUBE_SIZE),
 		//g_cCube_v2(RUBIKS_CUBE_SIZE),
 		refUI_(refUI)
 	{
+	}
+
+	void RubiksCubeSolverScene::replaceModelBy(const string& modelName, int size)
+	{
+		rubicCubeModel_ = RubiksCubeModelFactory::getRubiksCubeModel(modelName, size);
+		rubicCubeModel_->loadAllTextures();
+		//refUI_.redrawWindow();
+		//renderScene();
 	}
 
 	void RubiksCubeSolverScene::initOpenGl(int nWidth, int nHeight)
@@ -608,10 +620,10 @@ namespace mm {
 	void RubiksCubeSolverScene::applyAlgorithmToCube(const string& algo, bool animate)
 	{
 		//g_cCube_v2.applyAlgorithm(algo, true, 20, &refUI_);
-		rubicCubeModel_->applyAlgorithm(algo, true, 20, &refUI_);
+		rubicCubeModel_->applyAlgorithm(algo, animate, refUI_);
 	}
 
-	string RubiksCubeSolverScene::Solve(int& solutionSteps, unsigned long long& duration)
+	string RubiksCubeSolverScene::Solve(int& solutionSteps, unsigned long long& duration, bool animate)
 	{
 		//First solve and then animate
 		//CRubiksCube copy = g_cCube;
@@ -629,24 +641,37 @@ namespace mm {
 		return solution;
 		*/
 
-		return rubicCubeModel_->solve(solutionSteps, duration);
+		string solution = rubicCubeModel_->solve(solutionSteps, duration, animate, refUI_);
+		assert(rubicCubeModel_->isSolved());
+
+		return solution;
 	}
 
-	void RubiksCubeSolverScene::SolveAndAnimate()
+	string RubiksCubeSolverScene::SolveOnCopy(int& solutionSteps, unsigned long long& duration)
 	{
-		//Animate while solving
-		//RubiksCubeSolver_v1 solver(g_cCube, true, 20, this);
-		//int solutionSteps;
-		//string solution = solver.solve(solutionSteps);
-
-		//Animate while solving
-		/*
-		RubiksCubeSolver_v2 solver(g_cCube_v2, true, 20, &refUI_);
-		int solutionSteps;
-		string solution = solver.solve(solutionSteps);
-		*/
-
-		string solution = rubicCubeModel_->solveAndAnimate(20, &refUI_);
+		bool animate = false;
+		unique_ptr<RubiksCubeModel> copy = rubicCubeModel_->copy();
+		string solution = copy->solve(solutionSteps, duration, animate, refUI_);
+		assert(copy->isSolved());
+		return solution;
 	}
+
+	//string RubiksCubeSolverScene::SolveAndAnimate(int& solutionSteps, unsigned long long& duration)
+	//{
+	//	//Animate while solving
+	//	//RubiksCubeSolver_v1 solver(g_cCube, true, 20, this);
+	//	//int solutionSteps;
+	//	//string solution = solver.solve(solutionSteps);
+
+	//	//Animate while solving
+	//	/*
+	//	RubiksCubeSolver_v2 solver(g_cCube_v2, true, 20, &refUI_);
+	//	int solutionSteps;
+	//	string solution = solver.solve(solutionSteps);
+	//	*/
+
+	//	string solution = rubicCubeModel_->solve(solutionSteps, duration, true, refUI_);
+	//	return solution;
+	//}
 }
 

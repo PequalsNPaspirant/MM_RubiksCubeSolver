@@ -7,6 +7,7 @@
 #include <windowsx.h>
 
 #include "RubiksCubeSolverUI.h"
+#include "RubiksCubeSolverTest.h"
 
 int APIENTRY _tWinMain(HINSTANCE hInstance,
                      HINSTANCE hPrevInstance,
@@ -33,7 +34,10 @@ namespace mm {
 	RubiksCubeSolverUI::RubiksCubeSolverUI()
 		: WND_WIDTH(400),
 		WND_HEIGHT(400),
-		scene_(*this)
+		scene_(*this, "RubiksCubeModel_v1", 3),
+		framesPerRotation_(20),
+		sleepTimeMilliSec_(5),
+		tester_(*this)
 	{
 	}
 
@@ -113,8 +117,8 @@ namespace mm {
 
 		if (!hWnd) return NULL;
 
-		//ShowWindow(hWnd, SW_SHOWNORMAL);
-		ShowWindow(hWnd, SW_MAXIMIZE);
+		ShowWindow(hWnd, SW_SHOWNORMAL);
+		//ShowWindow(hWnd, SW_MAXIMIZE);
 		UpdateWindow(hWnd);
 
 		SetFocus(hWnd);
@@ -132,6 +136,37 @@ namespace mm {
 	{
 		scene_.renderScene();
 		SwapBuffers(g_hDC);
+	}
+
+	bool RubiksCubeSolverUI::CreateYesNoDialog(const string& message)
+	{
+		wstring wMessage(message.begin(), message.end());
+		if (MessageBox(g_hWnd, wMessage.c_str(), g_szTitle, MB_YESNO | MB_ICONQUESTION | MB_APPLMODAL) == IDYES)
+			return true;
+		else
+			return false;
+	}
+
+	void RubiksCubeSolverUI::CreateOkDialog(const string& message)
+	{
+		wstring wMessage(message.begin(), message.end());
+		MessageBox(g_hWnd, wMessage.c_str(), g_szTitle, MB_OK | MB_ICONINFORMATION | MB_APPLMODAL);
+	}
+
+	void RubiksCubeSolverUI::applyAlgorithm(const string& algo, bool animate)
+	{
+		scene_.applyAlgorithmToCube(algo, animate);
+	}
+
+	void RubiksCubeSolverUI::replaceModelBy(const string& modelName, int size)
+	{
+		scene_.replaceModelBy(modelName, size);
+		redrawWindow();
+	}
+
+	bool RubiksCubeSolverUI::isSolved()
+	{
+		return scene_.rubicCubeModel_->isSolved();
 	}
 
 	bool RubiksCubeSolverUI::changeToFullScreen()
@@ -577,30 +612,31 @@ namespace mm {
 		}
 		else if (id == IDM_FILE_SCRAMBLE)
 		{
-			//wstring str(L"Scramble using these steps? - ");
-			//TCHAR newGameMsg[MAX_LOADSTRING];
-			//LoadString(g_hInstance, IDS_NEWGAME, newGameMsg, MAX_LOADSTRING);
-
-			//string algo = scene_.g_cCube.getScramblingAlgo();
-			string algo = scene_.getScramblingAlgo(25);
-			wstring wAlgo(algo.begin(), algo.end());
-			wstring wMessage = L"Scramble using following Algorithm?";
-			wMessage = wMessage
-				+ L"\nAlgorithm      : " + wAlgo 
-				+ L"\nNumber of steps: " + to_wstring(25);
-			if (MessageBox(hwnd, wMessage.c_str(),
-				g_szTitle, MB_YESNO | MB_ICONQUESTION | MB_APPLMODAL) == IDYES)
-			{
-				Scramble(algo);
-			}
+			Scramble();
 		}
 		else if (id == IDM_FILE_SOLVE)
 		{
-			Solve();
+			int solutionSteps;
+			unsigned long long duration;
+			bool askForAnimation = true;
+			string solution = SolveOnCopy(solutionSteps, duration, askForAnimation);
 		}
 		else if (id == IDM_FILE_SOLVE_ANIM)
 		{
-			SolveAndAnimate();
+			int solutionSteps;
+			unsigned long long duration;
+			bool animate = true;
+			string solution = Solve(solutionSteps, duration, animate);
+		}
+		else if (id == ID_RUBIKSCUBE_TEST)
+		{
+			bool animate = false;
+			testRubiksCube(animate);
+		}
+		else if(id == ID_RUBIKSCUBE_TEST_ANIM)
+		{
+			bool animate = true;
+			testRubiksCube(animate);
 		}
 		else if (id == IDM_ABOUT)
 		{
@@ -619,18 +655,33 @@ namespace mm {
 		redrawWindow();
 	}
 
-	void RubiksCubeSolverUI::Scramble(const string& algo)
+	void RubiksCubeSolverUI::Scramble()
 	{
-		scene_.applyAlgorithmToCube(algo, true);
+		//wstring str(L"Scramble using these steps? - ");
+		//TCHAR newGameMsg[MAX_LOADSTRING];
+		//LoadString(g_hInstance, IDS_NEWGAME, newGameMsg, MAX_LOADSTRING);
+
+		//string algo = scene_.g_cCube.getScramblingAlgo();
+		string algo = scene_.getScramblingAlgo(25);
+		wstring wAlgo(algo.begin(), algo.end());
+		wstring wMessage = L"Scramble using following Algorithm?";
+		wMessage = wMessage
+			+ L"\nAlgorithm      : " + wAlgo
+			+ L"\nNumber of steps: " + to_wstring(25);
+		if (MessageBox(g_hWnd, wMessage.c_str(),
+			g_szTitle, MB_YESNO | MB_ICONQUESTION | MB_APPLMODAL) == IDYES)
+		{
+			scene_.applyAlgorithmToCube(algo, true);
+		}
 	}
 
-	void RubiksCubeSolverUI::Solve()
+	string RubiksCubeSolverUI::SolveOnCopy(int& solutionSteps, unsigned long long& duration, bool askForAnimation)
 	{
-		int solutionSteps;
-		unsigned long long duration;
-		string solution = scene_.Solve(solutionSteps, duration);
-
+		string solution = scene_.SolveOnCopy(solutionSteps, duration);
 		
+		if(!askForAnimation)
+			return solution;
+
 		wstring wDuration = to_wstring(duration % 1000);
 		duration /= 1000;
 		while (duration > 0)
@@ -649,12 +700,20 @@ namespace mm {
 			g_szTitle, MB_YESNO | MB_ICONQUESTION | MB_APPLMODAL) == IDYES)
 		{
 			scene_.applyAlgorithmToCube(solution, true);
-		}		
+		}
+
+		return solution;
 	}
 
-	void RubiksCubeSolverUI::SolveAndAnimate()
+	string RubiksCubeSolverUI::Solve(int& solutionSteps, unsigned long long& duration, bool animate)
 	{
-		scene_.SolveAndAnimate();
+		string solution = scene_.Solve(solutionSteps, duration, animate);
+		return solution;
+	}
+
+	void RubiksCubeSolverUI::testRubiksCube(bool animate)
+	{
+		tester_.testRubiksCube(animate);
 	}
 }
 

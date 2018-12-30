@@ -105,12 +105,18 @@ namespace mm {
 
 		void loadAllTextures();
 		void ResetCube() override;
-		int applyAlgorithm(const string& algorithm, bool animate = false, int steps = 0, RubiksCubeSolverUI* ui = nullptr) override;
+		int applyAlgorithm(const string& algorithm, bool animate, RubiksCubeSolverUI& ui) override;
 		string getScramblingAlgo(int length) override;
-		string solve(int& solutionSteps, unsigned long long& duration) override;
-		string solveAndAnimate(int steps = 0, RubiksCubeSolverUI* ui = nullptr) override;
+		string solve(int& solutionSteps, unsigned long long& duration, bool animate, RubiksCubeSolverUI& ui) override;
+		//string solveAndAnimate(int& solutionSteps, unsigned long long& duration, RubiksCubeSolverUI& ui) override;
 		void render() override;
 		void renderIndividualCube(const Cube& pCube, int x, int y, int z);
+		bool isSolved() override;
+		bool IsFaceSolved(Face face);
+
+		unique_ptr<RubiksCubeModel> copy() override;
+		string getModelName() override;
+		int getDimension() override;
 		
 		void loadTexture(int nId, GLuint* texture);
 		GLuint getTextureID(Color color);
@@ -121,7 +127,6 @@ namespace mm {
 		void Tilt(int section, int turns);	// around x axis
 		void Turn(int section, int turns);	// around z axis
 		void Randomize();
-		bool IsSolved();
 
 		void RotateWholeRubiksCube(int axis, int turns);
 
@@ -134,7 +139,7 @@ namespace mm {
 		int getSize() { return size_; }
 
 	private:
-		void applyStep(const char& face, bool isPrime, int numRotations, bool animate = false, int steps = 0, RubiksCubeSolverUI* ui = nullptr);
+		void applyStep(const char& face, bool isPrime, int numRotations, bool animate, RubiksCubeSolverUI& ui);
 		void fixRubiksCubeFaces();
 
 	private:
@@ -144,7 +149,6 @@ namespace mm {
 	private:
 		bool IsValidCube(int x, int y, int z);
 		Cube CreateCube(int x, int y, int z);
-		bool IsFaceSolved(Face face);
 
 		static const double CUBE_SIZE;
 
@@ -158,7 +162,7 @@ namespace mm {
 		class RubiksCubeSolver
 		{
 		public:
-			RubiksCubeSolver(RubiksCubeModel_v1& rubiksCube, bool animate = false, int steps = 0, RubiksCubeSolverUI* ui = nullptr);
+			RubiksCubeSolver(RubiksCubeModel_v1& rubiksCube, bool animate, RubiksCubeSolverUI& ui);
 			string solve(int& solutionSteps);
 
 		private:
@@ -181,8 +185,7 @@ namespace mm {
 			int solutionSteps_;
 
 			bool animate_;
-			int steps_;
-			RubiksCubeSolverUI* ui_;
+			RubiksCubeSolverUI& ui_;
 		};
 	};
 
