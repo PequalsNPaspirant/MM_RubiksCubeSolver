@@ -237,7 +237,6 @@ namespace mm {
 				Color cRight, Color cFront, Color cBack, const Location& location);
 			~Cube();
 			Color GetFaceColor(Face eFace) const;
-			//ColorRGB GetFaceColorRGB(Face eFace) const;
 			void TiltUp();
 			void TiltDown();
 			void TurnLeft();
@@ -267,7 +266,6 @@ namespace mm {
 		int applyAlgorithm(const string& algorithm, bool animate, RubiksCubeSolverUI& ui) override;
 		string getScramblingAlgo(int length) override;
 		string solve(int& solutionSteps, unsigned long long& duration, bool animate, RubiksCubeSolverUI& ui) override;
-		//string solveAndAnimate(int& solutionSteps, unsigned long long& duration, int steps = 0, RubiksCubeSolverUI* ui = nullptr) override;
 		void render() override;
 		void renderIndividualCube(const Cube& pCube, const Location& location);
 		bool isSolved() override;

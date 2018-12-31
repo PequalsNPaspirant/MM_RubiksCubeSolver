@@ -237,7 +237,6 @@ namespace mm {
 
 	string RubiksCubeModel_v1::solve(int& solutionSteps, unsigned long long& duration, bool animate, RubiksCubeSolverUI& ui)
 	{
-		//RubiksCubeModel_v1 copy = *this;
 		RubiksCubeSolver solver(*this, animate, ui);
 		using HRClock = std::chrono::high_resolution_clock;
 		HRClock::time_point start_time = HRClock::now();
@@ -248,19 +247,6 @@ namespace mm {
 
 		return solution;
 	}
-
-	//string RubiksCubeModel_v1::solveAndAnimate(int& solutionSteps, unsigned long long& duration, RubiksCubeSolverUI& ui)
-	//{
-	//	RubiksCubeSolver solver(*this, true, 20, ui);
-	//	using HRClock = std::chrono::high_resolution_clock;
-	//	HRClock::time_point start_time = HRClock::now();
-	//	string solution = solver.solve(solutionSteps);
-	//	HRClock::time_point end_time = HRClock::now();
-	//	std::chrono::nanoseconds time_span = std::chrono::duration_cast<std::chrono::nanoseconds>(end_time - start_time);
-	//	duration = time_span.count();
-
-	//	return solution;
-	//}
 
 	void RubiksCubeModel_v1::render()
 	{
@@ -646,25 +632,6 @@ namespace mm {
 		}
 	}
 
-	void RubiksCubeModel_v1::RotateWholeRubiksCube(int axis, int turns)
-	{
-		/*
-		axis = 0 for X-axis
-		axis = 1 for Y-axis
-		axis = 2 for Z-axis
-		*/
-
-		for (int section = 0; section < 3; ++section)
-		{
-			if (axis == 0)
-				Tilt(section, turns);
-			else if (axis == 0)
-				Rotate(section, turns);
-			else if (axis == 0)
-				Turn(section, turns);
-		}
-	}
-
 	void RubiksCubeModel_v1::Randomize()
 	{
 		int count = 0;
@@ -915,7 +882,6 @@ namespace mm {
 			for (int i = 0; i < ui.framesPerRotation_; ++i)
 			{
 				g_nRotationAngle += step;
-				//scene.renderScene();
 				ui.redrawWindow();
 				Sleep(ui.sleepTimeMilliSec_);
 			}
@@ -924,7 +890,6 @@ namespace mm {
 			if (g_nRotationAngle != angle)
 			{
 				g_nRotationAngle = angle;
-				//scene.renderScene();
 				ui.redrawWindow();
 			}
 			g_bRotating = false;
@@ -1076,7 +1041,6 @@ namespace mm {
 		if ((c1 == targetColorFront && c2 == targetColorBottom) || (c1 == targetColorBottom && c2 == targetColorFront))
 		{
 			applyAlgorithm("L2");
-			//RubiksCubeAlgoExecuter::executeAlgorithm("L'F'");
 		}
 
 		// Bring it from middle later (y = 1) to top layer
@@ -1135,12 +1099,10 @@ namespace mm {
 		c2 = currentCube.GetFaceColor(Face::Left);
 		if (c1 == targetColorFront && c2 == targetColorBottom)
 		{
-			//RubiksCubeAlgoExecuter::executeAlgorithm("LR'L'F2");
 			applyAlgorithm("LF'L'");
 		}
 		else if (c1 == targetColorBottom && c2 == targetColorFront)
 		{
-			//RubiksCubeAlgoExecuter::executeAlgorithm("LF'L'");
 			applyAlgorithm("U'F2");
 		}
 
@@ -1678,11 +1640,11 @@ namespace mm {
 
 			/*
 			Top Face
-			s2  o1  s3
-			s1 c1  c2  c3 s4
-			o4	c4  c5  c6 o2
-			s8 c7  c8  c9 s5
-			s7  o3  s6
+			    s2  o1  s3
+			 s1 c1  c2  c3 s4
+			 o4	c4  c5  c6 o2
+			 s8 c7  c8  c9 s5
+			    s7  o3  s6
 			*/
 
 			//Check if aleady at position
@@ -1762,13 +1724,13 @@ namespace mm {
 
 			//Get centers
 			/*
-			o1
-			e1
-			c1  c2  c3
+			            o1
+			            e1
+			        c1  c2  c3
 			o4  e4	c4  c5  c6 e2 o2
-			c7  c8  c9
-			e3
-			o3
+			        c7  c8  c9
+			            e3
+			            o3
 			*/
 			Color o1, o2, o3, o4;
 			currentCube = rubiksCube_.GetCube(1, 1, 0);
@@ -1782,13 +1744,13 @@ namespace mm {
 
 			/*
 			Top Face
-			o1
-			e1
-			c1  c2  c3
+			            o1
+			            e1
+			        c1  c2  c3
 			o4  e4	c4  c5  c6 e2 o2
-			c7  c8  c9
-			e3
-			o3
+			        c7  c8  c9
+			            e3
+			            o3
 			*/
 
 			//Check if aleady at position

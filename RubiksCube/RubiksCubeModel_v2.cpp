@@ -393,7 +393,6 @@ namespace mm {
 
 	string RubiksCubeModel_v2::solve(int& solutionSteps, unsigned long long& duration, bool animate, RubiksCubeSolverUI& ui)
 	{
-		//RubiksCubeModel_v2 copy = *this;
 		RubiksCubeSolver solver(*this, animate, ui);
 		using HRClock = std::chrono::high_resolution_clock;
 		HRClock::time_point start_time = HRClock::now();
@@ -404,19 +403,6 @@ namespace mm {
 
 		return solution;
 	}
-
-	//string RubiksCubeModel_v2::solveAndAnimate(int& solutionSteps, unsigned long long& duration, int steps /*= 0*/, RubiksCubeSolverUI* ui /*= nullptr9*/)
-	//{
-	//	RubiksCubeSolver solver(*this, true, 20, ui);
-	//	using HRClock = std::chrono::high_resolution_clock;
-	//	HRClock::time_point start_time = HRClock::now();
-	//	string solution = solver.solve(solutionSteps);
-	//	HRClock::time_point end_time = HRClock::now();
-	//	std::chrono::nanoseconds time_span = std::chrono::duration_cast<std::chrono::nanoseconds>(end_time - start_time);
-	//	duration = time_span.count();
-
-	//	return solution;
-	//}
 
 	void RubiksCubeModel_v2::render()
 	{
@@ -468,7 +454,6 @@ namespace mm {
 				}
 			}
 
-			//const Cube& cube = g_cCube_v2.GetCube(i, j, k);
 			renderIndividualCube(cube, cube.getLocation());
 
 			glPopMatrix();
@@ -851,43 +836,6 @@ namespace mm {
 			(z >= 0 && z < size_);
 	}
 
-	void RubiksCubeModel_v2::Rotate(CVector3 rotationAxis, RubiksCubeModel_v2::Face rotatingSection, int layerIndex, double rotationAngle)
-	{
-		for(auto& obj : cubes_)
-		{
-			const Location& loc = obj.first;
-			Cube& cube = *obj.second.get();
-			
-			//if (rotatingSection == Groups::All || cube.group_ & rotatingSection)
-			//if (cube.group_ & rotatingSection)
-			if(cube.belongsTo(rotatingSection, layerIndex, size_))
-			{
-				cube.rotate(rotationAxis, rotationAngle);
-				cube.location_.rotate(rotationAxis, rotationAngle * PI / 180.0); //Angle should be in radians
-				//bool noChangeInGroupAfterRotation = (rotationAxis == CVector3::XAxis && (cube.group_ == L || cube.group_ == R))
-				//	|| (rotationAxis == CVector3::YAxis && (cube.group_ == L || cube.group_ == R))
-				//	|| (rotationAxis == CVector3::ZAxis && (cube.group_ == L || cube.group_ == R));
-				//if (rotationAxis != getRotationAxis(cube.group_))
-				//cube.group_ = cube.location_.recalcGroup(size_); //Need to recalculate group always in case of any type of rotation since the cube may belong to multiple groups
-			}
-		}
-
-		for (auto& obj : cubes_)
-		{
-			const Location& loc = obj.first;
-			unique_ptr<Cube>& current = obj.second;
-
-			//unique_ptr<Cube> current = std::move(cube);
-			while(loc != current->location_)
-			{
-				unique_ptr<Cube> temp = std::move(cubes_[current->location_]);
-				cubes_[current->location_] = std::move(current);
-				current = std::move(temp);
-			}
-			//obj.second = std::move(current);
-		}
-	}
-
 	bool RubiksCubeModel_v2::isSolved()
 	{
 		return IsFaceSolved(Up) &&
@@ -1187,6 +1135,41 @@ namespace mm {
 		Rotate(g_vRotationAxis, g_nRotatingSection, g_nLayerIndex, g_nRotationAngle);
 	}
 
+	void RubiksCubeModel_v2::Rotate(CVector3 rotationAxis, RubiksCubeModel_v2::Face rotatingSection, int layerIndex, double rotationAngle)
+	{
+		for (auto& obj : cubes_)
+		{
+			const Location& loc = obj.first;
+			Cube& cube = *obj.second.get();
+
+			if (cube.belongsTo(rotatingSection, layerIndex, size_))
+			{
+				cube.rotate(rotationAxis, rotationAngle);
+				cube.location_.rotate(rotationAxis, rotationAngle * PI / 180.0); //Angle should be in radians
+				//bool noChangeInGroupAfterRotation = (rotationAxis == CVector3::XAxis && (cube.group_ == L || cube.group_ == R))
+				//	|| (rotationAxis == CVector3::YAxis && (cube.group_ == L || cube.group_ == R))
+				//	|| (rotationAxis == CVector3::ZAxis && (cube.group_ == L || cube.group_ == R));
+				//if (rotationAxis != getRotationAxis(cube.group_))
+				//cube.group_ = cube.location_.recalcGroup(size_); //Need to recalculate group always in case of any type of rotation since the cube may belong to multiple groups
+			}
+		}
+
+		for (auto& obj : cubes_)
+		{
+			const Location& loc = obj.first;
+			unique_ptr<Cube>& current = obj.second;
+
+			//unique_ptr<Cube> current = std::move(cube);
+			while (loc != current->location_)
+			{
+				unique_ptr<Cube> temp = std::move(cubes_[current->location_]);
+				cubes_[current->location_] = std::move(current);
+				current = std::move(temp);
+			}
+			//obj.second = std::move(current);
+		}
+	}
+
 	string RubiksCubeModel_v2::getScramblingAlgo(int length)
 	{
 		char charSet[9] = { 
@@ -1375,12 +1358,10 @@ namespace mm {
 		c2 = currentCube.GetFaceColor(Face::Left);
 		if (c1 == targetColorFront && c2 == targetColorBottom)
 		{
-			//RubiksCubeAlgoExecuter::executeAlgorithm("LR'L'F2");
 			applyAlgorithm("LF'L'");
 		}
 		else if (c1 == targetColorBottom && c2 == targetColorFront)
 		{
-			//RubiksCubeAlgoExecuter::executeAlgorithm("LF'L'");
 			applyAlgorithm("U'F2");
 		}
 
