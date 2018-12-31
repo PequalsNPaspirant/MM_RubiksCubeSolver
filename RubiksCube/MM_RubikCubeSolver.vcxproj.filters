@@ -74,6 +74,9 @@
     <ClInclude Include="RubiksCubeModel_v2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="RubiksCubeSolverUtils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\black.bmp">

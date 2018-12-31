@@ -34,7 +34,8 @@ namespace mm {
 	RubiksCubeSolverUI::RubiksCubeSolverUI()
 		: WND_WIDTH(400),
 		WND_HEIGHT(400),
-		scene_(*this, "RubiksCubeModel_v1", 3),
+		//scene_(*this, "RubiksCubeModel_v1", 3),
+		scene_(*this, "RubiksCubeModel_v2", 3),
 		framesPerRotation_(20),
 		sleepTimeMilliSec_(5),
 		tester_(*this)
@@ -657,11 +658,6 @@ namespace mm {
 
 	void RubiksCubeSolverUI::Scramble()
 	{
-		//wstring str(L"Scramble using these steps? - ");
-		//TCHAR newGameMsg[MAX_LOADSTRING];
-		//LoadString(g_hInstance, IDS_NEWGAME, newGameMsg, MAX_LOADSTRING);
-
-		//string algo = scene_.g_cCube.getScramblingAlgo();
 		string algo = scene_.getScramblingAlgo(25);
 		wstring wAlgo(algo.begin(), algo.end());
 		wstring wMessage = L"Scramble using following Algorithm?";

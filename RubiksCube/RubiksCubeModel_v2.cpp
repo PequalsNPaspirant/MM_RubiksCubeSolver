@@ -9,6 +9,7 @@ using namespace std;
 #include "Resource.h"
 #include "RubiksCubeModel_v2.h"
 #include "RubiksCubeSolverUI.h"
+#include "RubiksCubeSolverUtils.h"
 
 namespace mm {
 
@@ -176,7 +177,7 @@ namespace mm {
 		if (rotatingSection == All)
 			return true;
 
-		assert(layerIndex > 0);
+		RubiksCubeSolverUtils::RunTimeAssert(layerIndex > 0);
 
 		double extend = (size - 1) / 2.0;
 		/*
@@ -794,7 +795,7 @@ namespace mm {
 	const RubiksCubeModel_v2::Cube& RubiksCubeModel_v2::GetCube(double x, double y, double z)
 	{
 		//if (!IsValidCube(x, y, z))
-		//	assert
+		//	RubiksCubeSolverUtils::RunTimeAssert
 		
 		return *cubes_[Location(x - 1, y - 1, z - 1)];
 	}
@@ -802,7 +803,7 @@ namespace mm {
 	/*
 	const Cube& RubiksCubeModel_v2::GetCube(Face layer0, Face layer1, Face layer2)
 	{
-		assert(layer0 != layer1 && layer1 != layer2);
+		RubiksCubeSolverUtils::RunTimeAssert(layer0 != layer1 && layer1 != layer2);
 
 		double x, y, z;
 		double extend = (size_ - 1) / 2.0;
@@ -1054,7 +1055,7 @@ namespace mm {
 	//		break;
 
 	//	default:
-	//		assert(false);
+	//		RubiksCubeSolverUtils::RunTimeAssert(false);
 	//		break;
 	//	}
 	//}
@@ -1140,7 +1141,7 @@ namespace mm {
 			break;
 
 		default:
-			//assert
+			//RubiksCubeSolverUtils::RunTimeAssert
 			break;
 		}
 
@@ -1158,16 +1159,14 @@ namespace mm {
 			for (int i = 0; i < ui.framesPerRotation_; ++i)
 			{
 				g_nRotationAngle += step;
-				//scene.renderScene();
 				ui.redrawWindow();
-				Sleep(50);
+				Sleep(ui.sleepTimeMilliSec_);
 			}
 
 			//If after above loop, the target angle is not achieved
 			if (g_nRotationAngle != angle)
 			{
 				g_nRotationAngle = angle;
-				//scene.renderScene();
 				ui.redrawWindow();
 			}
 			g_bRotating = false;
@@ -1218,7 +1217,7 @@ namespace mm {
 			if (index < (numNotations - 3)) //Avoid X, Y and Z since layerIndex is not applicable for it
 			{
 				int rotations = rand() % 3; 
-				if(rotations != 1)
+				if(rotations > 1)
 					retVal += to_string(rotations);
 			}
 		}
@@ -1251,7 +1250,7 @@ namespace mm {
 		RubiksCubeModel_v2::RubiksCubeSolver::buildPLL();
 
 		//verify
-		assert(rubiksCube_.isSolved());
+		RubiksCubeSolverUtils::RunTimeAssert(rubiksCube_.isSolved());
 
 		solutionSteps = solutionSteps_;
 		return solution_;
@@ -1601,7 +1600,7 @@ namespace mm {
 			applyAlgorithm("RUUR'U'RUR'");
 		else
 		{
-			//assert
+			//RubiksCubeSolverUtils::RunTimeAssert
 			int i = 0;
 			++i;
 		}
@@ -1722,7 +1721,7 @@ namespace mm {
 
 	void RubiksCubeModel_v2::RubiksCubeSolver::buildOLL()
 	{
-		// Step 1
+		// Step 1: build yellow cross on top face
 
 		while (true)
 		{
@@ -1781,7 +1780,7 @@ namespace mm {
 			applyAlgorithm(algo);
 		}
 
-		// Step 2
+		// Step 2: get all yellow on top face
 		while (true)
 		{
 			Cube currentCube;
@@ -1791,11 +1790,11 @@ namespace mm {
 
 			/*
 			Top Face
-			s2      s3
+			   s2      s3
 			s1 c1  c2  c3 s4
-			c4  c5  c6
+			   c4  c5  c6
 			s8 c7  c8  c9 s5
-			s7      s6
+			   s7      s6
 			*/
 
 			//Check if aleady at position
@@ -1884,7 +1883,7 @@ namespace mm {
 					applyAlgorithm("U");
 				else if (s3 == Color::Yellow)
 					applyAlgorithm("U2");
-				else if (s2 == Color::Yellow)
+				else if (s1 == Color::Yellow)
 					applyAlgorithm("U'");
 				else if (s7 == Color::Yellow)
 					applyAlgorithm(""); // do nothing

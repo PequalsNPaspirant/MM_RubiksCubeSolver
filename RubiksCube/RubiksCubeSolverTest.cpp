@@ -15,6 +15,7 @@ using namespace std;
 #include "RubiksCubeModel_v1.h"
 #include "RubiksCubeModel_v2.h"
 #include "RubiksCubeSolverUI.h"
+#include "RubiksCubeSolverUtils.h"
 
 namespace mm {
 
@@ -47,11 +48,12 @@ namespace mm {
 
 	bool RubiksCubeSolverTest::testRubiksCube(bool animate)
 	{
-		//vector<testInfo> testInfoSet = generateSanityTestInfo();
 		//Specific test cases
-		vector<testInfo> testInfoSet;
+		//vector<testInfo> testInfoSet;
 		//testInfoSet.push_back({ "RubiksCubeModel_v2", 3, "X", "X'" });
-		testInfoSet.push_back({ "RubiksCubeModel_v2", 3, "D2", "D'2" });
+		//testInfoSet.push_back({ "RubiksCubeModel_v2", 3, "D2", "D'2" });
+
+		vector<testInfo> testInfoSet = generateSanityTestInfo();
 
 		ofstream testResultsFile;
 		testResultsFile.open("../test/RubiksCubeTestResults_" + getCurrentLocalTimeInNanoSeconds2() + ".csv");
@@ -64,33 +66,35 @@ namespace mm {
 		int testNum = 0;
 		for (const testInfo& info : testInfoSet)
 		{
+			++testNum;
 			if(animate)
-				refUI_.CreateOkDialog("Test No.: " + to_string(++testNum)
+				refUI_.CreateOkDialog("Test No.: " + to_string(testNum)
 					+ "\nModel Name: " + info.modelName
 					+ "\nSize: " + to_string(info.size));
 			refUI_.replaceModelBy(info.modelName, info.size);
 			refUI_.Reset(); //TODO: replaceModelBy() has a bug. it does not print the cube on screen properly. Reset() is temporary workaround.
-			assert(refUI_.isSolved());
+			RubiksCubeSolverUtils::RunTimeAssert(refUI_.isSolved());
 
 			if (animate)
 				refUI_.CreateOkDialog("Applying scrambling algo: " + info.scrambleAlgo);
 			refUI_.applyAlgorithm(info.scrambleAlgo, animate);
-			//assert(!refUI_.isSolved()); //Rubik Cube may or may not be scrmabled depending upon the scrambling algo
+			//RubiksCubeSolverUtils::RunTimeAssert(!refUI_.isSolved()); //Rubik Cube may or may not be scrmabled depending upon the scrambling algo
 
 			if (!info.solution.empty())
 			{
 				if (animate)
 					refUI_.CreateOkDialog("Applying Ideal solution: " + info.solution);
 				refUI_.applyAlgorithm(info.solution, animate);
-				assert(refUI_.isSolved());
+				RubiksCubeSolverUtils::RunTimeAssert(refUI_.isSolved());
 
 				if (animate)
 					refUI_.CreateOkDialog("Going back to scrambled position: " + info.scrambleAlgo);
 				//refUI_.replaceModelBy(modelinfo.modelName, modelinfo.size);
 				refUI_.Reset();
 				refUI_.applyAlgorithm(info.scrambleAlgo, false);
-				refUI_.redrawWindow();
-				assert(!refUI_.isSolved());
+				if (animate)
+					refUI_.redrawWindow();
+				//RubiksCubeSolverUtils::RunTimeAssert(!refUI_.isSolved()); //Rubik Cube may or may not be scrmabled depending upon the scrambling algo
 			}
 
 			if (animate)
@@ -98,7 +102,7 @@ namespace mm {
 			int numSteps;
 			unsigned long long duration;
 			string sol = refUI_.Solve(numSteps, duration, animate);
-			assert(refUI_.isSolved());
+			RubiksCubeSolverUtils::RunTimeAssert(refUI_.isSolved());
 
 			//Write results to csv file
 			if (testResultsFile.is_open())
@@ -141,7 +145,7 @@ namespace mm {
 		if (testResultsFile.is_open())
 			testResultsFile.close();
 
-		refUI_.CreateOkDialog("All tests successfully completed!");
+		refUI_.CreateOkDialog("All " + to_string(testNum) + " tests are successfully completed!");
 
 		//Testing
 		//scene_.g_cCube.applyAlgorithm("U", true, 20, this);
@@ -215,16 +219,34 @@ namespace mm {
 			{ "U2D2", "D'2U'2" }
 		};
 
-		vector<testInfo> retVal;
+		//Add random srambling algos
 		for (ModelInfo& modelinfo : allModels)
 		{
-			for (const AlgoPairs& algoPair : scrambleAlgos)
+			unique_ptr<RubiksCubeModel> model = RubiksCubeModelFactory::getRubiksCubeModel(modelinfo.modelName, modelinfo.size);
+			vector<int> lengths{ 5, 10, 15, 20, 25, 30, 50, 100 };
+			for (int len : lengths)
+			{
+				for (int i = 0; i < 50; ++i)
+				{
+					//retVal.push_back({ modelinfo.modelName, modelinfo.size, model->getScramblingAlgo(len), "" });
+					scrambleAlgos.push_back({ model->getScramblingAlgo(len), "" });
+				}
+			}
+		}
+
+		vector<testInfo> retVal;
+		for (const AlgoPairs& algoPair : scrambleAlgos)
+		{
+			for (ModelInfo& modelinfo : allModels)
 			{
 				retVal.push_back({ modelinfo.modelName, modelinfo.size, algoPair.scramble, algoPair.solution });
 			}
 		}
 
+		
+
 		return retVal;
 	}
+
 
 }

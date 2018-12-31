@@ -12,6 +12,7 @@ using namespace std;
 
 #include "Resource.h"
 #include "RubiksCubeSolverScene.h"
+#include "RubiksCubeSolverUtils.h"
 
 namespace mm {
 
@@ -642,7 +643,7 @@ namespace mm {
 		*/
 
 		string solution = rubicCubeModel_->solve(solutionSteps, duration, animate, refUI_);
-		assert(rubicCubeModel_->isSolved());
+		RubiksCubeSolverUtils::RunTimeAssert(rubicCubeModel_->isSolved());
 
 		return solution;
 	}
@@ -652,7 +653,7 @@ namespace mm {
 		bool animate = false;
 		unique_ptr<RubiksCubeModel> copy = rubicCubeModel_->copy();
 		string solution = copy->solve(solutionSteps, duration, animate, refUI_);
-		assert(copy->isSolved());
+		RubiksCubeSolverUtils::RunTimeAssert(copy->isSolved());
 		return solution;
 	}
 
