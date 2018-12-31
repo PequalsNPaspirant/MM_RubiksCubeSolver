@@ -159,10 +159,20 @@ namespace mm {
 		scene_.applyAlgorithmToCube(algo, animate);
 	}
 
-	void RubiksCubeSolverUI::replaceModelBy(const string& modelName, int size)
+	unique_ptr<RubiksCubeModel> RubiksCubeSolverUI::replaceModelBy(const string& modelName, int size, bool animate)
 	{
-		scene_.replaceModelBy(modelName, size);
-		redrawWindow();
+		unique_ptr<RubiksCubeModel> originalModel = scene_.replaceModelBy(modelName, size);
+		if(animate)
+			redrawWindow();
+		return std::move(originalModel);
+	}
+
+	unique_ptr<RubiksCubeModel> RubiksCubeSolverUI::replaceModelBy(unique_ptr<RubiksCubeModel>&& newModel, bool animate)
+	{
+		unique_ptr<RubiksCubeModel> originalModel = scene_.replaceModelBy(std::move(newModel));
+		if (animate)
+			redrawWindow();
+		return std::move(originalModel);
 	}
 
 	bool RubiksCubeSolverUI::isSolved()
@@ -609,7 +619,8 @@ namespace mm {
 		// menu
 		if (id == IDM_FILE_RESET)
 		{
-			Reset();
+			bool animate = true;
+			Reset(animate);
 		}
 		else if (id == IDM_FILE_SCRAMBLE)
 		{
@@ -650,10 +661,11 @@ namespace mm {
 		}
 	}
 
-	void RubiksCubeSolverUI::Reset()
+	void RubiksCubeSolverUI::Reset(bool animate)
 	{
 		scene_.Reset();
-		redrawWindow();
+		if(animate)
+			redrawWindow();
 	}
 
 	void RubiksCubeSolverUI::Scramble()

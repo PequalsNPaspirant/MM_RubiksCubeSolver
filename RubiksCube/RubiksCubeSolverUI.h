@@ -21,7 +21,8 @@ namespace mm {
 		bool CreateYesNoDialog(const string& message);
 		void CreateOkDialog(const string& message);
 		void applyAlgorithm(const string& algo, bool animate);
-		void replaceModelBy(const string& modelName, int size);
+		unique_ptr<RubiksCubeModel> replaceModelBy(const string& modelName, int size, bool animate);
+		unique_ptr<RubiksCubeModel> replaceModelBy(unique_ptr<RubiksCubeModel>&& newModel, bool animate);
 		bool isSolved();
 
 	public:
@@ -71,7 +72,7 @@ namespace mm {
 
 	public:
 		//Menu Handlers
-		void Reset();
+		void Reset(bool animate);
 		void Scramble();
 		string SolveOnCopy(int& solutionSteps, unsigned long long& duration, bool askForAnimation);
 		string Solve(int& solutionSteps, unsigned long long& duration, bool animate);

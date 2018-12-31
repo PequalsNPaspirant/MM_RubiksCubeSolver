@@ -26,10 +26,20 @@ namespace mm {
 	{
 	}
 
-	void RubiksCubeSolverScene::replaceModelBy(const string& modelName, int size)
+	unique_ptr<RubiksCubeModel> RubiksCubeSolverScene::replaceModelBy(const string& modelName, int size)
 	{
+		unique_ptr<RubiksCubeModel> originalModel = std::move(rubicCubeModel_);
 		rubicCubeModel_ = RubiksCubeModelFactory::getRubiksCubeModel(modelName, size);
 		rubicCubeModel_->loadAllTextures();
+		return std::move(originalModel);
+	}
+
+	unique_ptr<RubiksCubeModel> RubiksCubeSolverScene::replaceModelBy(unique_ptr<RubiksCubeModel>&& newModel)
+	{
+		unique_ptr<RubiksCubeModel> originalModel = std::move(rubicCubeModel_);
+		rubicCubeModel_ = std::move(newModel);
+		rubicCubeModel_->loadAllTextures();
+		return std::move(originalModel);
 	}
 
 	void RubiksCubeSolverScene::initOpenGl(int nWidth, int nHeight)

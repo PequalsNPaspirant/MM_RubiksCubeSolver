@@ -63,6 +63,7 @@ namespace mm {
 			testResultsFile.write(columns.c_str(), columns.length());
 		}
 
+		unique_ptr<RubiksCubeModel> originalModel = refUI_.replaceModelBy("RubiksCubeModel_v1", 3, false);
 		int testNum = 0;
 		for (const testInfo& info : testInfoSet)
 		{
@@ -71,8 +72,8 @@ namespace mm {
 				refUI_.CreateOkDialog("Test No.: " + to_string(testNum)
 					+ "\nModel Name: " + info.modelName
 					+ "\nSize: " + to_string(info.size));
-			refUI_.replaceModelBy(info.modelName, info.size);
-			refUI_.Reset(); //TODO: replaceModelBy() has a bug. it does not print the cube on screen properly. Reset() is temporary workaround.
+			refUI_.replaceModelBy(info.modelName, info.size, animate);
+			refUI_.Reset(animate); //TODO: replaceModelBy() has a bug. it does not print the cube on screen properly. Reset() is temporary workaround.
 			RubiksCubeSolverUtils::RunTimeAssert(refUI_.isSolved());
 
 			if (animate)
@@ -90,7 +91,7 @@ namespace mm {
 				if (animate)
 					refUI_.CreateOkDialog("Going back to scrambled position: " + info.scrambleAlgo);
 				//refUI_.replaceModelBy(modelinfo.modelName, modelinfo.size);
-				refUI_.Reset();
+				refUI_.Reset(animate);
 				refUI_.applyAlgorithm(info.scrambleAlgo, false);
 				if (animate)
 					refUI_.redrawWindow();
@@ -146,6 +147,8 @@ namespace mm {
 			testResultsFile.close();
 
 		refUI_.CreateOkDialog("All " + to_string(testNum) + " tests are successfully completed!");
+
+		refUI_.replaceModelBy(std::move(originalModel), true);
 
 		//Testing
 		//scene_.g_cCube.applyAlgorithm("U", true, 20, this);

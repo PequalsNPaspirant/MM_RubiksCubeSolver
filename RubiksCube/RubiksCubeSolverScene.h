@@ -22,7 +22,8 @@ namespace mm {
 		RubiksCubeSolverScene(RubiksCubeSolverScene&&) = delete;
 		RubiksCubeSolverScene& operator=(RubiksCubeSolverScene&&) = delete;
 
-		void replaceModelBy(const string& modelName, int size);
+		unique_ptr<RubiksCubeModel> replaceModelBy(const string& modelName, int size);
+		unique_ptr<RubiksCubeModel> replaceModelBy(unique_ptr<RubiksCubeModel>&& newModel);
 
 		/**/void initOpenGl(int nWidth, int nHeight);
 		/**//**/void sizeOpenGlScreen(int nWidth, int nHeight);
