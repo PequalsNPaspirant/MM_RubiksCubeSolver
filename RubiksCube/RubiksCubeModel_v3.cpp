@@ -1166,35 +1166,103 @@ namespace mm {
 
 	void RubiksCubeModel_v3::Rotate(CVector3 rotationAxis, RubiksCubeModel_v3::Face rotatingSection, int layerIndex, double rotationAngle)
 	{
-		for (auto& obj : cubes_)
+		if (rotatingSection == RubiksCubeModel_v3::Face::All)
 		{
-			const Location& loc = obj.first;
-			Cube& cube = *obj.second.get();
-
-			if (cube.belongsTo(rotatingSection, layerIndex, size_))
+			for (auto& obj : cubes_)
 			{
+				//const Location& loc = obj.first;
+				Cube& cube = *obj.second.get();
 				cube.rotate(rotationAxis, rotationAngle);
-				//bool noChangeInGroupAfterRotation = (rotationAxis == CVector3::XAxis && (cube.group_ == L || cube.group_ == R))
-				//	|| (rotationAxis == CVector3::YAxis && (cube.group_ == L || cube.group_ == R))
-				//	|| (rotationAxis == CVector3::ZAxis && (cube.group_ == L || cube.group_ == R));
-				//if (rotationAxis != getRotationAxis(cube.group_))
-				//cube.group_ = cube.location_.recalcGroup(size_); //Need to recalculate group always in case of any type of rotation since the cube may belong to multiple groups
+			}
+
+			for (auto& obj : cubes_)
+			{
+				const Location& loc = obj.first;
+				unique_ptr<Cube>& current = obj.second;
+
+				while (loc != current->getLocation())
+				{
+					unique_ptr<Cube> temp = std::move(cubes_[current->getLocation()]);
+					cubes_[current->getLocation()] = std::move(current);
+					current = std::move(temp);
+				}
+			}
+
+			return;
+		}
+
+		double extend = (size_ - 1) / 2.0;
+		double x, y, z;
+		double *pi, *pj;
+		switch (rotatingSection)
+		{
+		case RubiksCubeModel_v3::Face::Left:
+			x = -extend;
+			pi = &y;
+			pj = &z;
+			break;
+		case RubiksCubeModel_v3::Face::Right:
+			x = +extend;
+			pi = &y;
+			pj = &z;
+			break;
+		case RubiksCubeModel_v3::Face::Down:
+			pi = &x;
+			y = -extend;
+			pj = &z;
+			break;
+		case RubiksCubeModel_v3::Face::Up:
+			pi = &x;
+			y = +extend;
+			pj = &z;
+			break;
+		case RubiksCubeModel_v3::Face::Back:
+			pi = &x;
+			pj = &y;
+			z = -extend;
+			break;
+		case RubiksCubeModel_v3::Face::Front:
+			pi = &x;
+			pj = &y;
+			z = +extend;
+			break;
+		case RubiksCubeModel_v3::Face::All:
+		default:
+			RubiksCubeSolverUtils::RunTimeAssert(false, "Unrecognized face");
+		}
+
+		*pi = -extend;
+		for (int i = 0; i < size_; ++i, *pi += 1)
+		{
+			*pj = -extend;
+			for (int j = 0; j < size_; ++j, *pj += 1)
+			{
+				auto it = cubes_.find(Location(x, y, z));
+				RubiksCubeSolverUtils::RunTimeAssert(it != cubes_.end());
+				//const Location& loc = it->first;
+				unique_ptr<Cube>& current = it->second;
+				current->rotate(rotationAxis, rotationAngle);
 			}
 		}
 
-		for (auto& obj : cubes_)
+		*pi = -extend;
+		for (int i = 0; i < size_; ++i, *pi += 1)
 		{
-			const Location& loc = obj.first;
-			unique_ptr<Cube>& current = obj.second;
-
-			//unique_ptr<Cube> current = std::move(cube);
-			while (loc != current->getLocation())
+			*pj = -extend;
+			for (int j = 0; j < size_; ++j, *pj += 1)
 			{
-				unique_ptr<Cube> temp = std::move(cubes_[current->getLocation()]);
-				cubes_[current->getLocation()] = std::move(current);
-				current = std::move(temp);
+				auto it = cubes_.find(Location(x, y, z));
+				RubiksCubeSolverUtils::RunTimeAssert(it != cubes_.end());
+				const Location& loc = it->first;
+				unique_ptr<Cube>& current = it->second;
+
+				while (loc != current->getLocation())
+				{
+					unique_ptr<Cube> temp = std::move(cubes_[current->getLocation()]);
+					cubes_[current->getLocation()] = std::move(current);
+					current = std::move(temp);
+				}
 			}
-			//obj.second = std::move(current);
 		}
 	}
 
