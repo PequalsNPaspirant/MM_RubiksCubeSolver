@@ -35,9 +35,10 @@ namespace mm {
 		: WND_WIDTH(400),
 		WND_HEIGHT(400),
 		//scene_(*this, "RubiksCubeModel_v1", 3),
-		scene_(*this, "RubiksCubeModel_v2", 3),
+		//scene_(*this, "RubiksCubeModel_v2", 3),
+		scene_(*this, "RubiksCubeModel_v3", 3),
 		framesPerRotation_(20),
-		sleepTimeMilliSec_(5),
+		sleepTimeMilliSec_(50),
 		tester_(*this)
 	{
 	}

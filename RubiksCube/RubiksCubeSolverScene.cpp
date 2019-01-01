@@ -49,6 +49,9 @@ namespace mm {
 		glPolygonMode(GL_FRONT, GL_FILL);
 		glClearColor(0.1f, 0.2f, 0.3f, 0.0f);
 
+		//glFrontFace(GL_CCW);
+		glEnable(GL_CULL_FACE); //This hides the mirror images of visible faces as those mirror images have face normal pointing into screen
+
 		//glEnable(GL_COLOR_MATERIAL);
 		//glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
 

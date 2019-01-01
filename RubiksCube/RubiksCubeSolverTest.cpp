@@ -174,7 +174,8 @@ namespace mm {
 
 		vector<ModelInfo> allModels{
 			{ "RubiksCubeModel_v1", 3 },
-			{ "RubiksCubeModel_v2", 3 }
+			{ "RubiksCubeModel_v2", 3 },
+			{ "RubiksCubeModel_v3", 3 }
 		};
 
 		struct AlgoPairs
@@ -243,13 +244,14 @@ namespace mm {
 			{ "FLUBRD", "D'R'B'U'L'F'" },
 		};
 
-		//Add 8 x 50 = 400 random srambling algos independent of Model
+		//Add 9 x 50 = 450 random srambling algos independent of Model
 		unique_ptr<RubiksCubeModel> model = RubiksCubeModelFactory::getRubiksCubeModel("RubiksCubeModel_v2", 3);
-		vector<int> lengths{ 5, 10, 15, 20, 25, 30, 50, 100 };
+		vector<int> lengths{ 5, 10, 15, 20, 25, 30, 50, 75, 100 };
 		for (int len : lengths)
 			for (int i = 0; i < 50; ++i)
 				scrambleAlgos.push_back({ model->getScramblingAlgo(len, false), "" });
 
+		//All above 500 scrambling algos are tested on every model
 		vector<testInfo> retVal;
 		for (const AlgoPairs& algoPair : scrambleAlgos)
 			for (ModelInfo& modelinfo : allModels)
