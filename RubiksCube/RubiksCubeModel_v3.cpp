@@ -79,7 +79,7 @@ namespace mm {
 		if (fabs(rotationAngle) < 0.00001)
 			return;
 
-		location_.rotate(rotationAxis, rotationAngle * PI / 180.0); //Angle should be in radians
+		location_.rotate(rotationAxis, rotationAngle);
 
 		int numRotations = fabs(rotationAngle) / 90;
 		if(rotationAxis == CVector3::XAxis)

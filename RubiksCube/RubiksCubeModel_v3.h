@@ -139,50 +139,85 @@ namespace mm {
 				return !(*this == rhs);
 			}
 
-			void rotate(CVector3 rotationAxis, double rotationAngle)
+			const vector<vector<double>>& getRotationMatrix(const CVector3& rotationAxis, double rotationAngle)
 			{
-				static vector<vector<double>> rotationMatrix(4, vector<double>(4));
+				using RotationMatrix = vector<vector<double>>;
+				static vector<vector<RotationMatrix>> rotationMatrixSet(3, vector<RotationMatrix>(3, RotationMatrix(4, vector<double>(4, 0.0))));
 
-				// Initialize rotation matrix
-				for (int Row = 0; Row < 4; Row++)
-					for (int Column = 0; Column < 4; Column++)
-						if (Row == Column)
-							rotationMatrix[Row][Column] = 1.0;
-						else
-							rotationMatrix[Row][Column] = 0.0;
+				static bool firstTime = true;
+				if (firstTime)
+				{
+					firstTime = false;					
+					for (int i = 0; i < 3; ++i)
+					{
+						for (int j = 0; j < 3; ++j)
+						{
+							double angle = (j + 1) * 90 * (PI / 180.0); //Angle should be in radians
 
-				if (rotationAxis == CVector3::XAxis)
-				{
-					rotationMatrix[1][1] = cos(rotationAngle);
-					rotationMatrix[1][2] = sin(rotationAngle);
-					rotationMatrix[2][1] = -sin(rotationAngle);
-					rotationMatrix[2][2] = cos(rotationAngle);
+							RotationMatrix& matrix = rotationMatrixSet[i][j];
+
+							// Initialize rotation matrix
+							for (int Row = 0; Row < 4; Row++)
+								for (int Column = 0; Column < 4; Column++)
+									if (Row == Column)
+										matrix[Row][Column] = 1.0;
+									else
+										matrix[Row][Column] = 0.0;
+
+							if (i == 0)
+							{
+								matrix[1][1] = cos(angle);
+								matrix[1][2] = sin(angle);
+								matrix[2][1] = -sin(angle);
+								matrix[2][2] = cos(angle);
+							}
+							else if (i == 1)
+							{
+								matrix[0][0] = cos(angle);
+								matrix[0][2] = -sin(angle);
+								matrix[2][0] = sin(angle);
+								matrix[2][2] = cos(angle);
+							}
+							else if (i == 2)
+							{
+								matrix[0][0] = cos(angle);
+								matrix[0][1] = sin(angle);
+								matrix[1][0] = -sin(angle);
+								matrix[1][1] = cos(angle);
+							}
+
+							for (int Row = 0; Row < 4; Row++)
+								for (int Column = 0; Column < 4; Column++)
+									if (fabs(matrix[Row][Column]) < 0.000001)
+										matrix[Row][Column] = 0.0;
+						}
+					}
 				}
-				else if (rotationAxis == CVector3::YAxis)
-				{
-					rotationMatrix[0][0] = cos(rotationAngle);
-					rotationMatrix[0][2] = -sin(rotationAngle);
-					rotationMatrix[2][0] = sin(rotationAngle);
-					rotationMatrix[2][2] = cos(rotationAngle);
-				}
+
+				int i = 0;
+				if (rotationAxis == CVector3::YAxis)
+					i = 1;
 				else if (rotationAxis == CVector3::ZAxis)
-				{
-					rotationMatrix[0][0] = cos(rotationAngle);
-					rotationMatrix[0][1] = sin(rotationAngle);
-					rotationMatrix[1][0] = -sin(rotationAngle);
-					rotationMatrix[1][1] = cos(rotationAngle);
-				}
+					i = 2;
 
-				for (int Row = 0; Row < 4; Row++)
-					for (int Column = 0; Column < 4; Column++)
-						if (fabs(rotationMatrix[Row][Column]) < 0.000001)
-							rotationMatrix[Row][Column] = 0.0;
+				if (rotationAngle < 0)
+					rotationAngle += 360;
 
+				int j = round(rotationAngle / 90.0);
+				--j;
+
+				return rotationMatrixSet[i][j];
+			}
+
+			void rotate(const CVector3& rotationAxis, double rotationAngle)
+			{
 				vector< vector<double>> geomVecMatrix(1, vector<double>(4, 1.0));
 				geomVecMatrix[0][0] = x_;
 				geomVecMatrix[0][1] = y_;
 				geomVecMatrix[0][2] = z_;
 				vector< vector<double>> result(1, vector<double>(4, 0.0));
+
+				const vector<vector<double>>& rotationMatrix = getRotationMatrix(rotationAxis, rotationAngle);
 
 				for (int i = 0; i < 1; i++)
 					for (int j = 0; j < 4; j++)
