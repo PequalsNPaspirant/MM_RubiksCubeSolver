@@ -79,6 +79,8 @@ namespace mm {
 		if (fabs(rotationAngle) < 0.00001)
 			return;
 
+		location_.rotate(rotationAxis, rotationAngle * PI / 180.0); //Angle should be in radians
+
 		int numRotations = fabs(rotationAngle) / 90;
 		if(rotationAxis == CVector3::XAxis)
 		{
@@ -1103,12 +1105,12 @@ namespace mm {
 			g_bRotating = true;
 			int angle = g_nRotationAngle;
 			g_nRotationAngle = 0;
-			int step = (angle - g_nRotationAngle) / ui.framesPerRotation_;
-			for (int i = 0; i < ui.framesPerRotation_; ++i)
+			int step = (angle - g_nRotationAngle) / ui.getFramesPerRotation();
+			for (int i = 0; i < ui.getFramesPerRotation(); ++i)
 			{
 				g_nRotationAngle += step;
 				ui.redrawWindow();
-				Sleep(ui.sleepTimeMilliSec_);
+				Sleep(ui.getSleepTimeMilliSec());
 			}
 
 			//If after above loop, the target angle is not achieved
@@ -1145,7 +1147,6 @@ namespace mm {
 			if (cube.belongsTo(rotatingSection, layerIndex, size_))
 			{
 				cube.rotate(rotationAxis, rotationAngle);
-				cube.location_.rotate(rotationAxis, rotationAngle * PI / 180.0); //Angle should be in radians
 				//bool noChangeInGroupAfterRotation = (rotationAxis == CVector3::XAxis && (cube.group_ == L || cube.group_ == R))
 				//	|| (rotationAxis == CVector3::YAxis && (cube.group_ == L || cube.group_ == R))
 				//	|| (rotationAxis == CVector3::ZAxis && (cube.group_ == L || cube.group_ == R));
@@ -1160,17 +1161,17 @@ namespace mm {
 			unique_ptr<Cube>& current = obj.second;
 
 			//unique_ptr<Cube> current = std::move(cube);
-			while (loc != current->location_)
+			while (loc != current->getLocation())
 			{
-				unique_ptr<Cube> temp = std::move(cubes_[current->location_]);
-				cubes_[current->location_] = std::move(current);
+				unique_ptr<Cube> temp = std::move(cubes_[current->getLocation()]);
+				cubes_[current->getLocation()] = std::move(current);
 				current = std::move(temp);
 			}
 			//obj.second = std::move(current);
 		}
 	}
 
-	string RubiksCubeModel_v2::getScramblingAlgo(int length)
+	string RubiksCubeModel_v2::getScramblingAlgo(int length, bool includeWholeCubeRotations)
 	{
 		char charSet[9] = { 
 			'F', //Front
@@ -1185,6 +1186,10 @@ namespace mm {
 		};
 
 		int numNotations = sizeof(charSet) / sizeof(char);
+		int wholeCubeRotateNotations = 3; // 'X', 'Y' and 'Z'
+		int numSingleLayerRotateNotations = numNotations - wholeCubeRotateNotations;
+		if (!includeWholeCubeRotations)
+			numNotations = numSingleLayerRotateNotations;
 		string retVal;
 		for (int i = 0; i < length; ++i)
 		{
@@ -1197,7 +1202,7 @@ namespace mm {
 				retVal += '\'';
 			
 			//Generate double rotations 1/3 times
-			if (index < (numNotations - 3)) //Avoid X, Y and Z since layerIndex is not applicable for it
+			if (index < numSingleLayerRotateNotations) //Avoid X, Y and Z since layerIndex is not applicable for it
 			{
 				int rotations = rand() % 3; 
 				if(rotations > 1)

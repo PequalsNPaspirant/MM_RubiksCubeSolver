@@ -236,7 +236,8 @@ namespace mm {
 
 	string RubiksCubeSolverScene::getScramblingAlgo(int length)
 	{
-		return rubicCubeModel_->getScramblingAlgo(length);
+		bool includeWholeCubeRotations = true;
+		return rubicCubeModel_->getScramblingAlgo(length, includeWholeCubeRotations);
 	}
 
 	void RubiksCubeSolverScene::applyAlgorithmToCube(const string& algo, bool animate)
@@ -261,5 +262,9 @@ namespace mm {
 		return solution;
 	}
 
+	bool RubiksCubeSolverScene::isSolved()
+	{
+		return rubicCubeModel_->isSolved();
+	}
 }
 

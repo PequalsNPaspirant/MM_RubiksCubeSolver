@@ -183,6 +183,7 @@ namespace mm {
 			string solution;
 		};
 
+		//50 hardcoded scrambling algos
 		vector<AlgoPairs> scrambleAlgos{
 			{ "U", "U'" },
 			{ "D", "D'" },
@@ -193,6 +194,7 @@ namespace mm {
 			{ "X", "X'" },
 			{ "Y", "Y'" },
 			{ "Z", "Z'" },
+
 			{ "U'", "U" },
 			{ "D'", "D" },
 			{ "L'", "L" },
@@ -202,6 +204,7 @@ namespace mm {
 			{ "X'", "X" },
 			{ "Y'", "Y" },
 			{ "Z'", "Z" },
+
 			{ "U2", "U'2" },
 			{ "D2", "D'2" },
 			{ "L2", "L'2" },
@@ -211,42 +214,52 @@ namespace mm {
 			{ "X2", "X'2" },
 			{ "Y2", "Y'2" },
 			{ "Z2", "Z'2" },
+
+			{ "U'2",  "U2" },
+			{ "D'2",  "D2" },
+			{ "L'2",  "L2" },
+			{ "R'2",  "R2" },
+			{ "F'2",  "F2" },
+			{ "B'2",  "B2" },
+			{ "X'2",  "X2" },
+			{ "Y'2",  "Y2" },
+			{ "Z'2",  "Z2" },
+
 			{ "FB", "B'F'" },
 			{ "LR", "R'L'" },
 			{ "UD", "D'U'" },
 			{ "F'B'", "BF" },
 			{ "L'R'", "RL" },
 			{ "U'D'", "DU" },
+
 			{ "F2B2", "B'2F'2" },
 			{ "L2R2", "R'2L'2" },
-			{ "U2D2", "D'2U'2" }
+			{ "U2D2", "D'2U'2" },
+
+			{ "FLU", "U'L'F'" },
+			{ "F'L'U'", "ULF" },
+			{ "BRD", "D'R'B'" },
+			{ "B'R'D'", "DRB" },
+			{ "FLUBRD", "D'R'B'U'L'F'" },
 		};
 
-		//Add random srambling algos
-		for (ModelInfo& modelinfo : allModels)
-		{
-			unique_ptr<RubiksCubeModel> model = RubiksCubeModelFactory::getRubiksCubeModel(modelinfo.modelName, modelinfo.size);
-			vector<int> lengths{ 5, 10, 15, 20, 25, 30, 50, 100 };
-			for (int len : lengths)
-			{
-				for (int i = 0; i < 50; ++i)
-				{
-					//retVal.push_back({ modelinfo.modelName, modelinfo.size, model->getScramblingAlgo(len), "" });
-					scrambleAlgos.push_back({ model->getScramblingAlgo(len), "" });
-				}
-			}
-		}
+		//Add 8 x 50 = 400 random srambling algos independent of Model
+		unique_ptr<RubiksCubeModel> model = RubiksCubeModelFactory::getRubiksCubeModel("RubiksCubeModel_v2", 3);
+		vector<int> lengths{ 5, 10, 15, 20, 25, 30, 50, 100 };
+		for (int len : lengths)
+			for (int i = 0; i < 50; ++i)
+				scrambleAlgos.push_back({ model->getScramblingAlgo(len, false), "" });
 
 		vector<testInfo> retVal;
 		for (const AlgoPairs& algoPair : scrambleAlgos)
-		{
 			for (ModelInfo& modelinfo : allModels)
-			{
 				retVal.push_back({ modelinfo.modelName, modelinfo.size, algoPair.scramble, algoPair.solution });
-			}
-		}
 
-		
+		//numModex x 8 x 50 = numModex x 400  Model specific scrambling algos
+		for (ModelInfo& modelinfo : allModels)
+			for (int len : lengths)
+				for (int i = 0; i < 50; ++i)
+					retVal.push_back({ modelinfo.modelName, modelinfo.size, model->getScramblingAlgo(len, true), "" });
 
 		return retVal;
 	}

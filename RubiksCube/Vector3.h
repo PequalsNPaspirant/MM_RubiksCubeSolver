@@ -48,7 +48,7 @@ namespace mm {
 			return !(*this == rhs);
 		}
 
-	protected:
+	private:
 		double LengthSquared(void);
 	};
 

@@ -878,12 +878,12 @@ namespace mm {
 			g_bRotating = true;
 			int angle = g_nRotationAngle;
 			g_nRotationAngle = 0;
-			int step = (angle - g_nRotationAngle) / ui.framesPerRotation_;
-			for (int i = 0; i < ui.framesPerRotation_; ++i)
+			int step = (angle - g_nRotationAngle) / ui.getFramesPerRotation();
+			for (int i = 0; i < ui.getFramesPerRotation(); ++i)
 			{
 				g_nRotationAngle += step;
 				ui.redrawWindow();
-				Sleep(ui.sleepTimeMilliSec_);
+				Sleep(ui.getSleepTimeMilliSec());
 			}
 
 			//If after above loop, the target angle is not achieved
@@ -922,7 +922,7 @@ namespace mm {
 			Turn(g_nRotatingSection, turns);
 	}
 
-	string RubiksCubeModel_v1::getScramblingAlgo(int length)
+	string RubiksCubeModel_v1::getScramblingAlgo(int length, bool includeWholeCubeRotations)
 	{
 		char charSet[9] = { 
 			'F', //Front

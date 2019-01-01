@@ -92,7 +92,7 @@ namespace mm {
 			void TiltRight();
 
 
-		protected:
+		private:
 			static const int FACE_COUNT = 6;
 			vector<Color> faces_;
 		};
@@ -105,7 +105,7 @@ namespace mm {
 		void loadAllTextures();
 		void ResetCube() override;
 		int applyAlgorithm(const string& algorithm, bool animate, RubiksCubeSolverUI& ui) override;
-		string getScramblingAlgo(int length) override;
+		string getScramblingAlgo(int length, bool includeWholeCubeRotations) override;
 		string solve(int& solutionSteps, unsigned long long& duration, bool animate, RubiksCubeSolverUI& ui) override;
 		void render() override;
 		void renderIndividualCube(const Cube& pCube, int x, int y, int z);
@@ -118,36 +118,29 @@ namespace mm {
 		
 		void loadTexture(int nId, GLuint* texture);
 		GLuint getTextureID(Color color);
-		GLuint g_pTextures[7];
 
 		const Cube& GetCube(int x, int y, int z);
 		void Rotate(int section, int turns);	// around y axis
 		void Tilt(int section, int turns);	// around x axis
 		void Turn(int section, int turns);	// around z axis
 		void Randomize();
-
-		bool g_bRotating;
-		bool g_bFlipRotation;
-		CVector3 g_vRotationAxis;
-		int g_nRotatingSection;
-		int g_nRotationAngle;
-
 		int getSize() { return size_; }
 
 	private:
 		void applyStep(const char& face, bool isPrime, int numRotations, bool animate, RubiksCubeSolverUI& ui);
 		void fixRubiksCubeFaces();
-
-	private:
-		vector< vector< vector<Cube> > > cubes_;
-		int size_;
-
-	private:
 		bool IsValidCube(int x, int y, int z);
 		Cube CreateCube(int x, int y, int z);
 
+		vector< vector< vector<Cube> > > cubes_;
+		int size_;
+		bool g_bRotating;
+		bool g_bFlipRotation;
+		CVector3 g_vRotationAxis;
+		int g_nRotatingSection;
+		int g_nRotationAngle;
+		GLuint g_pTextures[7];
 		static const double CUBE_SIZE;
-
 
 		//=======================================================================================================
 		// Solver

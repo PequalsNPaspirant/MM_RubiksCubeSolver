@@ -16,7 +16,7 @@ namespace mm {
 		virtual void loadAllTextures() = 0;
 		virtual void ResetCube() = 0;
 		virtual int applyAlgorithm(const string& algorithm, bool animate, RubiksCubeSolverUI& ui) = 0;
-		virtual string getScramblingAlgo(int length) = 0;
+		virtual string getScramblingAlgo(int length, bool includeWholeCubeRotations) = 0;
 		virtual string solve(int& solutionSteps, unsigned long long& duration, bool animate, RubiksCubeSolverUI& ui) = 0;
 		virtual void render() = 0;
 		virtual bool isSolved() = 0;

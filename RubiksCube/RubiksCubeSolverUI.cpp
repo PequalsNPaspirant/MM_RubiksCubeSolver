@@ -177,7 +177,7 @@ namespace mm {
 
 	bool RubiksCubeSolverUI::isSolved()
 	{
-		return scene_.rubicCubeModel_->isSolved();
+		return scene_.isSolved();
 	}
 
 	bool RubiksCubeSolverUI::changeToFullScreen()

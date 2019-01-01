@@ -245,11 +245,10 @@ namespace mm {
 			void TiltRight();
 
 			const Location& getLocation() const { return location_; }
-
 			void rotate(CVector3 rotationAxis, double rotationAngle);
 			bool belongsTo(Face rotatingSection, int layerIndex, int size) const;
 
-			//private:
+		private:
 			static const int FACE_COUNT = 6;
 			vector<Color> faces_;
 			Location location_;
@@ -264,7 +263,7 @@ namespace mm {
 		void loadAllTextures();
 		void ResetCube() override;
 		int applyAlgorithm(const string& algorithm, bool animate, RubiksCubeSolverUI& ui) override;
-		string getScramblingAlgo(int length) override;
+		string getScramblingAlgo(int length, bool includeWholeCubeRotations) override;
 		string solve(int& solutionSteps, unsigned long long& duration, bool animate, RubiksCubeSolverUI& ui) override;
 		void render() override;
 		void renderIndividualCube(const Cube& pCube, const Location& location);
@@ -277,26 +276,14 @@ namespace mm {
 
 		void loadTexture(int nId, GLuint* texture);
 		GLuint getTextureID(Color color);
-		GLuint g_pTextures[7];
+		
 
 		const Cube& GetCube(double x, double y, double z);
 		//const Cube& GetCube(Face layer0, Face layer1, Face layer2);
-
 		void Rotate(CVector3 rotationAxis, Face rotatingSection, int layerIndex, double rotationAngle);
-
-		bool g_bRotating;
-		bool g_bFlipRotation;
-		CVector3 g_vRotationAxis;
-		Face g_nRotatingSection;
-		int g_nLayerIndex;
-		double g_nRotationAngle;
-
 		int getSize() { return size_; }
 
 	private:
-		void applyStep(const char& face, bool isPrime, int numRotations, bool animate, RubiksCubeSolverUI& ui);
-		void fixRubiksCubeFaces();
-
 		//const CVector3& getRotationAxis(Groups rotationSection); //TODO: add this to localise group <--> Axis relation
 
 		template <class T>
@@ -326,8 +313,11 @@ namespace mm {
 			}
 		};
 
-	//private:
-	public:
+		bool IsValidCube(int x, int y, int z);
+		unique_ptr<Cube> CreateCube(double x, double y, double z, const Location& location);
+		void applyStep(const char& face, bool isPrime, int numRotations, bool animate, RubiksCubeSolverUI& ui);
+		void fixRubiksCubeFaces();
+
 		//vector< vector< vector<Cube> > > cubes_; // Total elements = size_ * size_ * size_
 		unordered_map<Location, unique_ptr<Cube>, Hasher> cubes_; // Total elements = size_ * size_ * size_ - ( (size_-2) * (size_-2) * (size_-2) )
 		//vector< vector<Cube*> > layerF_; //Front layer //Total elements = size_ * size_
@@ -337,11 +327,14 @@ namespace mm {
 		//vector< vector<Cube*> > layerU_; //Upper layer
 		//vector< vector<Cube*> > layerD_; //Down layer
 		int size_;
-
-	private:
-		bool IsValidCube(int x, int y, int z);
-		unique_ptr<Cube> CreateCube(double x, double y, double z, const Location& location);
-
+		GLuint g_pTextures[7];
+		bool g_bRotating;
+		bool g_bFlipRotation;
+		CVector3 g_vRotationAxis;
+		Face g_nRotatingSection;
+		int g_nLayerIndex;
+		double g_nRotationAngle;
+		
 		static const double CUBE_SIZE;
 
 

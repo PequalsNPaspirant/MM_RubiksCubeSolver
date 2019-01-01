@@ -24,34 +24,32 @@ namespace mm {
 		unique_ptr<RubiksCubeModel> replaceModelBy(const string& modelName, int size, bool animate);
 		unique_ptr<RubiksCubeModel> replaceModelBy(unique_ptr<RubiksCubeModel>&& newModel, bool animate);
 		bool isSolved();
+		/**/HWND createWindow(LPTSTR strTitle, int nWidth, int nHeight, DWORD dwStyle, BOOL bFullScreen, HINSTANCE hInstance);
+		/**//**/bool changeToFullScreen();
+		/**//**/bool setupPixelFormat(HDC hdc);
+		int getFramesPerRotation() { return framesPerRotation_; }
+		int getSleepTimeMilliSec() { return sleepTimeMilliSec_; }
 
-	public:
+		//Menu Handlers
+		void Reset(bool animate);
+		void Scramble();
+		string SolveOnCopy(int& solutionSteps, unsigned long long& duration, bool askForAnimation);
+		string Solve(int& solutionSteps, unsigned long long& duration, bool animate);
+		void testRubiksCube(bool animate);
+
+		//Windows callbacks
 		static LRESULT CALLBACK WndProcCallback(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 		static LRESULT CALLBACK AboutProcCallback(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-	private:
+		//deleted functions
 		RubiksCubeSolverUI();
 		RubiksCubeSolverUI(const RubiksCubeSolverUI&) = delete;
 		RubiksCubeSolverUI& operator=(const RubiksCubeSolverUI&) = delete;
 		RubiksCubeSolverUI(RubiksCubeSolverUI&&) = delete;
 		RubiksCubeSolverUI& operator=(RubiksCubeSolverUI&&) = delete;
 
-		/**/HWND createWindow(LPTSTR strTitle, int nWidth, int nHeight, DWORD dwStyle, BOOL bFullScreen, HINSTANCE hInstance);
-		/**//**/bool changeToFullScreen();
-		/**//**/bool setupPixelFormat(HDC hdc);
-
-	public:
+		//unused functions
 		void deInit();
-
-	private:
-		HGLRC g_hRC;
-		HDC g_hDC;
-		TCHAR g_szWindowClass[MAX_LOADSTRING]; // the main window class name
-		HACCEL g_hAccelTable;
-
-		const int WND_WIDTH = 400;
-		const int WND_HEIGHT = 400;
-		const int SCREEN_DEPTH = 16;
 
 	private:
 		/* void Cls_OnMouseLeave(HWND hWnd, int x, int y, UINT keyFlags) */
@@ -70,22 +68,16 @@ namespace mm {
 		void OnRubiksCubeChanged(HWND hWnd);
 		void OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify);
 
-	public:
-		//Menu Handlers
-		void Reset(bool animate);
-		void Scramble();
-		string SolveOnCopy(int& solutionSteps, unsigned long long& duration, bool askForAnimation);
-		string Solve(int& solutionSteps, unsigned long long& duration, bool animate);
-		void testRubiksCube(bool animate);
-
-		int framesPerRotation_;
-		int sleepTimeMilliSec_;
-
-	private:
+		HGLRC g_hRC;
+		HDC g_hDC;
+		TCHAR g_szWindowClass[MAX_LOADSTRING]; // the main window class name
+		HACCEL g_hAccelTable;
+		const int WND_WIDTH = 400;
+		const int WND_HEIGHT = 400;
+		const int SCREEN_DEPTH = 16;
 		bool g_bMouseDown;
 		int g_nPrevX;
 		int g_nPrevY;
-		
 		bool g_bFullScreen;
 		RECT g_rWnd;
 		CVector3 g_vMouseDown;
@@ -95,8 +87,9 @@ namespace mm {
 		TCHAR g_szTitle[MAX_LOADSTRING]; // The title bar text
 		HWND g_hWnd;
 		HINSTANCE g_hInstance; // current instance
+		int framesPerRotation_;
+		int sleepTimeMilliSec_;
 
-	private:
 		RubiksCubeSolverScene scene_;
 		RubiksCubeSolverTest tester_;
 	};
