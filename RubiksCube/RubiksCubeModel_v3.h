@@ -419,7 +419,7 @@ namespace mm {
 			string solve(int& solutionSteps);
 
 		private:
-			//void positionTheCube();
+			void positionTheCube();
 			//void buildCross();
 			void buildF1L();
 			void buildOLL();

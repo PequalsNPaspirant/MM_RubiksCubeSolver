@@ -487,7 +487,7 @@ namespace mm {
 		double y = location.y_;
 		double z = location.z_;
 		//bool mirrorVisibleFaces = true;
-		int offsetDist = 4 * cubeSize_; //distance of mirror image plane from the cube face
+		int offsetDist = (1 + size_) * cubeSize_; //distance of mirror image plane from the cube face
 		const float textureExtend = cubeSize_ / 2.0;
 
 		glPushName(x);
@@ -2218,9 +2218,10 @@ namespace mm {
 		solutionSteps_ = 0;
 		solution_ = "";
 
-		RubiksCubeModel_v3::RubiksCubeSolver_2x2x2::buildF1L();
-		RubiksCubeModel_v3::RubiksCubeSolver_2x2x2::buildOLL();
-		RubiksCubeModel_v3::RubiksCubeSolver_2x2x2::buildPLL();
+		positionTheCube();
+		buildF1L();
+		buildOLL();
+		buildPLL();
 
 		//verify
 		RubiksCubeSolverUtils::RunTimeAssert(rubiksCube_.isSolved());
@@ -2233,6 +2234,40 @@ namespace mm {
 	{
 		solution_ += step;
 		solutionSteps_ += rubiksCube_.applyAlgorithm(step, animate_, ui_);
+	}
+
+	void RubiksCubeModel_v3::RubiksCubeSolver_2x2x2::positionTheCube()
+	{
+		//Check bottom face
+		{
+			const Cube& currentCube = rubiksCube_.GetCube(Face::Front, Face::Left, 1, Face::Down, 1);
+			if (currentCube.GetFaceColor(Face::Down) == Color::White)
+				return;
+		}
+		{
+			const Cube& currentCube = rubiksCube_.GetCube(Face::Front, Face::Right, 1, Face::Down, 1);
+			if (currentCube.GetFaceColor(Face::Down) == Color::White)
+			{
+				applyAlgorithm("Y'");
+				return;
+			}
+		}
+		{
+			const Cube& currentCube = rubiksCube_.GetCube(Face::Back, Face::Left, 1, Face::Down, 1);
+			if (currentCube.GetFaceColor(Face::Down) == Color::White)
+			{
+				applyAlgorithm("Y");
+				return;
+			}
+		}
+		{
+			const Cube& currentCube = rubiksCube_.GetCube(Face::Back, Face::Right, 1, Face::Down, 1);
+			if (currentCube.GetFaceColor(Face::Down) == Color::White)
+			{
+				applyAlgorithm("Y2");
+				return;
+			}
+		}
 	}
 
 	void RubiksCubeModel_v3::RubiksCubeSolver_2x2x2::buildF1L()
