@@ -37,6 +37,7 @@ namespace mm {
 		//scene_(*this, "RubiksCubeModel_v1", 3),
 		//scene_(*this, "RubiksCubeModel_v2", 3),
 		scene_(*this, "RubiksCubeModel_v3", 3),
+		//scene_(*this, "RubiksCubeModel_v3", 2),
 		framesPerRotation_(20),
 		sleepTimeMilliSec_(50),
 		tester_(*this)

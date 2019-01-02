@@ -269,7 +269,7 @@ namespace mm {
 			Cube& operator=(const Cube&) = default;
 			Cube& operator=(Cube&&) = default;
 			Cube(Color cTop, Color cBottom, Color cLeft,
-				Color cRight, Color cFront, Color cBack, const Location& location);
+				Color cRight, Color cFront, Color cBack, const Location& location, int cubeSize);
 			~Cube();
 			Color GetFaceColor(Face eFace) const;
 			void TiltUp();
@@ -287,6 +287,7 @@ namespace mm {
 			static const int FACE_COUNT = 6;
 			vector<Color> faces_;
 			Location location_;
+			int cubeSize_;
 			//int group_;
 		};
 
@@ -314,7 +315,7 @@ namespace mm {
 		
 
 		const Cube& GetCube(double x, double y, double z);
-		//const Cube& GetCube(Face layer0, Face layer1, Face layer2);
+		Cube& GetCube(Face layer1, Face layer2, int layerIndex2, Face layer3, int layerIndex3);
 		void Rotate(CVector3 rotationAxis, Face rotatingSection, int layerIndex, double rotationAngle);
 		int getSize() { return size_; }
 
@@ -340,6 +341,7 @@ namespace mm {
 		{
 			size_t operator()(const Location& key) const noexcept
 			{
+				//return key.x_ * 9 + key.y_ * 3 + key.z_;
 				std::size_t seed = 0;
 				hash_combine(seed, key.x_);
 				hash_combine(seed, key.y_);
@@ -369,8 +371,10 @@ namespace mm {
 		Face g_nRotatingSection;
 		int g_nLayerIndex;
 		double g_nRotationAngle;
+		int cubeSize_;
+		double extend_;
 		
-		static const double CUBE_SIZE;
+		static const double scale_;
 
 
 		//=======================================================================================================
@@ -379,10 +383,10 @@ namespace mm {
 
 	public:
 
-		class RubiksCubeSolver
+		class RubiksCubeSolver_3x3x3
 		{
 		public:
-			RubiksCubeSolver(RubiksCubeModel_v3& rubiksCube, bool animate, RubiksCubeSolverUI& ui);
+			RubiksCubeSolver_3x3x3(RubiksCubeModel_v3& rubiksCube, bool animate, RubiksCubeSolverUI& ui);
 			string solve(int& solutionSteps);
 
 		private:
@@ -399,6 +403,35 @@ namespace mm {
 		private:
 			void applyAlgorithm(const string& step);
 			bool isEdgeCube(const Cube& currentCube, const Color& first, const Color& second);
+
+			RubiksCubeModel_v3& rubiksCube_;
+			string solution_;
+			int solutionSteps_;
+
+			bool animate_;
+			RubiksCubeSolverUI& ui_;
+		};
+
+		class RubiksCubeSolver_2x2x2
+		{
+		public:
+			RubiksCubeSolver_2x2x2(RubiksCubeModel_v3& rubiksCube, bool animate, RubiksCubeSolverUI& ui);
+			string solve(int& solutionSteps);
+
+		private:
+			//void positionTheCube();
+			//void buildCross();
+			void buildF1L();
+			void buildOLL();
+			void buildPLL();
+
+			//void buildCross_PlaceEdgePiece(const Color& targetColorFront, const Color& targetColorBottom);
+			//void buildF2L_PositionCornerPieces(const Color& targetColorFront, const Color& targetColorRight, const Color& targetColorBottom = Color::White);
+			//bool buildF2L_PositionEdgePieces(const Color& targetColorFront, const Color& targetColorRight);
+
+		private:
+			void applyAlgorithm(const string& step);
+			//bool isEdgeCube(const Cube& currentCube, const Color& first, const Color& second);
 
 			RubiksCubeModel_v3& rubiksCube_;
 			string solution_;

@@ -15,6 +15,7 @@
 #define IDC_RUBIKSCUBE                  109
 #define IDR_MAINFRAME                   128
 #define IDI_ICON1                       140
+#define IDD_DIALOG_SETTINGS             145
 #define IDB_WHITE                       200
 #define IDB_BLUE                        201
 #define IDB_ORANGE                      202
@@ -22,6 +23,9 @@
 #define IDB_GREEN                       204
 #define IDB_YELLOW                      205
 #define IDB_BLACK                       206
+#define IDC_COMBO1                      1001
+#define IDC_EDIT1                       1002
+#define IDC_SLIDER1                     1003
 #define IDM_FILE_RESET                  32777
 #define IDM_FILE_SCRAMBLE               32778
 #define IDM_FILE_SOLVE                  32779
@@ -35,9 +39,9 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NO_MFC                     1
-#define _APS_NEXT_RESOURCE_VALUE        145
+#define _APS_NEXT_RESOURCE_VALUE        146
 #define _APS_NEXT_COMMAND_VALUE         32788
-#define _APS_NEXT_CONTROL_VALUE         1001
+#define _APS_NEXT_CONTROL_VALUE         1004
 #define _APS_NEXT_SYMED_VALUE           110
 #endif
 #endif
