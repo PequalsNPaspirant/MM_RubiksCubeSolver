@@ -422,6 +422,7 @@ namespace mm {
 			void positionTheCube();
 			//void buildCross();
 			void buildF1L();
+			/**/void buildF1L_helper(Color front, Color right, Color bottom);
 			void buildOLL();
 			void buildPLL();
 

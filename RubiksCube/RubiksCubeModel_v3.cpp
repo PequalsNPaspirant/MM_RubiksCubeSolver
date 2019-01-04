@@ -2238,41 +2238,164 @@ namespace mm {
 
 	void RubiksCubeModel_v3::RubiksCubeSolver_2x2x2::positionTheCube()
 	{
-		//Check bottom face
+		/*
+		target:
+
+		   Y
+		   |
+		   --R
+		 /
+		B
+		*/
+
+		//Find a cube with Red, Blue and white so that it can be positioned at Front-Left-Down corner in ANY orientation
+		int target = (1 << Color::White) | (1 << Color::Blue) | (1 << Color::Red);
+		int actual = 0;
+
+		for(int i = 1; i <= 8 && target != actual; ++i)
 		{
 			const Cube& currentCube = rubiksCube_.GetCube(Face::Front, Face::Left, 1, Face::Down, 1);
-			if (currentCube.GetFaceColor(Face::Down) == Color::White)
-				return;
-		}
-		{
-			const Cube& currentCube = rubiksCube_.GetCube(Face::Front, Face::Right, 1, Face::Down, 1);
-			if (currentCube.GetFaceColor(Face::Down) == Color::White)
-			{
+			actual = (1 << currentCube.GetFaceColor(Face::Front)) 
+				| (1 << currentCube.GetFaceColor(Face::Left))
+				| (1 << currentCube.GetFaceColor(Face::Down));
+		
+			if (target == actual)
+				break;
+
+			if(i == 4)
+				applyAlgorithm("X2");
+			else
 				applyAlgorithm("Y'");
-				return;
-			}
+
 		}
-		{
-			const Cube& currentCube = rubiksCube_.GetCube(Face::Back, Face::Left, 1, Face::Down, 1);
-			if (currentCube.GetFaceColor(Face::Down) == Color::White)
-			{
-				applyAlgorithm("Y");
-				return;
-			}
-		}
-		{
-			const Cube& currentCube = rubiksCube_.GetCube(Face::Back, Face::Right, 1, Face::Down, 1);
-			if (currentCube.GetFaceColor(Face::Down) == Color::White)
-			{
-				applyAlgorithm("Y2");
-				return;
-			}
-		}
+
+		/*
+		target:
+
+		   Y
+		   |
+		   --R
+		 /
+		B
+		*/
+
+		//Place the cube with Red, Blue and white (just positioned at Front-Left-Down corner) in APPROPRIATE orientation
+		const Cube& currentCube = rubiksCube_.GetCube(Face::Front, Face::Left, 1, Face::Down, 1);
+
+		Color front = currentCube.GetFaceColor(Face::Front);
+		Color left = currentCube.GetFaceColor(Face::Left);
+		Color down = currentCube.GetFaceColor(Face::Down);
+
+		if(      left == Color::White && front == Color::Blue)
+			applyAlgorithm("ZY'");
+		else if (left == Color::White && front == Color::Red)
+			RubiksCubeSolverUtils::RunTimeAssert(false, "Imposible cube");
+		else if (left == Color::Red && front == Color::White)
+			applyAlgorithm("XY");
+		else if (left == Color::Red && front == Color::Blue)
+			RubiksCubeSolverUtils::RunTimeAssert(false, "Imposible cube");
+		else if (left == Color::Blue && front == Color::White)
+			RubiksCubeSolverUtils::RunTimeAssert(false, "Imposible cube");
+			
+		RubiksCubeSolverUtils::RunTimeAssert(currentCube.GetFaceColor(Face::Left) == Color::Blue 
+			&& currentCube.GetFaceColor(Face::Front) == Color::Red); // && currentCube.GetFaceColor(Face::Down) == Color::White
 	}
 
 	void RubiksCubeModel_v3::RubiksCubeSolver_2x2x2::buildF1L()
 	{
+		buildF1L_helper(Color::Red, Color::Green, Color::White);
+		applyAlgorithm("Y'");
+		buildF1L_helper(Color::Green, Color::Orange, Color::White);
+		applyAlgorithm("Y'");
+		buildF1L_helper(Color::Orange, Color::Blue, Color::White);
+	}
 
+	void RubiksCubeModel_v3::RubiksCubeSolver_2x2x2::buildF1L_helper(Color frontIn, Color rightIn, Color downIn)
+	{
+		int target = (1 << frontIn) | (1 << rightIn) | (1 << downIn);
+		int actual = 0;
+		//Step 1: bring the target cube at Front-Top-Right position
+		if (target != actual)
+		{
+			const Cube& currentCube = rubiksCube_.GetCube(Face::Front, Face::Right, 1, Face::Down, 1);
+			actual = (1 << currentCube.GetFaceColor(Face::Front))
+				| (1 << currentCube.GetFaceColor(Face::Right))
+				| (1 << currentCube.GetFaceColor(Face::Down));
+			if (target == actual)
+				applyAlgorithm("RUR'U'");
+		}
+		if (target != actual)
+		{
+			const Cube& currentCube = rubiksCube_.GetCube(Face::Back, Face::Right, 1, Face::Down, 1);
+			actual = (1 << currentCube.GetFaceColor(Face::Back))
+				| (1 << currentCube.GetFaceColor(Face::Right))
+				| (1 << currentCube.GetFaceColor(Face::Down));
+			if (target == actual)
+				applyAlgorithm("R2");
+		}
+		if (target != actual)
+		{
+			const Cube& currentCube = rubiksCube_.GetCube(Face::Back, Face::Left, 1, Face::Down, 1);
+			actual = (1 << currentCube.GetFaceColor(Face::Back))
+				| (1 << currentCube.GetFaceColor(Face::Left))
+				| (1 << currentCube.GetFaceColor(Face::Down));
+			if (target == actual)
+				applyAlgorithm("B'U'2");
+		}
+		if (target != actual)
+		{
+			const Cube& currentCube = rubiksCube_.GetCube(Face::Front, Face::Left, 1, Face::Up, 1);
+			actual = (1 << currentCube.GetFaceColor(Face::Front))
+				| (1 << currentCube.GetFaceColor(Face::Left))
+				| (1 << currentCube.GetFaceColor(Face::Up));
+			if (target == actual)
+				applyAlgorithm("U'");
+		}
+		if (target != actual)
+		{
+			const Cube& currentCube = rubiksCube_.GetCube(Face::Back, Face::Left, 1, Face::Up, 1);
+			actual = (1 << currentCube.GetFaceColor(Face::Back))
+				| (1 << currentCube.GetFaceColor(Face::Left))
+				| (1 << currentCube.GetFaceColor(Face::Up));
+			if (target == actual)
+				applyAlgorithm("U'2");
+		}
+		if (target != actual)
+		{
+			const Cube& currentCube = rubiksCube_.GetCube(Face::Back, Face::Right, 1, Face::Up, 1);
+			actual = (1 << currentCube.GetFaceColor(Face::Back))
+				| (1 << currentCube.GetFaceColor(Face::Right))
+				| (1 << currentCube.GetFaceColor(Face::Up));
+			if (target == actual)
+				applyAlgorithm("U");
+		}
+
+		const Cube& currentCube = rubiksCube_.GetCube(Face::Front, Face::Right, 1, Face::Up, 1);
+		Color front = currentCube.GetFaceColor(Face::Front);
+		Color right = currentCube.GetFaceColor(Face::Right);
+		Color up = currentCube.GetFaceColor(Face::Up);
+		actual = (1 << front)
+			| (1 << right)
+			| (1 << up);
+
+		RubiksCubeSolverUtils::RunTimeAssert(target == actual);
+
+		//Step 2: place the cube at Front-Bottom-Right position in right orientation
+		if (     up == downIn && right == frontIn)
+			applyAlgorithm("F'UFRU'2R'");
+		else if (up == downIn && right == rightIn)
+			RubiksCubeSolverUtils::RunTimeAssert(false, "Imposible cube");
+		else if (up == rightIn && right == downIn)
+			applyAlgorithm("RUR'");
+		else if (up == rightIn && right == frontIn)
+			RubiksCubeSolverUtils::RunTimeAssert(false, "Imposible cube");
+		else if (up == frontIn && right == downIn)
+			RubiksCubeSolverUtils::RunTimeAssert(false, "Imposible cube");
+		else if (up == frontIn && right == rightIn)
+			applyAlgorithm("R'");
+
+		RubiksCubeSolverUtils::RunTimeAssert(currentCube.GetFaceColor(Face::Front) == frontIn
+			&& currentCube.GetFaceColor(Face::Right) == rightIn); // && currentCube.GetFaceColor(Face::Down) == Color::White
 	}
 
 	void RubiksCubeModel_v3::RubiksCubeSolver_2x2x2::buildOLL()
