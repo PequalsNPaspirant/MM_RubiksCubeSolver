@@ -251,12 +251,12 @@ namespace mm {
 				scrambleAlgos.push_back({ model->getScramblingAlgo(len, false), "" });
 
 		vector<ModelInfo> allModels{
-			{ "RubiksCubeModel_v1", 3 },
-			{ "RubiksCubeModel_v2", 3 },
-			{ "RubiksCubeModel_v3", 3 },
-			{ "RubiksCubeModel_v3", 2 },
-			{ "RubiksCubeModel_v4", 3 },
-			{ "RubiksCubeModel_v4", 2 }
+			//{ "RubiksCubeModel_v1", 3 },
+			//{ "RubiksCubeModel_v2", 3 },
+			//{ "RubiksCubeModel_v3", 3 },
+			//{ "RubiksCubeModel_v3", 2 },
+			{ "RubiksCubeModel_v4", 3 }
+			//{ "RubiksCubeModel_v4", 2 }
 		};
 
 		//All above 500 scrambling algos are tested on every model

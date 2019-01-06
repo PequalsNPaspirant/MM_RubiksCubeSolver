@@ -382,6 +382,34 @@ namespace mm {
 		//=======================================================================================================
 
 	public:
+		class RubiksCubeSolver_NxNxN
+		{
+		public:
+			RubiksCubeSolver_NxNxN(RubiksCubeModel_v4& rubiksCube, bool animate, RubiksCubeSolverUI& ui);
+			string solve(int& solutionSteps);
+
+		private:
+			void positionTheCube();
+			void buildCross();
+			void buildF2L();
+			void buildOLL();
+			void buildPLL();
+
+			void buildCross_PlaceEdgePiece(const Color& targetColorFront, const Color& targetColorBottom);
+			void buildF2L_PositionCornerPieces(const Color& targetColorFront, const Color& targetColorRight, const Color& targetColorBottom = Color::White);
+			bool buildF2L_PositionEdgePieces(const Color& targetColorFront, const Color& targetColorRight);
+
+		private:
+			void applyAlgorithm(const string& step);
+			bool isEdgeCube(const Cube& currentCube, const Color& first, const Color& second);
+
+			RubiksCubeModel_v4& rubiksCube_;
+			string solution_;
+			int solutionSteps_;
+
+			bool animate_;
+			RubiksCubeSolverUI& ui_;
+		};
 
 		class RubiksCubeSolver_3x3x3
 		{
