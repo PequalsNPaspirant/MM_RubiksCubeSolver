@@ -247,11 +247,12 @@ namespace mm {
 			{ "FLUBRD", "D'R'B'U'L'F'" },
 		};
 
-		//Add 9 x 50 = 450 random srambling algos independent of Model
+		//Add 10 x 100 = 1000 random srambling algos independent of Model
 		unique_ptr<RubiksCubeModel> model = RubiksCubeModelFactory::getRubiksCubeModel("RubiksCubeModel_v2", 3);
-		vector<int> lengths{ 5, 10, 15, 20, 25, 30, 50, 75, 100 };
+		vector<int> lengths{ 5, 10, 15, 20, 25, 30, 50, 75, 100, 200 };
+		const int numAlgoOfEachLength = 100;
 		for (int len : lengths)
-			for (int i = 0; i < 50; ++i)
+			for (int i = 0; i < numAlgoOfEachLength; ++i)
 				scrambleAlgos.push_back({ model->getScramblingAlgo(len, false), "" });
 
 		vector<ModelInfo> allModels{
@@ -263,16 +264,16 @@ namespace mm {
 			//{ "RubiksCubeModel_v4", 2 }
 		};
 
-		//All above 500 scrambling algos are tested on every model
+		//All above 50 + 1000 scrambling algos are tested on every model
 		vector<testInfo> retVal;
 		for (const AlgoPairs& algoPair : scrambleAlgos)
 			for (ModelInfo& modelinfo : allModels)
 				retVal.push_back({ modelinfo.modelName, modelinfo.size, algoPair.scramble, algoPair.solution });
 
-		//numModex x 9 x 50 = numModex x 450  Model specific scrambling algos
+		//numModex x 10 x 100 = numModex x 1000  Model specific scrambling algos
 		for (ModelInfo& modelinfo : allModels)
 			for (int len : lengths)
-				for (int i = 0; i < 50; ++i)
+				for (int i = 0; i < numAlgoOfEachLength; ++i)
 					retVal.push_back({ modelinfo.modelName, modelinfo.size, model->getScramblingAlgo(len, true), "" });
 
 		return retVal;
