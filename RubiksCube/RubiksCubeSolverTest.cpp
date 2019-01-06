@@ -48,12 +48,15 @@ namespace mm {
 
 	bool RubiksCubeSolverTest::testRubiksCube(bool animate)
 	{
-		//Specific test cases
-		//vector<testInfo> testInfoSet;
+		vector<testInfo> testInfoSet;
+
+		//Specific test cases to test
 		//testInfoSet.push_back({ "RubiksCubeModel_v2", 3, "X", "X'" });
 		//testInfoSet.push_back({ "RubiksCubeModel_v2", 3, "D2", "D'2" });
+		//testInfoSet.push_back({ "RubiksCubeModel_v3", 2, "F", "" });
+		//testInfoSet.push_back({ "RubiksCubeModel_v3", 2, "D'", "" });
 
-		vector<testInfo> testInfoSet = generateSanityTestInfo();
+		testInfoSet = generateSanityTestInfo();
 
 		ofstream testResultsFile;
 		testResultsFile.open("../test/RubiksCubeTestResults_" + getCurrentLocalTimeInNanoSeconds2() + ".csv");
@@ -172,11 +175,7 @@ namespace mm {
 			int size;
 		};
 
-		vector<ModelInfo> allModels{
-			{ "RubiksCubeModel_v1", 3 },
-			{ "RubiksCubeModel_v2", 3 },
-			{ "RubiksCubeModel_v3", 3 }
-		};
+		
 
 		struct AlgoPairs
 		{
@@ -250,6 +249,13 @@ namespace mm {
 		for (int len : lengths)
 			for (int i = 0; i < 50; ++i)
 				scrambleAlgos.push_back({ model->getScramblingAlgo(len, false), "" });
+
+		vector<ModelInfo> allModels{
+			//{ "RubiksCubeModel_v1", 3 },
+			//{ "RubiksCubeModel_v2", 3 },
+			//{ "RubiksCubeModel_v3", 3 },
+			{ "RubiksCubeModel_v3", 2 }
+		};
 
 		//All above 500 scrambling algos are tested on every model
 		vector<testInfo> retVal;
