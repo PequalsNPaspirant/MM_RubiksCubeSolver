@@ -48,12 +48,19 @@ namespace mm {
 
 		enum Color
 		{
+			//Yellow = 0,
+			//Red = 1,
+			//Blue = 2,
+			//Green = 3,
+			//Orange = 4,
+			//White = 5,
 			Yellow = 0,
-			Red = 1,
-			Blue = 2,
-			Green = 3,
-			Orange = 4,
-			White = 5,
+			White = 1,
+			Orange = 2,
+			Red = 3,
+			Blue = 4,
+			Green = 5,		
+
 			Black = 6
 		};
 
