@@ -314,8 +314,8 @@ namespace mm {
 		GLuint getTextureID(Color color);
 		
 
-		const Cube& GetCube(double x, double y, double z);
-		Cube& GetCube(Face layer1, Face layer2, int layerIndex2, Face layer3, int layerIndex3);
+		//const Cube& GetCube(double x, double y, double z);
+		Cube& GetCube(Face layer1, int layerIndex1, Face layer2, int layerIndex2, Face layer3, int layerIndex3);
 		void Rotate(CVector3 rotationAxis, Face rotatingSection, int layerIndex, double rotationAngle);
 		int getSize() { return size_; }
 
@@ -401,7 +401,7 @@ namespace mm {
 
 		private:
 			void applyAlgorithm(const string& step);
-			bool isEdgeCube(const Cube& currentCube, const Color& first, const Color& second);
+			//bool isEdgeCube(const Cube& currentCube, const Color& first, const Color& second);
 
 			RubiksCubeModel_v4& rubiksCube_;
 			string solution_;
