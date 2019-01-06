@@ -396,8 +396,8 @@ namespace mm {
 			void buildPLL();
 
 			void buildCross_PlaceEdgePiece(const Color& targetColorFront, const Color& targetColorBottom);
-			void buildF2L_PositionCornerPieces(const Color& targetColorFront, const Color& targetColorRight, const Color& targetColorBottom = Color::White);
-			bool buildF2L_PositionEdgePieces(const Color& targetColorFront, const Color& targetColorRight);
+			//void buildF2L_PositionCornerPieces(const Color& targetColorFront, const Color& targetColorRight, const Color& targetColorBottom = Color::White);
+			bool buildF2L_PositionEdgeColumns(const Color& targetColorFront, const Color& targetColorRight);
 
 		private:
 			void applyAlgorithm(const string& step);

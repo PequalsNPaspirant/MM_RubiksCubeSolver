@@ -1724,7 +1724,7 @@ namespace mm {
 		string algo1("URU'R'U'F'UF");
 		string algo2("U'F'UFURU'R'");
 
-		//Check if aleady at position
+		//Check if already at position
 		currentCube = rubiksCube_.GetCube(2, 1, 2);
 		c1 = currentCube.GetFaceColor(Face::Front);
 		c2 = currentCube.GetFaceColor(Face::Right);

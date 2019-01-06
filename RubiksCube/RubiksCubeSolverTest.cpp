@@ -55,6 +55,10 @@ namespace mm {
 		//testInfoSet.push_back({ "RubiksCubeModel_v2", 3, "D2", "D'2" });
 		//testInfoSet.push_back({ "RubiksCubeModel_v3", 2, "F", "" });
 		//testInfoSet.push_back({ "RubiksCubeModel_v3", 2, "D'", "" });
+		//testInfoSet.push_back({ "RubiksCubeModel_v4", 3, "D", "" });
+		//testInfoSet.push_back({ "RubiksCubeModel_v4", 3, "D'", "" });
+		//testInfoSet.push_back({ "RubiksCubeModel_v4", 3, "D2", "" });
+		//testInfoSet.push_back({ "RubiksCubeModel_v4", 3, "LRDFL'", "" });
 
 		testInfoSet = generateSanityTestInfo();
 
@@ -251,10 +255,10 @@ namespace mm {
 				scrambleAlgos.push_back({ model->getScramblingAlgo(len, false), "" });
 
 		vector<ModelInfo> allModels{
-			//{ "RubiksCubeModel_v1", 3 },
-			//{ "RubiksCubeModel_v2", 3 },
-			//{ "RubiksCubeModel_v3", 3 },
-			//{ "RubiksCubeModel_v3", 2 },
+			{ "RubiksCubeModel_v1", 3 },
+			{ "RubiksCubeModel_v2", 3 },
+			{ "RubiksCubeModel_v3", 3 },
+			{ "RubiksCubeModel_v3", 2 },
 			{ "RubiksCubeModel_v4", 3 }
 			//{ "RubiksCubeModel_v4", 2 }
 		};
@@ -265,7 +269,7 @@ namespace mm {
 			for (ModelInfo& modelinfo : allModels)
 				retVal.push_back({ modelinfo.modelName, modelinfo.size, algoPair.scramble, algoPair.solution });
 
-		//numModex x 8 x 50 = numModex x 400  Model specific scrambling algos
+		//numModex x 9 x 50 = numModex x 450  Model specific scrambling algos
 		for (ModelInfo& modelinfo : allModels)
 			for (int len : lengths)
 				for (int i = 0; i < 50; ++i)

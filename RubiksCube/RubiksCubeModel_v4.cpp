@@ -1621,7 +1621,8 @@ namespace mm {
 		applyAlgorithm("Y'");
 	}
 
-	void RubiksCubeModel_v4::RubiksCubeSolver_NxNxN::buildF2L_PositionCornerPieces(const Color& targetColorFront, const Color& targetColorRight, const Color& targetColorBottom /*= Color::White*/)
+	/*
+	void RubiksCubeModel_v4::RubiksCubeSolver_NxNxN::buildF2L_PositionCornerPieces(const Color& targetColorFront, const Color& targetColorRight, const Color& targetColorBottom)
 	{
 		Cube currentCube;
 		Color c1, c2, c3;
@@ -1723,118 +1724,314 @@ namespace mm {
 			++i;
 		}
 	}
+	*/
 
-	bool RubiksCubeModel_v4::RubiksCubeSolver_NxNxN::buildF2L_PositionEdgePieces(const Color& targetColorFront, const Color& targetColorRight)
+	bool RubiksCubeModel_v4::RubiksCubeSolver_NxNxN::buildF2L_PositionEdgeColumns(const Color& targetColorFront, const Color& targetColorRight)
 	{
-		Cube currentCube;
-		Color c1, c2;
+		//Cube currentCube;
+		Color c1, c2, c3, c4, c5, c6, c7;
 		bool retVal = true;
 		string algo1("URU'R'U'F'UF");
 		string algo2("U'F'UFURU'R'");
 
-		//Check if aleady at position
-		currentCube = rubiksCube_.GetCube(2, 1, 2);
-		c1 = currentCube.GetFaceColor(Face::Front);
-		c2 = currentCube.GetFaceColor(Face::Right);
-		if (c1 == targetColorFront && c2 == targetColorRight)
+		int targetCornerPieceVal = (1 << targetColorFront) | (1 << targetColorRight) | (1 << Color::White);
+		int targetEdgePieceVal = (1 << targetColorFront) | (1 << targetColorRight);
+
+		//Check if already at position
+		const Cube& cornerCube = rubiksCube_.GetCube(Face::Front, Face::Right, 1, Face::Down, 1);
+		c1 = cornerCube.GetFaceColor(Face::Front);
+		c2 = cornerCube.GetFaceColor(Face::Right);
+		c3 = cornerCube.GetFaceColor(Face::Down);
+		const Cube& edgeCube = rubiksCube_.GetCube(Face::Front, Face::Right, 1, Face::Down, 2);
+		c4 = edgeCube.GetFaceColor(Face::Front);
+		c5 = edgeCube.GetFaceColor(Face::Right);
+		
+		if (c1 == targetColorFront && c2 == targetColorRight && c3 == Color::White
+			&& c4 == targetColorFront && c5 == targetColorRight)
 			return true;
-		else if (c1 == targetColorRight && c2 == targetColorFront) // If piece is stuck at right position but in wrong orientation
-			applyAlgorithm(algo1);
 
-		// Check top layer
-		currentCube = rubiksCube_.GetCube(1, 2, 0);
-		c1 = currentCube.GetFaceColor(Face::Up);
-		c2 = currentCube.GetFaceColor(Face::Back);
-		if ((c1 == targetColorFront || c2 == targetColorFront)
-			&& (c1 == targetColorRight || c2 == targetColorRight))
-			applyAlgorithm("U");
+		int cornerPieceVal = (1 << c1) | (1 << c2) | (1 << c3);
+		int edgePieceVal = (1 << c4) | (1 << c5);
 
-		currentCube = rubiksCube_.GetCube(0, 2, 1);
-		c1 = currentCube.GetFaceColor(Face::Up);
-		c2 = currentCube.GetFaceColor(Face::Left);
-		if ((c1 == targetColorFront || c2 == targetColorFront)
-			&& (c1 == targetColorRight || c2 == targetColorRight))
-			applyAlgorithm("U'");
+		//Move the corner piece and edge piece to top layer
+		//if(cornerPieceVal == targetCornerPieceVal || edgePieceVal == targetEdgePieceVal)
+		//	applyAlgorithm("RU'R'");
 
-
-		currentCube = rubiksCube_.GetCube(1, 2, 2);
-		c1 = currentCube.GetFaceColor(Face::Up);
-		c2 = currentCube.GetFaceColor(Face::Front);
-		if (c1 == targetColorRight && c2 == targetColorFront)
-			applyAlgorithm(algo1);
-
-		else if (c1 == targetColorFront && c2 == targetColorRight)
-			applyAlgorithm("U'" + algo2);
-		else
-			retVal = false;
-
-		if (retVal)
-			return retVal;
-
-		retVal = true;
-		currentCube = rubiksCube_.GetCube(2, 2, 1);
-		c1 = currentCube.GetFaceColor(Face::Up);
-		c2 = currentCube.GetFaceColor(Face::Right);
-		if (c1 == targetColorFront && c2 == targetColorRight)
-			applyAlgorithm(algo2);
-		else if (c1 == targetColorRight && c2 == targetColorFront)
-			applyAlgorithm("U" + algo1);
-		else
-			retVal = false;
-
-		//If we fail, check if any edge piece is stuck in second layer
-		if (!retVal)
+		//Move the corner piece at Front-Right-Top corner
+		bool done = false;
+		if (done == false)
 		{
-			currentCube = rubiksCube_.GetCube(2, 1, 2);
-			c1 = currentCube.GetFaceColor(Face::Front);
-			c2 = currentCube.GetFaceColor(Face::Right);
-			if (c1 != Color::Yellow && c2 != Color::Yellow)
-				applyAlgorithm(algo1);
+			if (cornerPieceVal == targetCornerPieceVal)
+			{
+				done = true;
+				applyAlgorithm("RU'R'");
+			}
+		}
+		if(done == false)
+		{
+			const Cube& cornerCube = rubiksCube_.GetCube(Face::Up, Face::Left, 1, Face::Back, 1);
+			c1 = cornerCube.GetFaceColor(Face::Up);
+			c2 = cornerCube.GetFaceColor(Face::Left);
+			c3 = cornerCube.GetFaceColor(Face::Back);
+			int cornerPieceVal = (1 << c1) | (1 << c2) | (1 << c3);
+			if (cornerPieceVal == targetCornerPieceVal)
+			{
+				done = true;
+				applyAlgorithm("U'2");
+			}
+		}
+		if (done == false)
+		{
+			const Cube& cornerCube = rubiksCube_.GetCube(Face::Up, Face::Left, 1, Face::Front, 1);
+			c1 = cornerCube.GetFaceColor(Face::Up);
+			c2 = cornerCube.GetFaceColor(Face::Left);
+			c3 = cornerCube.GetFaceColor(Face::Front);
+			int cornerPieceVal = (1 << c1) | (1 << c2) | (1 << c3);
+			if (cornerPieceVal == targetCornerPieceVal)
+			{
+				done = true;
+				applyAlgorithm("U'");
+			}
+		}
+		if (done == false)
+		{
+			const Cube& cornerCube = rubiksCube_.GetCube(Face::Up, Face::Right, 1, Face::Back, 1);
+			c1 = cornerCube.GetFaceColor(Face::Up);
+			c2 = cornerCube.GetFaceColor(Face::Right);
+			c3 = cornerCube.GetFaceColor(Face::Back);
+			int cornerPieceVal = (1 << c1) | (1 << c2) | (1 << c3);
+			if (cornerPieceVal == targetCornerPieceVal)
+			{
+				done = true;
+				applyAlgorithm("U");
+			}
 		}
 
-		return retVal;
+		if (done == false) //corner piece is stuck at Down layer
+		{
+			const Cube& cornerCube = rubiksCube_.GetCube(Face::Down, Face::Right, 1, Face::Back, 1);
+			c1 = cornerCube.GetFaceColor(Face::Down);
+			c2 = cornerCube.GetFaceColor(Face::Right);
+			c3 = cornerCube.GetFaceColor(Face::Back);
+			int cornerPieceVal = (1 << c1) | (1 << c2) | (1 << c3);
+			if (cornerPieceVal == targetCornerPieceVal)
+			{
+				done = true;
+				applyAlgorithm("R'U'RU'2");
+			}
+		}
+		if (done == false) //corner piece is stuck at Down layer
+		{
+			const Cube& cornerCube = rubiksCube_.GetCube(Face::Down, Face::Left, 1, Face::Back, 1);
+			c1 = cornerCube.GetFaceColor(Face::Down);
+			c2 = cornerCube.GetFaceColor(Face::Left);
+			c3 = cornerCube.GetFaceColor(Face::Back);
+			int cornerPieceVal = (1 << c1) | (1 << c2) | (1 << c3);
+			if (cornerPieceVal == targetCornerPieceVal)
+			{
+				done = true;
+				applyAlgorithm("B'U'2B");
+			}
+		}
+		if (done == false) //corner piece is stuck at Down layer
+		{
+			const Cube& cornerCube = rubiksCube_.GetCube(Face::Down, Face::Left, 1, Face::Front, 1);
+			c1 = cornerCube.GetFaceColor(Face::Down);
+			c2 = cornerCube.GetFaceColor(Face::Left);
+			c3 = cornerCube.GetFaceColor(Face::Front);
+			int cornerPieceVal = (1 << c1) | (1 << c2) | (1 << c3);
+			if (cornerPieceVal == targetCornerPieceVal)
+			{
+				done = true;
+				applyAlgorithm("FUF'U'2");
+			}
+		}
+
+		//Move edge piece to back layer
+		{
+			//const Cube& cornerCube = rubiksCube_.GetCube(Face::Front, Face::Right, 1, Face::Up, 1);
+			//c1 = cornerCube.GetFaceColor(Face::Front);
+			//c2 = cornerCube.GetFaceColor(Face::Right);
+
+			done = false;
+			if (done == false)
+			{
+				const Cube& edgeCube = rubiksCube_.GetCube(Face::Up, Face::Right, 1, Face::Front, 2);
+				c4 = edgeCube.GetFaceColor(Face::Up);
+				c5 = edgeCube.GetFaceColor(Face::Right);
+				int edgePieceVal = (1 << c4) | (1 << c5);
+				if (edgePieceVal == targetEdgePieceVal)
+				{
+					done = true;
+					applyAlgorithm("U'RU'R'U");
+				}
+			}
+			if (done == false)
+			{
+				const Cube& edgeCube = rubiksCube_.GetCube(Face::Up, Face::Left, 1, Face::Front, 2);
+				c4 = edgeCube.GetFaceColor(Face::Up);
+				c5 = edgeCube.GetFaceColor(Face::Left);
+				int edgePieceVal = (1 << c4) | (1 << c5);
+				if (edgePieceVal == targetEdgePieceVal)
+				{
+					done = true;
+					applyAlgorithm("U'RUR'U");
+				}
+			}
+			if (done == false)
+			{
+				const Cube& edgeCube = rubiksCube_.GetCube(Face::Up, Face::Front, 1, Face::Right, 2);
+				c4 = edgeCube.GetFaceColor(Face::Up);
+				c5 = edgeCube.GetFaceColor(Face::Front);
+				int edgePieceVal = (1 << c4) | (1 << c5);
+				if (edgePieceVal == targetEdgePieceVal)
+				{
+					done = true;
+					applyAlgorithm("UF'U2FU'");
+				}
+			}
+
+			//Edge piece is stuck in second layer
+			if (done == false)
+			{
+				const Cube& edgeCube = rubiksCube_.GetCube(Face::Right, Face::Front, 1, Face::Up, 2);
+				c4 = edgeCube.GetFaceColor(Face::Right);
+				c5 = edgeCube.GetFaceColor(Face::Front);
+				int edgePieceVal = (1 << c4) | (1 << c5);
+				if (edgePieceVal == targetEdgePieceVal)
+				{
+					done = true;
+					applyAlgorithm("URUR'U'2");
+				}
+			}
+			if (done == false)
+			{
+				const Cube& edgeCube = rubiksCube_.GetCube(Face::Right, Face::Back, 1, Face::Up, 2);
+				c4 = edgeCube.GetFaceColor(Face::Right);
+				c5 = edgeCube.GetFaceColor(Face::Back);
+				int edgePieceVal = (1 << c4) | (1 << c5);
+				if (edgePieceVal == targetEdgePieceVal)
+				{
+					done = true;
+					applyAlgorithm("BUB'U'");
+				}
+			}
+			if (done == false)
+			{
+				const Cube& edgeCube = rubiksCube_.GetCube(Face::Left, Face::Back, 1, Face::Up, 2);
+				c4 = edgeCube.GetFaceColor(Face::Left);
+				c5 = edgeCube.GetFaceColor(Face::Back);
+				int edgePieceVal = (1 << c4) | (1 << c5);
+				if (edgePieceVal == targetEdgePieceVal)
+				{
+					done = true;
+					applyAlgorithm("B'UBU'");
+				}
+			}
+			if (done == false)
+			{
+				const Cube& edgeCube = rubiksCube_.GetCube(Face::Left, Face::Front, 1, Face::Up, 2);
+				c4 = edgeCube.GetFaceColor(Face::Left);
+				c5 = edgeCube.GetFaceColor(Face::Front);
+				int edgePieceVal = (1 << c4) | (1 << c5);
+				if (edgePieceVal == targetEdgePieceVal)
+				{
+					done = true;
+					applyAlgorithm("U'L'UL");
+				}
+			}
+		}
+
+		//Place corner piece in aprropriate orientation, then Put everyting else in place
+		{
+			const Cube& edgeCube = rubiksCube_.GetCube(Face::Up, Face::Back, 1, Face::Right, 2);
+			c4 = edgeCube.GetFaceColor(Face::Up);
+			c5 = edgeCube.GetFaceColor(Face::Back);
+
+			const Cube& cornerCube = rubiksCube_.GetCube(Face::Front, Face::Right, 1, Face::Up, 1);
+			c1 = cornerCube.GetFaceColor(Face::Front);
+			c2 = cornerCube.GetFaceColor(Face::Right);
+			c3 = cornerCube.GetFaceColor(Face::Up);
+			if (c3 == Color::White)
+			{
+				if (c2 == c4)
+				{
+					//Take edge piece to left face first
+					applyAlgorithm("U'RU'R'U");
+					//Orient corner cube
+					applyAlgorithm("RU'R'U'2");
+					//Put everything in place
+					applyAlgorithm("RUR'");
+				}
+				else if (c1 == c4)
+				{
+					applyAlgorithm("F'UFU'2");
+					//Put everything in place
+					applyAlgorithm("F'U'F");
+				}
+			}
+			else if (c2 == Color::White)
+			{
+				if (c1 == c4)
+				{
+					//Put everything in place
+					applyAlgorithm("RUR'");
+				}
+				else if (c3 == c4) //top colors are same
+				{
+					//Take edge piece to left face first
+					//applyAlgorithm("U'RU'R'U");
+					//make top colors different
+					applyAlgorithm("RU'R'U2");
+					//Corner and edge pieces are together, separate them
+					applyAlgorithm("U'RU'2R'U");
+					//Put everything in place
+					applyAlgorithm("F'U'F");
+				}
+			}
+			else if (c1 == Color::White)
+			{
+				if (c2 == c4)
+				{
+					//Take edge piece to left face first
+					applyAlgorithm("U'RU'R'U");
+					//Put everything in place
+					applyAlgorithm("F'U'F");
+				}
+				else if (c3 == c4) //top colors are same
+				{
+					//make top colors different
+					applyAlgorithm("F'UFU'2");
+					//edge cube goes to left, take it at back
+					applyAlgorithm("U'RUR'U");
+					//Put everything in place
+					applyAlgorithm("RUR'");
+				}
+			}
+			else
+				RubiksCubeSolverUtils::RunTimeAssert(false, "Unhandled situation");
+		}
+
+		return true;
 	}
 
 	void RubiksCubeModel_v4::RubiksCubeSolver_NxNxN::buildF2L()
 	{
 		//position corner pieces
-		buildF2L_PositionCornerPieces(Color::Blue, Color::Red, Color::White);
+		buildF2L_PositionEdgeColumns(Color::Blue, Color::Red);
 
 		applyAlgorithm("Y'");
-		buildF2L_PositionCornerPieces(Color::Red, Color::Green, Color::White);
+		buildF2L_PositionEdgeColumns(Color::Red, Color::Green);
 
 		applyAlgorithm("Y'");
-		buildF2L_PositionCornerPieces(Color::Green, Color::Orange, Color::White);
+		buildF2L_PositionEdgeColumns(Color::Green, Color::Orange);
 
 		applyAlgorithm("Y'");
-		buildF2L_PositionCornerPieces(Color::Orange, Color::Blue, Color::White);
+		buildF2L_PositionEdgeColumns(Color::Orange, Color::Blue);
 
 		applyAlgorithm("Y'");
 
-		//position edge pieces
-		int numIterations = 0;
-		int done = 0;
-		while (done != 15)
-		{
-			++numIterations;
-
-			if (buildF2L_PositionEdgePieces(Color::Blue, Color::Red))
-				done |= 1;
-
-			applyAlgorithm("Y'");
-			if (buildF2L_PositionEdgePieces(Color::Red, Color::Green))
-				done |= 2;
-
-			applyAlgorithm("Y'");
-			if (buildF2L_PositionEdgePieces(Color::Green, Color::Orange))
-				done |= 4;
-
-			applyAlgorithm("Y'");
-			if (buildF2L_PositionEdgePieces(Color::Orange, Color::Blue))
-				done |= 8;
-
-			applyAlgorithm("Y'");
-		}
+		RubiksCubeSolverUtils::RunTimeAssert(rubiksCube_.IsFaceSolved(Down), "F2L failed");
 	}
 
 	void RubiksCubeModel_v4::RubiksCubeSolver_NxNxN::buildOLL()
