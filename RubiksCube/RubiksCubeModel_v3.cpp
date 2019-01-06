@@ -2218,7 +2218,7 @@ namespace mm {
 		solutionSteps_ = 0;
 		solution_ = "";
 
-		//positionTheCube();
+		positionTheCube(); //This is not really required in case of 2x2x2
 		//RubiksCubeSolverUtils::RunTimeAssert(false, "Positioned the cube");
 		buildF1L();
 		//RubiksCubeSolverUtils::RunTimeAssert(false, "F1L completed");
@@ -2242,70 +2242,6 @@ namespace mm {
 
 	void RubiksCubeModel_v3::RubiksCubeSolver_2x2x2::positionTheCube()
 	{
-		/*
-		target:
-
-		   Y
-		   |
-		   --R
-		 /
-		B
-		*/
-
-		//Find a cube with Orange, Blue and white so that it can be positioned at Front-Left-Down corner in ANY orientation
-		int target = (1 << Color::Orange) | (1 << Color::Blue) | (1 << Color::White);
-		int actual = 0;
-
-		for(int i = 1; i <= 8 && target != actual; ++i)
-		{
-			const Cube& currentCube = rubiksCube_.GetCube(Face::Front, Face::Left, 1, Face::Down, 1);
-			Color left = currentCube.GetFaceColor(Face::Left);
-			Color front = currentCube.GetFaceColor(Face::Front);
-			Color down = currentCube.GetFaceColor(Face::Down);
-			actual = (1 << left) 
-				| (1 << front)
-				| (1 << down);
-		
-			if (target == actual)
-				break;
-
-			if(i == 4)
-				applyAlgorithm("X2");
-			else
-				applyAlgorithm("Y'");
-
-		}
-
-		/*
-		target:
-
-		   Y
-		   |
-		   --R
-		 /
-		B
-		*/
-
-		//Place the cube with Red, Blue and white (just positioned at Front-Left-Down corner) in APPROPRIATE orientation
-		const Cube& currentCube = rubiksCube_.GetCube(Face::Front, Face::Left, 1, Face::Down, 1);
-
-		Color left = currentCube.GetFaceColor(Face::Left);
-		Color front = currentCube.GetFaceColor(Face::Front);
-		Color down = currentCube.GetFaceColor(Face::Down);
-
-		if(      left == Color::White && front == Color::Blue)
-			applyAlgorithm("ZY'");
-		else if (left == Color::White && front == Color::Orange)
-			RubiksCubeSolverUtils::RunTimeAssert(false, "Imposible cube");
-		else if (left == Color::Orange && front == Color::White)
-			applyAlgorithm("XY");
-		else if (left == Color::Orange && front == Color::Blue)
-			RubiksCubeSolverUtils::RunTimeAssert(false, "Imposible cube");
-		else if (left == Color::Blue && front == Color::White)
-			RubiksCubeSolverUtils::RunTimeAssert(false, "Imposible cube");
-			
-		RubiksCubeSolverUtils::RunTimeAssert(currentCube.GetFaceColor(Face::Left) == Color::Blue 
-			&& currentCube.GetFaceColor(Face::Front) == Color::Red); // && currentCube.GetFaceColor(Face::Down) == Color::White
 	}
 
 	void RubiksCubeModel_v3::RubiksCubeSolver_2x2x2::buildF1L()
