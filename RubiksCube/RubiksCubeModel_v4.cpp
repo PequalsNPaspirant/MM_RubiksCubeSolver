@@ -1303,25 +1303,30 @@ namespace mm {
 		}
 	}
 
-	string RubiksCubeModel_v4::getScramblingAlgo(int length, bool includeWholeCubeRotations)
+	string RubiksCubeModel_v4::getScramblingAlgo(int length, bool includeNonStandardRotations)
 	{
-		char charSet[9] = { 
+		vector<char> charSet{
+			//Standard rotations
 			'F', //Front
 			'B', //Back
 			'L', //Left
 			'R', //Right
 			'U', //Up
 			'D',  //Down
+
+			//Non-Standard rotations
 			'X', //whole cube in X Axis direction X = L + R + center
 			'Y', //whole cube in Y Axis direction Y = U + D + center
-			'Z'  //whole cube in Z Axis direction Z = F + B + center
+			'Z',  //whole cube in Z Axis direction Z = F + B + center
 		};
 
-		int numNotations = sizeof(charSet) / sizeof(char);
-		int wholeCubeRotateNotations = 3; // 'X', 'Y' and 'Z'
-		int numSingleLayerRotateNotations = numNotations - wholeCubeRotateNotations;
-		if (!includeWholeCubeRotations)
-			numNotations = numSingleLayerRotateNotations;
+		//int numNotations = sizeof(charSet) / sizeof(char);
+		int numNotations = charSet.size();
+		//int wholeCubeRotateNotations = 3; // 'X', 'Y' and 'Z'
+		//int numSingleLayerRotateNotations = numNotations - wholeCubeRotateNotations;
+		const int standardRotations = 6;
+		if (!includeNonStandardRotations)
+			numNotations = standardRotations;
 		string retVal;
 		for (int i = 0; i < length; ++i)
 		{
@@ -1334,7 +1339,7 @@ namespace mm {
 				retVal += '\'';
 			
 			//Generate double rotations 1/3 times
-			if (index < numSingleLayerRotateNotations) //Avoid X, Y and Z since layerIndex is not applicable for it
+			if (index < standardRotations) //Avoid X, Y and Z since layerIndex is not applicable for it
 			{
 				int rotations = rand() % 3; 
 				if(rotations > 1)
@@ -1366,17 +1371,38 @@ namespace mm {
 		if (rubiksCube_.getSize() == 1)
 			return solution_;
 
-		RubiksCubeModel_v4::RubiksCubeSolver_NxNxN::positionTheCube();
-		RubiksCubeModel_v4::RubiksCubeSolver_NxNxN::buildCross();
-		RubiksCubeModel_v4::RubiksCubeSolver_NxNxN::buildF2L();
-		RubiksCubeModel_v4::RubiksCubeSolver_NxNxN::buildOLL();
-		RubiksCubeModel_v4::RubiksCubeSolver_NxNxN::buildPLL();
+		reduceTo3x3x3();
+		//Only cubes with odd sizes has center piece
+		//Updates: But still we have to position it according to center cubes
+		//if (rubiksCube_.getSize() % 2 == 1)
+			positionTheCube();
+		buildCross();
+		buildF2L();
+		buildOLL();
+		buildPLL();
+		positionTheCube();
 
 		//verify
 		RubiksCubeSolverUtils::RunTimeAssert(rubiksCube_.isSolved());
 
 		solutionSteps = solutionSteps_;
 		return solution_;
+	}
+
+	void RubiksCubeModel_v4::RubiksCubeSolver_NxNxN::reduceTo3x3x3()
+	{
+		fixCenterCubes();
+		fixEdgeCubes();
+	}
+
+	void RubiksCubeModel_v4::RubiksCubeSolver_NxNxN::fixCenterCubes()
+	{
+
+	}
+
+	void RubiksCubeModel_v4::RubiksCubeSolver_NxNxN::fixEdgeCubes()
+	{
+
 	}
 
 	void RubiksCubeModel_v4::RubiksCubeSolver_NxNxN::applyAlgorithm(const string& step)
@@ -2518,6 +2544,7 @@ namespace mm {
 				break;
 			}
 
+			//Move the completed face at back
 			if (e2 == o2)
 				applyAlgorithm("Y");
 			else if (e3 == o3)

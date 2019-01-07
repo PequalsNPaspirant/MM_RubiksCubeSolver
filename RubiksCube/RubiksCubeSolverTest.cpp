@@ -248,20 +248,22 @@ namespace mm {
 		};
 
 		//Add 10 x 100 = 1000 random srambling algos independent of Model
+		bool includeNonStandardRotations = false;
 		unique_ptr<RubiksCubeModel> model = RubiksCubeModelFactory::getRubiksCubeModel("RubiksCubeModel_v2", 3);
 		vector<int> lengths{ 5, 10, 15, 20, 25, 30, 50, 75, 100, 200 };
 		const int numAlgoOfEachLength = 100;
 		for (int len : lengths)
 			for (int i = 0; i < numAlgoOfEachLength; ++i)
-				scrambleAlgos.push_back({ model->getScramblingAlgo(len, false), "" });
+				scrambleAlgos.push_back({ model->getScramblingAlgo(len, includeNonStandardRotations), "" });
 
 		vector<ModelInfo> allModels{
 			//{ "RubiksCubeModel_v1", 3 },
 			//{ "RubiksCubeModel_v2", 3 },
 			//{ "RubiksCubeModel_v3", 3 },
 			//{ "RubiksCubeModel_v3", 2 },
-			{ "RubiksCubeModel_v4", 3 }
-			//{ "RubiksCubeModel_v4", 2 }
+			//{ "RubiksCubeModel_v4", 3 },
+			//{ "RubiksCubeModel_v4", 2 },
+			{ "RubiksCubeModel_v4", 4 }
 		};
 
 		//All above 50 + 1000 scrambling algos are tested on every model
@@ -271,10 +273,11 @@ namespace mm {
 				retVal.push_back({ modelinfo.modelName, modelinfo.size, algoPair.scramble, algoPair.solution });
 
 		//numModex x 10 x 100 = numModex x 1000  Model specific scrambling algos
+		includeNonStandardRotations = true;
 		for (ModelInfo& modelinfo : allModels)
 			for (int len : lengths)
 				for (int i = 0; i < numAlgoOfEachLength; ++i)
-					retVal.push_back({ modelinfo.modelName, modelinfo.size, model->getScramblingAlgo(len, true), "" });
+					retVal.push_back({ modelinfo.modelName, modelinfo.size, model->getScramblingAlgo(len, includeNonStandardRotations), "" });
 
 		return retVal;
 	}

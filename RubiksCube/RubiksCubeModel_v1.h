@@ -105,7 +105,7 @@ namespace mm {
 		void loadAllTextures();
 		void ResetCube() override;
 		int applyAlgorithm(const string& algorithm, bool animate, RubiksCubeSolverUI& ui) override;
-		string getScramblingAlgo(int length, bool includeWholeCubeRotations) override;
+		string getScramblingAlgo(int length, bool includeNonStandardRotations) override;
 		string solve(int& solutionSteps, unsigned long long& duration, bool animate, RubiksCubeSolverUI& ui) override;
 		void render() override;
 		void renderIndividualCube(const Cube& pCube, int x, int y, int z);

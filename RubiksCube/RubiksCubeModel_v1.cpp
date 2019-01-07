@@ -922,7 +922,7 @@ namespace mm {
 			Turn(g_nRotatingSection, turns);
 	}
 
-	string RubiksCubeModel_v1::getScramblingAlgo(int length, bool includeWholeCubeRotations)
+	string RubiksCubeModel_v1::getScramblingAlgo(int length, bool includeNonStandardRotations)
 	{
 		char charSet[9] = { 
 			'F', //Front

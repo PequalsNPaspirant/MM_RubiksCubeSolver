@@ -306,7 +306,7 @@ namespace mm {
 		void loadAllTextures();
 		void ResetCube() override;
 		int applyAlgorithm(const string& algorithm, bool animate, RubiksCubeSolverUI& ui) override;
-		string getScramblingAlgo(int length, bool includeWholeCubeRotations) override;
+		string getScramblingAlgo(int length, bool includeNonStandardRotations) override;
 		string solve(int& solutionSteps, unsigned long long& duration, bool animate, RubiksCubeSolverUI& ui) override;
 		void render() override;
 		void renderIndividualCube(const Cube& pCube, const Location& location);
@@ -396,15 +396,17 @@ namespace mm {
 			string solve(int& solutionSteps);
 
 		private:
+			void reduceTo3x3x3();
+			/**/void fixCenterCubes();
+			/**/void fixEdgeCubes();
 			void positionTheCube();
 			void buildCross();
+			/**/void buildCross_PlaceEdgePiece(const Color& targetColorFront, const Color& targetColorBottom);
 			void buildF2L();
+			/**///void buildF2L_PositionCornerPieces(const Color& targetColorFront, const Color& targetColorRight, const Color& targetColorBottom = Color::White);
+			/**/bool buildF2L_PositionEdgeColumns(const Color& targetColorFront, const Color& targetColorRight);
 			void buildOLL();
 			void buildPLL();
-
-			void buildCross_PlaceEdgePiece(const Color& targetColorFront, const Color& targetColorBottom);
-			//void buildF2L_PositionCornerPieces(const Color& targetColorFront, const Color& targetColorRight, const Color& targetColorBottom = Color::White);
-			bool buildF2L_PositionEdgeColumns(const Color& targetColorFront, const Color& targetColorRight);
 
 		private:
 			void applyAlgorithm(const string& step);

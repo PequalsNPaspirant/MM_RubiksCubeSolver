@@ -1295,7 +1295,7 @@ namespace mm {
 		}
 	}
 
-	string RubiksCubeModel_v3::getScramblingAlgo(int length, bool includeWholeCubeRotations)
+	string RubiksCubeModel_v3::getScramblingAlgo(int length, bool includeNonStandardRotations)
 	{
 		char charSet[9] = { 
 			'F', //Front
@@ -1312,7 +1312,7 @@ namespace mm {
 		int numNotations = sizeof(charSet) / sizeof(char);
 		int wholeCubeRotateNotations = 3; // 'X', 'Y' and 'Z'
 		int numSingleLayerRotateNotations = numNotations - wholeCubeRotateNotations;
-		if (!includeWholeCubeRotations)
+		if (!includeNonStandardRotations)
 			numNotations = numSingleLayerRotateNotations;
 		string retVal;
 		for (int i = 0; i < length; ++i)
