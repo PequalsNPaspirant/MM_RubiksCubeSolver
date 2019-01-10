@@ -35,12 +35,13 @@ BEGIN
     END
     POPUP "Rubiks Cube"
     BEGIN
-        MENUITEM "Reset",                       IDM_FILE_RESET
+        MENUITEM "Reset Rubiks Cube",           IDM_FILE_RESET
         MENUITEM "&Scramble",                   IDM_FILE_SCRAMBLE
         MENUITEM "Solve",                       IDM_FILE_SOLVE
         MENUITEM "Solve (Show Animation)",      IDM_FILE_SOLVE_ANIM
         MENUITEM "Test",                        ID_RUBIKSCUBE_TEST
         MENUITEM "Test (Show Animation)",       ID_RUBIKSCUBE_TEST_ANIM
+        MENUITEM "Fit to Screen",               ID_RUBIKSCUBE_FITTOSCREEN
     END
     POPUP "&Help"
     BEGIN

@@ -64,8 +64,11 @@ namespace mm {
 		//scene_(*this, "RubiksCubeModel_v2", 3),
 		//scene_(*this, "RubiksCubeModel_v3", 3),
 		//scene_(*this, "RubiksCubeModel_v3", 2),
-		scene_(*this, "RubiksCubeModel_v4", 4),
+		//scene_(*this, "RubiksCubeModel_v4", 2),
+		scene_(*this, "RubiksCubeModel_v4", 3),
+		//scene_(*this, "RubiksCubeModel_v4", 4),
 		//scene_(*this, "RubiksCubeModel_v4", 10),
+		//scene_(*this, "RubiksCubeModel_v4", 100),
 		framesPerRotation_(20),
 		sleepTimeMilliSec_(10),
 		tester_(*this)
@@ -148,8 +151,8 @@ namespace mm {
 
 		if (!hWnd) return NULL;
 
-		ShowWindow(hWnd, SW_SHOWNORMAL);
-		//ShowWindow(hWnd, SW_MAXIMIZE);
+		//ShowWindow(hWnd, SW_SHOWNORMAL);
+		ShowWindow(hWnd, SW_MAXIMIZE);
 		UpdateWindow(hWnd);
 
 		SetFocus(hWnd);
@@ -680,6 +683,10 @@ namespace mm {
 			bool animate = true;
 			testRubiksCube(animate);
 		}
+		else if (id == ID_RUBIKSCUBE_FITTOSCREEN)
+		{
+			fitToScreen();
+		}
 		else if (id == IDM_ABOUT)
 		{
 			DialogBox(g_hInstance, MAKEINTRESOURCE(IDD_ABOUTBOX),
@@ -752,6 +759,12 @@ namespace mm {
 	void RubiksCubeSolverUI::testRubiksCube(bool animate)
 	{
 		tester_.testRubiksCube(animate);
+	}
+
+	void RubiksCubeSolverUI::fitToScreen()
+	{
+		scene_.fitToScreen();
+		redrawWindow();
 	}
 }
 

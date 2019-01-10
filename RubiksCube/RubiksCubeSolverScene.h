@@ -61,6 +61,7 @@ namespace mm {
 		string Solve(int& solutionSteps, unsigned long long& duration, bool animate);
 		string SolveOnCopy(int& solutionSteps, unsigned long long& duration);
 		bool isSolved();
+		void fitToScreen();
 
 		//deleted functions
 		RubiksCubeSolverScene(const RubiksCubeSolverScene&) = delete;
@@ -75,6 +76,7 @@ namespace mm {
 		static GLuint g_pSelectBuffer[SELECT_BUFFER_SIZE];
 		unique_ptr<RubiksCubeModel> rubicCubeModel_;
 		RubiksCubeSolverUI& refUI_;
+		int rubiksCubeSize_;
 
 	public:
 		CCamera g_cCamera;

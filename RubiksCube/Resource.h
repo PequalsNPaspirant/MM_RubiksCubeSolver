@@ -1,29 +1,3 @@
-//=======================================================================================================//
-//   Copyright (c) 2018 Maruti Mhetre                                                                    //
-//   All rights reserved.                                                                                //
-//=======================================================================================================//
-//   Redistribution and use of this software in source and binary forms, with or without modification,   //
-//   are permitted for personal, educational or non-commercial purposes provided that the following      //
-//   conditions are met:                                                                                 //
-//   1. Redistributions of source code must retain the above copyright notice, this list of conditions   //
-//      and the following disclaimer.                                                                    //
-//   2. Redistributions in binary form must reproduce the above copyright notice, this list of           //
-//      conditions and the following disclaimer in the documentation and/or other materials provided     //
-//      with the distribution.                                                                           //
-//   3. Neither the name of the copyright holder nor the names of its contributors may be used to        //
-//      endorse or promote products derived from this software without specific prior written            //
-//      permission.                                                                                      //
-//=======================================================================================================//
-//   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR      //
-//   IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND    //
-//   FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR          //
-//   CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL   //
-//   DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,   //
-//   DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER  //
-//   IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT   //
-//   OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                     //
-//=======================================================================================================//
-
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
 // Used by RubiksCube.rc
@@ -58,6 +32,7 @@
 #define IDM_FILE_SOLVE_ANIM             32780
 #define ID_RUBIKSCUBE_TEST              32784
 #define ID_RUBIKSCUBE_TEST_ANIM         32785
+#define ID_RUBIKSCUBE_FITTOSCREEN       32788
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
@@ -66,7 +41,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        146
-#define _APS_NEXT_COMMAND_VALUE         32788
+#define _APS_NEXT_COMMAND_VALUE         32789
 #define _APS_NEXT_CONTROL_VALUE         1004
 #define _APS_NEXT_SYMED_VALUE           110
 #endif

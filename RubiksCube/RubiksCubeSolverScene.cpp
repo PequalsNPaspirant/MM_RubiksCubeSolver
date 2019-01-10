@@ -48,7 +48,8 @@ namespace mm {
 	RubiksCubeSolverScene::RubiksCubeSolverScene(RubiksCubeSolverUI& refUI, const string& modelName, int size)
 		: 
 		rubicCubeModel_(RubiksCubeModelFactory::getRubiksCubeModel(modelName, size)),
-		refUI_(refUI)
+		refUI_(refUI),
+		rubiksCubeSize_(size)
 	{
 	}
 
@@ -110,6 +111,8 @@ namespace mm {
 	{
 		GLdouble left, right;
 		GLdouble top, bottom;
+		GLdouble nearDist = 2;
+		GLdouble farDist = 10000.0;
 
 		if (nWidth < nHeight)
 		{
@@ -127,7 +130,8 @@ namespace mm {
 			left = -right;
 		}
 
-		glFrustum(left, right, bottom, top, 5.0, 100.0);
+		//glFrustum(left, right, bottom, top, 5.0, 100.0);
+		glFrustum(left, right, bottom, top, nearDist, farDist);
 	}
 
 	void RubiksCubeSolverScene::initScene()
@@ -136,6 +140,8 @@ namespace mm {
 		g_cCamera.SetPhi((float)(PI / 4));
 		g_cCamera.SetTheta((float)(PI / 4));
 		//g_cCube.Randomize();
+
+		fitToScreen();
 	}
 
 	void RubiksCubeSolverScene::renderScene()
@@ -294,6 +300,19 @@ namespace mm {
 	bool RubiksCubeSolverScene::isSolved()
 	{
 		return rubicCubeModel_->isSolved();
+	}
+
+	void RubiksCubeSolverScene::fitToScreen()
+	{
+		//Set appropriate zoom factor
+		//g_cCamera.SetDistance(45 + (10 * 2));
+		float approxDistToFitScreen = rubiksCubeSize_ * 3.5;
+		g_cCamera.SetDistance(approxDistToFitScreen);
+		//Dim	width	actual dist		diff
+		//10	20		- 65			45
+		//4		08		- 30			22	
+		//3		06		- 22			16
+		//2		04		- 17			13
 	}
 }
 

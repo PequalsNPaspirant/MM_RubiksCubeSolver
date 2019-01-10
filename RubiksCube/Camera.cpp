@@ -58,11 +58,13 @@ namespace mm {
 	{
 		m_fDistance += fDistance;
 
-		if (m_fDistance < 8.0f)
-			m_fDistance = 8.0f;
+		//if (m_fDistance < 8.0f)
+		//	m_fDistance = 8.0f;
+		//else if (m_fDistance > 100.0f)
+		//	m_fDistance = 100.0f;
 
-		else if (m_fDistance > 100.0f)
-			m_fDistance = 100.0f;
+		if (m_fDistance < 0.001f)
+			m_fDistance = 0.001f;
 	}
 
 	CVector3 CCamera::GetLookAt(void)

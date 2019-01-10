@@ -517,6 +517,9 @@ namespace mm {
 
 	void RubiksCubeModel_v4::renderIndividualCube(const RubiksCubeModel_v4::Cube& pCube, const RubiksCubeModel_v4::Location& location)
 	{
+		//TODO:
+		// draw back faces only for the rotating section and the neighbouring sections
+
 		double x = location.x_;
 		double y = location.y_;
 		double z = location.z_;

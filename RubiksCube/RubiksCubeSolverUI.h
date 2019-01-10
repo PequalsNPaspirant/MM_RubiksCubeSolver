@@ -62,6 +62,7 @@ namespace mm {
 		string SolveOnCopy(int& solutionSteps, unsigned long long& duration, bool askForAnimation);
 		string Solve(int& solutionSteps, unsigned long long& duration, bool animate);
 		void testRubiksCube(bool animate);
+		void fitToScreen();
 
 		//Windows callbacks
 		static LRESULT CALLBACK WndProcCallback(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
