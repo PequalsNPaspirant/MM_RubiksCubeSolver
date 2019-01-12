@@ -421,65 +421,6 @@ namespace mm {
 			bool animate_;
 			RubiksCubeSolverUI& ui_;
 		};
-
-		class RubiksCubeSolver_3x3x3
-		{
-		public:
-			RubiksCubeSolver_3x3x3(RubiksCubeModel_v5& rubiksCube, bool animate, RubiksCubeSolverUI& ui);
-			string solve(unsigned int& solutionSteps);
-
-		private:
-			void positionTheCube();
-			void buildCross();
-			void buildF2L();
-			void buildOLL();
-			void buildPLL();
-
-			void buildCross_PlaceEdgePiece(const Color& targetColorFront, const Color& targetColorBottom);
-			void buildF2L_PositionCornerPieces(const Color& targetColorFront, const Color& targetColorRight, const Color& targetColorBottom = Color::White);
-			bool buildF2L_PositionEdgePieces(const Color& targetColorFront, const Color& targetColorRight);
-
-		private:
-			void applyAlgorithm(const string& step);
-			bool isEdgeCube(const Cube& currentCube, const Color& first, const Color& second);
-
-			RubiksCubeModel_v5& rubiksCube_;
-			string solution_;
-			int solutionSteps_;
-
-			bool animate_;
-			RubiksCubeSolverUI& ui_;
-		};
-
-		class RubiksCubeSolver_2x2x2
-		{
-		public:
-			RubiksCubeSolver_2x2x2(RubiksCubeModel_v5& rubiksCube, bool animate, RubiksCubeSolverUI& ui);
-			string solve(unsigned int& solutionSteps);
-
-		private:
-			void positionTheCube();
-			//void buildCross();
-			void buildF1L();
-			/**/void buildF1L_helper(Color front, Color right, Color bottom);
-			void buildOLL();
-			void buildPLL();
-
-			//void buildCross_PlaceEdgePiece(const Color& targetColorFront, const Color& targetColorBottom);
-			//void buildF2L_PositionCornerPieces(const Color& targetColorFront, const Color& targetColorRight, const Color& targetColorBottom = Color::White);
-			//bool buildF2L_PositionEdgePieces(const Color& targetColorFront, const Color& targetColorRight);
-
-		private:
-			void applyAlgorithm(const string& step);
-			//bool isEdgeCube(const Cube& currentCube, const Color& first, const Color& second);
-
-			RubiksCubeModel_v5& rubiksCube_;
-			string solution_;
-			int solutionSteps_;
-
-			bool animate_;
-			RubiksCubeSolverUI& ui_;
-		};
 	};
 
 }
