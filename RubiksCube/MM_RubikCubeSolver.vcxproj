@@ -161,6 +161,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="RubiksCubeModel_v5.cpp" />
     <ClCompile Include="RubiksCubeModel_v4.cpp" />
     <ClCompile Include="RubiksCubeModel_v3.cpp" />
     <ClCompile Include="RubiksCubeModel.cpp" />
@@ -179,6 +180,7 @@
     <ClCompile Include="Vector3.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="RubiksCubeModel_v5.h" />
     <ClInclude Include="RubiksCubeModel_v4.h" />
     <ClInclude Include="RubiksCubeModel_v3.h" />
     <ClInclude Include="RubiksCubeSolverUtils.h" />

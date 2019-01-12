@@ -50,13 +50,16 @@ namespace mm {
 		vector<testInfoAggregate> testInfoAggregateSet{
 			{ "RubiksCubeModel_v3", 2 },
 			{ "RubiksCubeModel_v4", 2 },
+			{ "RubiksCubeModel_v5", 2 },
 
 			{ "RubiksCubeModel_v1", 3 },
 			{ "RubiksCubeModel_v2", 3 },
 			{ "RubiksCubeModel_v3", 3 },
 			{ "RubiksCubeModel_v4", 3 },
+			{ "RubiksCubeModel_v5", 3 },
 
-			{ "RubiksCubeModel_v4", 4 }
+			{ "RubiksCubeModel_v4", 4 },
+			{ "RubiksCubeModel_v5", 4 }
 		};
 
 		//Specific test cases to test
