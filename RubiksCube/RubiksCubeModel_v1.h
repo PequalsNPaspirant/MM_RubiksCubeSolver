@@ -44,17 +44,6 @@ namespace mm {
 	public:
 		typedef unsigned char byte;
 
-		enum Color
-		{
-			Yellow = 0,
-			Red = 1,
-			Blue = 2,
-			Green = 3,
-			Orange = 4,
-			White = 5,
-			Black = 6
-		};
-
 		enum Face
 		{
 			Up = 0,
@@ -128,11 +117,10 @@ namespace mm {
 		~RubiksCubeModel_v1();
 		RubiksCubeModel_v1(const RubiksCubeModel_v1& copy);
 
-		void loadAllTextures();
 		void ResetCube() override;
 		int applyAlgorithm(const string& algorithm, bool animate, RubiksCubeSolverUI& ui) override;
 		string getScramblingAlgo(int length, bool includeNonStandardRotations) override;
-		string solve(int& solutionSteps, unsigned long long& duration, bool animate, RubiksCubeSolverUI& ui) override;
+		string solve(unsigned int& solutionSteps, unsigned long long& duration, bool animate, RubiksCubeSolverUI& ui) override;
 		void render() override;
 		void renderIndividualCube(const Cube& pCube, int x, int y, int z);
 		bool isSolved() override;
@@ -142,9 +130,6 @@ namespace mm {
 		string getModelName() override;
 		int getDimension() override;
 		
-		void loadTexture(int nId, GLuint* texture);
-		GLuint getTextureID(Color color);
-
 		const Cube& GetCube(int x, int y, int z);
 		void Rotate(int section, int turns);	// around y axis
 		void Tilt(int section, int turns);	// around x axis
@@ -165,7 +150,7 @@ namespace mm {
 		CVector3 g_vRotationAxis;
 		int g_nRotatingSection;
 		int g_nRotationAngle;
-		GLuint g_pTextures[7];
+	
 		static const double CUBE_SIZE;
 
 		//=======================================================================================================
@@ -178,7 +163,7 @@ namespace mm {
 		{
 		public:
 			RubiksCubeSolver(RubiksCubeModel_v1& rubiksCube, bool animate, RubiksCubeSolverUI& ui);
-			string solve(int& solutionSteps);
+			string solve(unsigned int& solutionSteps);
 
 		private:
 			void positionTheCube();

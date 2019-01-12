@@ -59,8 +59,8 @@ namespace mm {
 		//Menu Handlers
 		void Reset(bool animate);
 		void Scramble();
-		string SolveOnCopy(int& solutionSteps, unsigned long long& duration, bool askForAnimation);
-		string Solve(int& solutionSteps, unsigned long long& duration, bool animate);
+		string SolveOnCopy(unsigned int& solutionSteps, unsigned long long& duration, bool askForAnimation);
+		string Solve(unsigned int& solutionSteps, unsigned long long& duration, bool animate);
 		void testRubiksCube(bool animate);
 		void fitToScreen();
 

@@ -75,7 +75,7 @@ namespace mm {
 	{
 	}
 
-	RubiksCubeModel_v1::Color RubiksCubeModel_v1::Cube::GetFaceColor(Face eFace) const
+	Color RubiksCubeModel_v1::Cube::GetFaceColor(Face eFace) const
 	{
 		return faces_[eFace];
 	}
@@ -186,61 +186,6 @@ namespace mm {
 	{
 	}
 
-	void RubiksCubeModel_v1::loadAllTextures()
-	{
-		loadTexture(IDB_WHITE, &g_pTextures[Color::White]);
-		loadTexture(IDB_BLUE, &g_pTextures[Color::Blue]);
-		loadTexture(IDB_ORANGE, &g_pTextures[Color::Orange]);
-		loadTexture(IDB_RED, &g_pTextures[Color::Red]);
-		loadTexture(IDB_GREEN, &g_pTextures[Color::Green]);
-		loadTexture(IDB_YELLOW, &g_pTextures[Color::Yellow]);
-		loadTexture(IDB_BLACK, &g_pTextures[Color::Black]);
-	}
-
-	void RubiksCubeModel_v1::loadTexture(int nId, GLuint* texture)
-	{
-		// bitmap handle
-		HBITMAP hBMP;
-
-		// bitmap struct
-		BITMAP   bmp;
-
-		glGenTextures(1, texture);    // Create The Texture 
-		hBMP = (HBITMAP)LoadImage(
-			GetModuleHandle(NULL),
-			MAKEINTRESOURCE(nId),
-			IMAGE_BITMAP, 0, 0, LR_CREATEDIBSECTION);
-
-		GetObject(hBMP, sizeof(bmp), &bmp);
-
-		// Pixel Storage Mode (Word Alignment / 4 Bytes) 
-		glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-
-		// bind to the texture ID
-		glBindTexture(GL_TEXTURE_2D, *texture);
-
-		glTexImage2D(
-			GL_TEXTURE_2D,
-			0,
-			3,
-			bmp.bmWidth, bmp.bmHeight,
-			0,
-			GL_BGR_EXT,
-			GL_UNSIGNED_BYTE,
-			bmp.bmBits
-		);
-
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-		DeleteObject(hBMP);
-	}
-
-	GLuint RubiksCubeModel_v1::getTextureID(Color color)
-	{
-		return g_pTextures[color];
-	}
-
 	void RubiksCubeModel_v1::ResetCube()
 	{
 		g_bRotating = false;
@@ -261,7 +206,7 @@ namespace mm {
 		}
 	}
 
-	string RubiksCubeModel_v1::solve(int& solutionSteps, unsigned long long& duration, bool animate, RubiksCubeSolverUI& ui)
+	string RubiksCubeModel_v1::solve(unsigned int& solutionSteps, unsigned long long& duration, bool animate, RubiksCubeSolverUI& ui)
 	{
 		RubiksCubeSolver solver(*this, animate, ui);
 		using HRClock = std::chrono::high_resolution_clock;
@@ -361,7 +306,7 @@ namespace mm {
 
 		// Front Face
 		glPushName((GLuint)Front);
-		glBindTexture(GL_TEXTURE_2D, getTextureID(front));
+		glBindTexture(GL_TEXTURE_2D, Textures::getTextureID(front));
 		glBegin(GL_QUADS);
 		ColorRGB colRgb = ColorRGB::RGBColors[front];
 		glColor3ub(colRgb.r, colRgb.g, colRgb.b);
@@ -375,7 +320,7 @@ namespace mm {
 
 		// Back Face
 		glPushName((GLuint)Back);
-		glBindTexture(GL_TEXTURE_2D, getTextureID(back));
+		glBindTexture(GL_TEXTURE_2D, Textures::getTextureID(back));
 		glBegin(GL_QUADS);
 		colRgb = ColorRGB::RGBColors[back];
 		glColor3ub(colRgb.r, colRgb.g, colRgb.b);
@@ -389,7 +334,7 @@ namespace mm {
 
 		// Up Face
 		glPushName((GLuint)Up);
-		glBindTexture(GL_TEXTURE_2D, getTextureID(top));
+		glBindTexture(GL_TEXTURE_2D, Textures::getTextureID(top));
 		glBegin(GL_QUADS);
 		colRgb = ColorRGB::RGBColors[top];
 		glColor3ub(colRgb.r, colRgb.g, colRgb.b);
@@ -403,7 +348,7 @@ namespace mm {
 
 		// Down Face
 		glPushName((GLuint)Down);
-		glBindTexture(GL_TEXTURE_2D, getTextureID(bottom));
+		glBindTexture(GL_TEXTURE_2D, Textures::getTextureID(bottom));
 		glBegin(GL_QUADS);
 		colRgb = ColorRGB::RGBColors[bottom];
 		glColor3ub(colRgb.r, colRgb.g, colRgb.b);
@@ -417,7 +362,7 @@ namespace mm {
 
 		// Right face
 		glPushName((GLuint)Right);
-		glBindTexture(GL_TEXTURE_2D, getTextureID(right));
+		glBindTexture(GL_TEXTURE_2D, Textures::getTextureID(right));
 		glBegin(GL_QUADS);
 		colRgb = ColorRGB::RGBColors[right];
 		glColor3ub(colRgb.r, colRgb.g, colRgb.b);
@@ -431,7 +376,7 @@ namespace mm {
 
 		// Left Face
 		glPushName((GLuint)Left);
-		glBindTexture(GL_TEXTURE_2D, getTextureID(left));
+		glBindTexture(GL_TEXTURE_2D, Textures::getTextureID(left));
 		glBegin(GL_QUADS);
 		colRgb = ColorRGB::RGBColors[left];
 		glColor3ub(colRgb.r, colRgb.g, colRgb.b);
@@ -989,7 +934,7 @@ namespace mm {
 	{
 	}
 
-	string RubiksCubeModel_v1::RubiksCubeSolver::solve(int& solutionSteps)
+	string RubiksCubeModel_v1::RubiksCubeSolver::solve(unsigned int& solutionSteps)
 	{
 		solutionSteps_ = 0;
 		solution_ = "";

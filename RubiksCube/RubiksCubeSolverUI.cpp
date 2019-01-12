@@ -661,14 +661,14 @@ namespace mm {
 		}
 		else if (id == IDM_FILE_SOLVE)
 		{
-			int solutionSteps;
+			unsigned int solutionSteps;
 			unsigned long long duration;
 			bool askForAnimation = true;
 			string solution = SolveOnCopy(solutionSteps, duration, askForAnimation);
 		}
 		else if (id == IDM_FILE_SOLVE_ANIM)
 		{
-			int solutionSteps;
+			unsigned int solutionSteps;
 			unsigned long long duration;
 			bool animate = true;
 			string solution = Solve(solutionSteps, duration, animate);
@@ -720,7 +720,7 @@ namespace mm {
 		}
 	}
 
-	string RubiksCubeSolverUI::SolveOnCopy(int& solutionSteps, unsigned long long& duration, bool askForAnimation)
+	string RubiksCubeSolverUI::SolveOnCopy(unsigned int& solutionSteps, unsigned long long& duration, bool askForAnimation)
 	{
 		string solution = scene_.SolveOnCopy(solutionSteps, duration);
 		
@@ -750,7 +750,7 @@ namespace mm {
 		return solution;
 	}
 
-	string RubiksCubeSolverUI::Solve(int& solutionSteps, unsigned long long& duration, bool animate)
+	string RubiksCubeSolverUI::Solve(unsigned int& solutionSteps, unsigned long long& duration, bool animate)
 	{
 		string solution = scene_.Solve(solutionSteps, duration, animate);
 		return solution;

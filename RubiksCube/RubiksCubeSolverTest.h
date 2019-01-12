@@ -33,12 +33,46 @@ namespace mm {
 
 	class RubiksCubeSolverUI;
 
+	struct testInfoAggregate
+	{
+		testInfoAggregate(const string& modelName, unsigned int size)
+			: modelName_(modelName), size_(size), numTestCases_(0), nsAggregateDuration_(0)
+		{}
+		string modelName_;
+		unsigned int size_;
+		unsigned int numTestCases_;
+		unsigned long long nsAggregateDuration_;
+	};
+
 	struct testInfo
 	{
-		string modelName;
-		int size;
-		string scrambleAlgo;
-		string solution;
+		testInfo(const string& modelName, unsigned int size, const string& scrambleAlgo, const string& idealSolution)
+			: modelName_(modelName),
+			size_(size),
+			numSteps_(0),
+			nsDuration_(0),
+			scrambleAlgo_(scrambleAlgo),
+			idealSolution_(idealSolution)
+		{}
+
+		testInfo(const string& modelName, unsigned int size, unsigned int numSteps, unsigned long long nsDuration, const string& scrambleAlgo,
+			const string& idealSolution, const string& actualSolution)
+			: modelName_(modelName),
+			size_(size),
+			numSteps_(numSteps),
+			nsDuration_(nsDuration),
+			scrambleAlgo_(scrambleAlgo),
+			idealSolution_(idealSolution),
+			actualSolution_(actualSolution)
+		{}
+
+		string modelName_;
+		unsigned int size_;
+		unsigned int numSteps_;
+		unsigned long long nsDuration_;
+		string scrambleAlgo_;
+		string idealSolution_;
+		string actualSolution_;
 	};
 
 	class RubiksCubeSolverTest
@@ -49,9 +83,14 @@ namespace mm {
 		{}
 
 		bool testRubiksCube(bool animate);
+		static string getCurrentLocalTimeInNanoSeconds2();
 
 	private:
-		vector<testInfo> generateSanityTestInfo();
+		int executeAllTests(vector<testInfoAggregate>& testInfoAggregateSet, bool animate);
+		void executeTest(testInfo& info, ofstream& testResultsFile, bool animate, unsigned int testNum);
+
+		void writeResultsToCSVFile(ofstream& testResultsFile, const vector<testInfoAggregate>& testInfoAggregateSet);
+		void writeResultsToCSVFile(ofstream& testResultsFile, const vector<testInfo>& testInfoSet);
 
 		RubiksCubeSolverUI& refUI_;
 	};

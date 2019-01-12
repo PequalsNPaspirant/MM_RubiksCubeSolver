@@ -53,11 +53,15 @@ namespace mm {
 	{
 	}
 
+	RubiksCubeSolverScene::~RubiksCubeSolverScene()
+	{
+		Textures::unloadAllTextures();
+	}
+
 	unique_ptr<RubiksCubeModel> RubiksCubeSolverScene::replaceModelBy(const string& modelName, int size)
 	{
 		unique_ptr<RubiksCubeModel> originalModel = std::move(rubicCubeModel_);
 		rubicCubeModel_ = RubiksCubeModelFactory::getRubiksCubeModel(modelName, size);
-		rubicCubeModel_->loadAllTextures();
 		return std::move(originalModel);
 	}
 
@@ -65,7 +69,6 @@ namespace mm {
 	{
 		unique_ptr<RubiksCubeModel> originalModel = std::move(rubicCubeModel_);
 		rubicCubeModel_ = std::move(newModel);
-		rubicCubeModel_->loadAllTextures();
 		return std::move(originalModel);
 	}
 
@@ -87,8 +90,8 @@ namespace mm {
 		glDepthFunc(GL_LEQUAL);										// The Type Of Depth Testing To Do
 		glLineWidth(LINE_WIDTH);									// Set outline width
 
-		//Load all textures after window is fully created
-		rubicCubeModel_->loadAllTextures();
+		//Load all textures after OpenGL context is loaded
+		Textures::loadAllTextures();
 	}
 
 	void RubiksCubeSolverScene::sizeOpenGlScreen(int nWidth, int nHeight)
@@ -280,7 +283,7 @@ namespace mm {
 		rubicCubeModel_->applyAlgorithm(algo, animate, refUI_);
 	}
 
-	string RubiksCubeSolverScene::Solve(int& solutionSteps, unsigned long long& duration, bool animate)
+	string RubiksCubeSolverScene::Solve(unsigned int& solutionSteps, unsigned long long& duration, bool animate)
 	{
 		string solution = rubicCubeModel_->solve(solutionSteps, duration, animate, refUI_);
 		RubiksCubeSolverUtils::RunTimeAssert(rubicCubeModel_->isSolved());
@@ -288,7 +291,7 @@ namespace mm {
 		return solution;
 	}
 
-	string RubiksCubeSolverScene::SolveOnCopy(int& solutionSteps, unsigned long long& duration)
+	string RubiksCubeSolverScene::SolveOnCopy(unsigned int& solutionSteps, unsigned long long& duration)
 	{
 		bool animate = false;
 		unique_ptr<RubiksCubeModel> copy = rubicCubeModel_->copy();

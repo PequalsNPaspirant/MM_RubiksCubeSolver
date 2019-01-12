@@ -72,17 +72,6 @@ namespace mm {
 		//	All = 64 - 1 //Stores All flags from 1 to 32
 		//};
 
-		enum Color
-		{
-			Yellow = 0,
-			Red = 1,
-			Blue = 2,
-			Green = 3,
-			Orange = 4,
-			White = 5,
-			Black = 6
-		};
-
 		enum Face
 		{
 			Up = 0,
@@ -322,11 +311,10 @@ namespace mm {
 		~RubiksCubeModel_v3();
 		RubiksCubeModel_v3(const RubiksCubeModel_v3& copy);
 
-		void loadAllTextures();
 		void ResetCube() override;
 		int applyAlgorithm(const string& algorithm, bool animate, RubiksCubeSolverUI& ui) override;
 		string getScramblingAlgo(int length, bool includeNonStandardRotations) override;
-		string solve(int& solutionSteps, unsigned long long& duration, bool animate, RubiksCubeSolverUI& ui) override;
+		string solve(unsigned int& solutionSteps, unsigned long long& duration, bool animate, RubiksCubeSolverUI& ui) override;
 		void render() override;
 		void renderIndividualCube(const Cube& pCube, const Location& location);
 		bool isSolved() override;
@@ -335,10 +323,6 @@ namespace mm {
 		unique_ptr<RubiksCubeModel> copy() override;
 		string getModelName() override;
 		int getDimension() override;
-
-		void loadTexture(int nId, GLuint* texture);
-		GLuint getTextureID(Color color);
-		
 
 		const Cube& GetCube(double x, double y, double z);
 		Cube& GetCube(Face layer1, Face layer2, int layerIndex2, Face layer3, int layerIndex3);
@@ -390,7 +374,6 @@ namespace mm {
 		//vector< vector<Cube*> > layerU_; //Upper layer
 		//vector< vector<Cube*> > layerD_; //Down layer
 		int size_;
-		GLuint g_pTextures[7];
 		bool g_bRotating;
 		bool g_bFlipRotation;
 		CVector3 g_vRotationAxis;
@@ -413,7 +396,7 @@ namespace mm {
 		{
 		public:
 			RubiksCubeSolver_3x3x3(RubiksCubeModel_v3& rubiksCube, bool animate, RubiksCubeSolverUI& ui);
-			string solve(int& solutionSteps);
+			string solve(unsigned int& solutionSteps);
 
 		private:
 			void positionTheCube();
@@ -442,7 +425,7 @@ namespace mm {
 		{
 		public:
 			RubiksCubeSolver_2x2x2(RubiksCubeModel_v3& rubiksCube, bool animate, RubiksCubeSolverUI& ui);
-			string solve(int& solutionSteps);
+			string solve(unsigned int& solutionSteps);
 
 		private:
 			void positionTheCube();

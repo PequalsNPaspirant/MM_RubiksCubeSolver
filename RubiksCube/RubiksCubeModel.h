@@ -32,18 +32,45 @@
 #include <memory>
 using namespace std;
 
+#include <gl\gl.h>
+#include <gl\glu.h>
+
 namespace mm {
+
+	enum Color
+	{
+		Yellow = 0,
+		White = 1,
+		Orange = 2,
+		Red = 3,
+		Blue = 4,
+		Green = 5,
+
+		Black = 6
+	};
+
+	class Textures
+	{
+	public:
+		static void loadAllTextures();
+		static void unloadAllTextures();
+		static GLuint Textures::getTextureID(Color color);
+
+	private:
+		static void loadTexture(int nId, GLuint* texture);
+
+		static vector<GLuint> g_pTextures;
+	};
 
 	class RubiksCubeSolverUI;
 
 	class RubiksCubeModel
 	{
 	public:
-		virtual void loadAllTextures() = 0;
 		virtual void ResetCube() = 0;
 		virtual int applyAlgorithm(const string& algorithm, bool animate, RubiksCubeSolverUI& ui) = 0;
 		virtual string getScramblingAlgo(int length, bool includeNonStandardRotations) = 0;
-		virtual string solve(int& solutionSteps, unsigned long long& duration, bool animate, RubiksCubeSolverUI& ui) = 0;
+		virtual string solve(unsigned int& solutionSteps, unsigned long long& duration, bool animate, RubiksCubeSolverUI& ui) = 0;
 		virtual void render() = 0;
 		virtual bool isSolved() = 0;
 

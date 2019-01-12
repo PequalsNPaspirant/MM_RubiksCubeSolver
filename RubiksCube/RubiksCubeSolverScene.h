@@ -42,6 +42,7 @@ namespace mm {
 	{
 	public:
 		RubiksCubeSolverScene(RubiksCubeSolverUI& refUI, const string& modelName, int size);
+		~RubiksCubeSolverScene();
 
 		unique_ptr<RubiksCubeModel> replaceModelBy(const string& modelName, int size);
 		unique_ptr<RubiksCubeModel> replaceModelBy(unique_ptr<RubiksCubeModel>&& newModel);
@@ -58,8 +59,8 @@ namespace mm {
 		void Reset();
 		string getScramblingAlgo(int length);
 		void applyAlgorithmToCube(const string& algo, bool animate);
-		string Solve(int& solutionSteps, unsigned long long& duration, bool animate);
-		string SolveOnCopy(int& solutionSteps, unsigned long long& duration);
+		string Solve(unsigned int& solutionSteps, unsigned long long& duration, bool animate);
+		string SolveOnCopy(unsigned int& solutionSteps, unsigned long long& duration);
 		bool isSolved();
 		void fitToScreen();
 

@@ -32,9 +32,91 @@
 #include <memory>
 using namespace std;
 
+#include "Resource.h"
 #include "RubiksCubeModel.h"
 
 namespace mm {
+
+	vector<GLuint> Textures::g_pTextures(7);
+
+	void Textures::loadAllTextures()
+	{
+		loadTexture(IDB_WHITE, &g_pTextures[Color::White]);
+		loadTexture(IDB_BLUE, &g_pTextures[Color::Blue]);
+		loadTexture(IDB_ORANGE, &g_pTextures[Color::Orange]);
+		loadTexture(IDB_RED, &g_pTextures[Color::Red]);
+		loadTexture(IDB_GREEN, &g_pTextures[Color::Green]);
+		loadTexture(IDB_YELLOW, &g_pTextures[Color::Yellow]);
+		loadTexture(IDB_BLACK, &g_pTextures[Color::Black]);
+	}
+
+	void Textures::loadTexture(int nId, GLuint* texture)
+	{
+		// bitmap handle
+		HBITMAP hBMP;
+
+		// bitmap struct
+		BITMAP   bmp;
+
+		glGenTextures(1, texture);    // Create The Texture 
+		hBMP = (HBITMAP)LoadImage(
+			GetModuleHandle(NULL),
+			MAKEINTRESOURCE(nId),
+			IMAGE_BITMAP, 0, 0, LR_CREATEDIBSECTION);
+
+		GetObject(hBMP, sizeof(bmp), &bmp);
+
+		// Pixel Storage Mode (Word Alignment / 4 Bytes) 
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+
+		// bind to the texture ID
+		glBindTexture(GL_TEXTURE_2D, *texture);
+
+		glTexImage2D(
+			GL_TEXTURE_2D,
+			0,
+			3,
+			bmp.bmWidth, bmp.bmHeight,
+			0,
+			GL_BGR_EXT,
+			GL_UNSIGNED_BYTE,
+			bmp.bmBits
+		);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		DeleteObject(hBMP);
+	}
+
+	void Textures::unloadAllTextures()
+	{
+		if (g_pTextures[Color::White])
+			glDeleteTextures(1, &g_pTextures[Color::White]);
+
+		if (g_pTextures[Color::Blue])
+			glDeleteTextures(1, &g_pTextures[Color::Blue]);
+
+		if (g_pTextures[Color::Orange])
+			glDeleteTextures(1, &g_pTextures[Color::Orange]);
+
+		if (g_pTextures[Color::Red])
+			glDeleteTextures(1, &g_pTextures[Color::Red]);
+
+		if (g_pTextures[Color::Green])
+			glDeleteTextures(1, &g_pTextures[Color::Green]);
+
+		if (g_pTextures[Color::Yellow])
+			glDeleteTextures(1, &g_pTextures[Color::Yellow]);
+
+		if (g_pTextures[Color::Black])
+			glDeleteTextures(1, &g_pTextures[Color::Black]);
+	}
+
+	GLuint Textures::getTextureID(Color color)
+	{
+		return g_pTextures[color];
+	}
 
 	//Factory function declarations
 	unique_ptr<RubiksCubeModel> createRubiksCubeModel_v1(int size);
