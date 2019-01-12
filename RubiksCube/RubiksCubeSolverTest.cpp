@@ -48,12 +48,14 @@ namespace mm {
 	bool RubiksCubeSolverTest::testRubiksCube(bool animate)
 	{
 		vector<testInfoAggregate> testInfoAggregateSet{
+			{ "RubiksCubeModel_v3", 2 },
+			{ "RubiksCubeModel_v4", 2 },
+
 			{ "RubiksCubeModel_v1", 3 },
 			{ "RubiksCubeModel_v2", 3 },
-			{ "RubiksCubeModel_v3", 2 },
 			{ "RubiksCubeModel_v3", 3 },
-			{ "RubiksCubeModel_v4", 2 },
 			{ "RubiksCubeModel_v4", 3 },
+
 			{ "RubiksCubeModel_v4", 4 }
 		};
 
@@ -178,8 +180,7 @@ namespace mm {
 					executeTest(*testInfoSetCommon.rbegin(), testResultsFile, animate, ++testNum);
 					modelinfo.nsAggregateDuration_ += testInfoSetCommon.rbegin()->nsDuration_;
 				}
-			}
-			writeResultsToCSVFile(testResultsFile, testInfoSetCommon);
+			}			
 			writeResultsToCSVFile(testResultsFile, testInfoAggregateSet);
 
 			//numModex x 10 x 100 = numModex x 1000  Model specific scrambling algos
@@ -200,8 +201,10 @@ namespace mm {
 					}
 				}
 			}
-			writeResultsToCSVFile(testResultsFile, testInfoSetModelSpecific);
 			writeResultsToCSVFile(testResultsFile, testInfoAggregateSet);
+
+			writeResultsToCSVFile(testResultsFile, testInfoSetCommon);
+			writeResultsToCSVFile(testResultsFile, testInfoSetModelSpecific);
 
 			testResultsFile.close();
 		}
@@ -260,21 +263,20 @@ namespace mm {
 
 		for (const testInfo& info : testInfoSet)
 		{
-			//Write results to csv file
 			testResultsFile.write("\n", 1);
 
 			string modelName(info.modelName_);
 			testResultsFile.write(modelName.c_str(), modelName.length());
+			
 			testResultsFile.write(",", 1);
-
 			string size(to_string(info.size_));
 			testResultsFile.write(size.c_str(), size.length());
+			
 			testResultsFile.write(",", 1);
-
 			string numStepsStr(to_string(info.numSteps_));
 			testResultsFile.write(numStepsStr.c_str(), numStepsStr.length());
+			
 			testResultsFile.write(",", 1);
-
 			std::stringstream buffer;
 			constexpr int maxPrecision = 4;
 			buffer.precision(maxPrecision);
@@ -283,18 +285,19 @@ namespace mm {
 			buffer << info.nsDuration_;
 			string durationStr = "\"" + buffer.str() + "\"";
 			testResultsFile.write(durationStr.c_str(), durationStr.length());
+			
 			testResultsFile.write(",", 1);
-
 			testResultsFile.write(info.scrambleAlgo_.c_str(), info.scrambleAlgo_.length());
+			
 			testResultsFile.write(",", 1);
-
 			testResultsFile.write(info.idealSolution_.c_str(), info.idealSolution_.length());
+			
 			testResultsFile.write(",", 1);
-
 			testResultsFile.write(info.actualSolution_.c_str(), info.actualSolution_.length());
 
 			testResultsFile.flush();
 		}
+		testResultsFile.write("\n\n", 2);
 	}
 
 	void RubiksCubeSolverTest::writeResultsToCSVFile(ofstream& testResultsFile, const vector<testInfoAggregate>& testInfoAggregateSet)
@@ -302,24 +305,24 @@ namespace mm {
 		if (!testResultsFile.is_open())
 			return;
 
-		//Write aggregate results to .csv file
-		testResultsFile.write("\n\n", 2);
 		string columns("ModelName,Size,Total test cases,Aggregate Duration (ns)");
 		testResultsFile.write(columns.c_str(), columns.length());
 		for (const testInfoAggregate& modelinfo : testInfoAggregateSet)
 		{
+			testResultsFile.write("\n", 1);
+
 			string modelName(modelinfo.modelName_);
 			testResultsFile.write(modelName.c_str(), modelName.length());
+			
 			testResultsFile.write(",", 1);
-
 			string size(to_string(modelinfo.size_));
 			testResultsFile.write(size.c_str(), size.length());
+			
 			testResultsFile.write(",", 1);
-
 			string numTestCases(to_string(modelinfo.numTestCases_));
 			testResultsFile.write(numTestCases.c_str(), numTestCases.length());
+			
 			testResultsFile.write(",", 1);
-
 			std::stringstream buffer;
 			constexpr int maxPrecision = 4;
 			buffer.precision(maxPrecision);
@@ -329,7 +332,7 @@ namespace mm {
 			string durationStr = "\"" + buffer.str() + "\"";
 			testResultsFile.write(durationStr.c_str(), durationStr.length());
 
-			testResultsFile.write("\n", 1);
+			testResultsFile.flush();
 		}
 		testResultsFile.write("\n\n", 2);
 	}
