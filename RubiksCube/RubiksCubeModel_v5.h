@@ -399,8 +399,10 @@ namespace mm {
 
 		private:
 			void reduceTo3x3x3();
-			/**/void fixCenterCubes();
-			/**/void fixEdgeCubes();
+			/**/void fixCenterCubes(Color targetColor);
+			/**//**/bool fixCenterCubes_moveTargetCubeFromRightToFrontFace(int targetLineIndexFromLeft, int targetIndexFromUp, Color targetColor);
+			/**//**/bool fixCenterCubes_moveTargetCubeFromFrontToRightFace(int targetLineIndexFromLeft, int targetIndexFromUp, Color targetColor, int rowFromTopToAvoid, int centerRowToAvoid);
+			/**/void fixEdgeCubes(Color targetColor1, Color targetColor2);
 			void positionTheCube();
 			void buildCross();
 			/**/void buildCross_PlaceEdgePiece(const Color& targetColorFront, const Color& targetColorBottom);

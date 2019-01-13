@@ -26,13 +26,16 @@
 #define IDC_COMBO1                      1001
 #define IDC_EDIT1                       1002
 #define IDC_SLIDER1                     1003
-#define IDM_FILE_RESET                  32777
-#define IDM_FILE_SCRAMBLE               32778
-#define IDM_FILE_SOLVE                  32779
-#define IDM_FILE_SOLVE_ANIM             32780
-#define ID_RUBIKSCUBE_TEST              32784
-#define ID_RUBIKSCUBE_TEST_ANIM         32785
-#define ID_RUBIKSCUBE_FITTOSCREEN       32788
+
+#define IDM_RUBIKSCUBE_RESET            32791
+#define IDM_RUBIKSCUBE_SCRAMBLE         32792
+#define IDM_RUBIKSCUBE_SCRAMBLE_ANIM    32793
+#define IDM_RUBIKSCUBE_SOLVE            32794
+#define IDM_RUBIKSCUBE_SOLVE_ANIM       32795
+#define ID_RUBIKSCUBE_TEST              32796
+#define ID_RUBIKSCUBE_TEST_ANIM         32797
+#define ID_RUBIKSCUBE_FITTOSCREEN       32798
+
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
@@ -41,7 +44,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        146
-#define _APS_NEXT_COMMAND_VALUE         32789
+#define _APS_NEXT_COMMAND_VALUE         32799
 #define _APS_NEXT_CONTROL_VALUE         1004
 #define _APS_NEXT_SYMED_VALUE           110
 #endif

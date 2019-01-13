@@ -70,6 +70,10 @@ namespace mm {
 		//scene_(*this, "RubiksCubeModel_v4", 10),
 		//scene_(*this, "RubiksCubeModel_v4", 100),
 		scene_(*this, "RubiksCubeModel_v5", 4),
+		//scene_(*this, "RubiksCubeModel_v5", 5),
+		//scene_(*this, "RubiksCubeModel_v5", 6),
+		//scene_(*this, "RubiksCubeModel_v5", 7),
+		//scene_(*this, "RubiksCubeModel_v5", 8),
 		framesPerRotation_(20),
 		sleepTimeMilliSec_(10),
 		tester_(*this)
@@ -152,8 +156,8 @@ namespace mm {
 
 		if (!hWnd) return NULL;
 
-		//ShowWindow(hWnd, SW_SHOWNORMAL);
-		ShowWindow(hWnd, SW_MAXIMIZE);
+		ShowWindow(hWnd, SW_SHOWNORMAL);
+		//ShowWindow(hWnd, SW_MAXIMIZE);
 		UpdateWindow(hWnd);
 
 		SetFocus(hWnd);
@@ -651,23 +655,29 @@ namespace mm {
 	void RubiksCubeSolverUI::OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 	{
 		// menu
-		if (id == IDM_FILE_RESET)
+		if (id == IDM_RUBIKSCUBE_RESET)
 		{
 			bool animate = true;
 			Reset(animate);
 		}
-		else if (id == IDM_FILE_SCRAMBLE)
+		else if (id == IDM_RUBIKSCUBE_SCRAMBLE)
 		{
-			Scramble();
+			bool animate = false;
+			Scramble(animate);
 		}
-		else if (id == IDM_FILE_SOLVE)
+		else if (id == IDM_RUBIKSCUBE_SCRAMBLE_ANIM)
+		{
+			bool animate = true;
+			Scramble(animate);
+		}
+		else if (id == IDM_RUBIKSCUBE_SOLVE)
 		{
 			unsigned int solutionSteps;
 			unsigned long long duration;
 			bool askForAnimation = true;
 			string solution = SolveOnCopy(solutionSteps, duration, askForAnimation);
 		}
-		else if (id == IDM_FILE_SOLVE_ANIM)
+		else if (id == IDM_RUBIKSCUBE_SOLVE_ANIM)
 		{
 			unsigned int solutionSteps;
 			unsigned long long duration;
@@ -706,7 +716,7 @@ namespace mm {
 			redrawWindow();
 	}
 
-	void RubiksCubeSolverUI::Scramble()
+	void RubiksCubeSolverUI::Scramble(bool animate)
 	{
 		string algo = scene_.getScramblingAlgo(25);
 		wstring wAlgo(algo.begin(), algo.end());
@@ -717,7 +727,7 @@ namespace mm {
 		if (MessageBox(g_hWnd, wMessage.c_str(),
 			g_szTitle, MB_YESNO | MB_ICONQUESTION | MB_APPLMODAL) == IDYES)
 		{
-			scene_.applyAlgorithmToCube(algo, true);
+			scene_.applyAlgorithmToCube(algo, animate);
 		}
 	}
 

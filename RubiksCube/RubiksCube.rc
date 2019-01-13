@@ -35,10 +35,11 @@ BEGIN
     END
     POPUP "Rubiks Cube"
     BEGIN
-        MENUITEM "Reset Rubiks Cube",           IDM_FILE_RESET
-        MENUITEM "&Scramble",                   IDM_FILE_SCRAMBLE
-        MENUITEM "Solve",                       IDM_FILE_SOLVE
-        MENUITEM "Solve (Show Animation)",      IDM_FILE_SOLVE_ANIM
+        MENUITEM "Reset Rubiks Cube",           IDM_RUBIKSCUBE_RESET
+        MENUITEM "&Scramble",                   IDM_RUBIKSCUBE_SCRAMBLE
+        MENUITEM "Scramble (Show Animation)",   IDM_RUBIKSCUBE_SCRAMBLE_ANIM
+        MENUITEM "Solve",                       IDM_RUBIKSCUBE_SOLVE
+        MENUITEM "Solve (Show Animation)",      IDM_RUBIKSCUBE_SOLVE_ANIM
         MENUITEM "Test",                        ID_RUBIKSCUBE_TEST
         MENUITEM "Test (Show Animation)",       ID_RUBIKSCUBE_TEST_ANIM
         MENUITEM "Fit to Screen",               ID_RUBIKSCUBE_FITTOSCREEN
@@ -57,7 +58,7 @@ END
 
 IDC_RUBIKSCUBE ACCELERATORS
 BEGIN
-    "S",            IDM_FILE_SCRAMBLE,      VIRTKEY, CONTROL, NOINVERT
+    "S",            IDM_RUBIKSCUBE_SCRAMBLE,      VIRTKEY, CONTROL, NOINVERT
     "/",            IDM_ABOUT,              ASCII,  ALT, NOINVERT
     "?",            IDM_ABOUT,              ASCII,  ALT, NOINVERT
     "X",            IDM_EXIT,               VIRTKEY, CONTROL, NOINVERT
