@@ -1406,11 +1406,12 @@ namespace mm {
 		fixCenterCubes(Color::Green, Color::Black);
 
 		//Fix center cubes on Left & Down Face together
-		//applyAlgorithm("Z");
+		applyAlgorithm("Z");
 		fixCenterCubes(Color::White, Color::Orange);
 
 		//Reset the cube
-		applyAlgorithm("XY'2");
+		//applyAlgorithm("XY'2");
+		applyAlgorithm("XY'");
 
 		//=====FIX EDGES====
 
@@ -1529,7 +1530,7 @@ namespace mm {
 									rowFromTopToAvoid = targetLineIndexFromLeft;
 								found = fixCenterCubes_moveTargetCubeFromRightToFrontFace_2(targetLineIndexFromLeft, targetIndexFromUp, targetColorRightFace
 									, rowFromTopToAvoid, centerLineIndex);
-								if (!found)
+								if (found)
 								{
 									break;
 									//Check if target is on Front Face
@@ -1615,40 +1616,40 @@ namespace mm {
 					//Right --> Front - if we have targetColor cube on Right Face, take it to Front Face
 					if (!found)
 					{
-						found = fixCenterCubes_moveTargetCubeFromRightToFrontFace(targetLineIndexFromLeft, targetIndexFromUp, targetColor);
+						found = fixCenterCubes_moveTargetCubeToFrontFace(Face::Right, "", targetLineIndexFromLeft, targetIndexFromUp, targetColor);
 					}
 
 					//Down --> Front
 					if (!found)
 					{
-						applyAlgorithm("Z");
-						applyAlgorithm("F");
-						found = fixCenterCubes_moveTargetCubeFromRightToFrontFace(targetLineIndexFromLeft, targetIndexFromUp, targetColor);
-						applyAlgorithm("F'");
-						applyAlgorithm("Z'");
+						//applyAlgorithm("Z");
+						//applyAlgorithm("F");
+						found = fixCenterCubes_moveTargetCubeToFrontFace(Face::Down, "F", targetLineIndexFromLeft, targetIndexFromUp, targetColor);
+						//applyAlgorithm("F'");
+						//applyAlgorithm("Z'");
 					}
 
 					//Left --> Front
 					if (!found)
 					{
-						applyAlgorithm("Z2");
-						applyAlgorithm("F2");
-						found = fixCenterCubes_moveTargetCubeFromRightToFrontFace(targetLineIndexFromLeft, targetIndexFromUp, targetColor);
-						applyAlgorithm("F2");
-						applyAlgorithm("Z'2");
+						//applyAlgorithm("Z2");
+						//applyAlgorithm("F2");
+						found = fixCenterCubes_moveTargetCubeToFrontFace(Face::Left, "F2", targetLineIndexFromLeft, targetIndexFromUp, targetColor);
+						//applyAlgorithm("F2");
+						//applyAlgorithm("Z'2");
 					}
 
 					//Back --> Right --> Front
 					if (!found)
 					{
-						applyAlgorithm("Y'");
-						found = fixCenterCubes_moveTargetCubeFromRightToFrontFace(targetLineIndexFromLeft, targetIndexFromUp, targetColor);
-						applyAlgorithm("Y");
-						if (found)
-						{
-							found = fixCenterCubes_moveTargetCubeFromRightToFrontFace(targetLineIndexFromLeft, targetIndexFromUp, targetColor);
-							RubiksCubeSolverUtils::RunTimeAssert(found);
-						}
+						//applyAlgorithm("Y'");
+						found = fixCenterCubes_moveTargetCubeToFrontFace(Face::Back, "", targetLineIndexFromLeft, targetIndexFromUp, targetColor);
+						//applyAlgorithm("Y");
+						//if (found)
+						//{
+						//	found = fixCenterCubes_moveTargetCubeToFrontFace(Face::Right, "", targetLineIndexFromLeft, targetIndexFromUp, targetColor);
+						//	RubiksCubeSolverUtils::RunTimeAssert(found);
+						//}
 					}
 
 					RubiksCubeSolverUtils::RunTimeAssert(found);
@@ -1673,6 +1674,139 @@ namespace mm {
 
 	}
 
+	/*
+	bool RubiksCubeModel_v5::RubiksCubeSolver_NxNxN::fixCenterCubes_moveTargetCubeFromFrontToRightFace(int targetLineIndexFromLeft, int targetIndexFromUp, Color targetColor
+	, int rowFromTopToAvoid, int centerRowToAvoid)
+	{
+	int size = rubiksCube_.getSize();
+	if (targetIndexFromUp != centerRowToAvoid
+	&& targetIndexFromUp != rowFromTopToAvoid
+	&& rubiksCube_.GetCube(Face::Front, 1, Face::Left, targetLineIndexFromLeft, Face::Up, targetIndexFromUp).GetFaceColor(Face::Front) == targetColor)
+	{
+	applyAlgorithm("U" + string{ "(" + to_string(targetIndexFromUp) + ")'" });
+	applyAlgorithm("R2");
+	applyAlgorithm("U" + string{ "(" + to_string(targetIndexFromUp) + ")" });
+	//applyAlgorithm("R2");
+	return true;
+	}
+	else if (targetLineIndexFromLeft != centerRowToAvoid
+	&& targetLineIndexFromLeft != rowFromTopToAvoid
+	&& rubiksCube_.GetCube(Face::Front, 1, Face::Up, targetLineIndexFromLeft, Face::Right, targetIndexFromUp).GetFaceColor(Face::Front) == targetColor)
+	{
+	applyAlgorithm("U" + string{ "(" + to_string(targetLineIndexFromLeft) + ")'" });
+	applyAlgorithm("R2");
+	applyAlgorithm("U" + string{ "(" + to_string(targetLineIndexFromLeft) + ")" });
+	//applyAlgorithm("R2");
+	return true;
+	}
+	else if (targetIndexFromUp != centerRowToAvoid
+	&& (size - targetIndexFromUp + 1) != rowFromTopToAvoid
+	&& rubiksCube_.GetCube(Face::Front, 1, Face::Right, targetLineIndexFromLeft, Face::Down, targetIndexFromUp).GetFaceColor(Face::Front) == targetColor)
+	{
+	applyAlgorithm("U" + string{ "(" + to_string((size - targetIndexFromUp + 1)) + ")'" });
+	applyAlgorithm("R2");
+	applyAlgorithm("U" + string{ "(" + to_string((size - targetIndexFromUp + 1)) + ")" });
+	//applyAlgorithm("R2");
+	return true;
+	}
+	else if (targetLineIndexFromLeft != centerRowToAvoid
+	&& (size - targetLineIndexFromLeft + 1) != rowFromTopToAvoid
+	&& rubiksCube_.GetCube(Face::Front, 1, Face::Down, targetLineIndexFromLeft, Face::Left, targetIndexFromUp).GetFaceColor(Face::Front) == targetColor)
+	{
+	applyAlgorithm("U" + string{ "(" + to_string((size - targetLineIndexFromLeft + 1)) + ")'" });
+	applyAlgorithm("R2");
+	applyAlgorithm("U" + string{ "(" + to_string((size - targetLineIndexFromLeft + 1)) + ")" });
+	//applyAlgorithm("R2");
+	return true;
+	}
+
+	return false;
+	}
+	*/
+
+	bool RubiksCubeModel_v5::RubiksCubeSolver_NxNxN::fixCenterCubes_moveTargetCubeToRightFace(Face fromFace, const string& preMove,
+		int targetLineIndexFromLeft, int targetIndexFromUp, Color targetColor,
+		int columnFromLeftToAvoid, int centerColumnToAvoid)
+	{
+		vector<Face> faces(0);
+		string rotation;
+		string prime1, prime2;
+		switch (fromFace)
+		{
+		case Face::Up:
+			faces = { Face::Left , Face::Back, Face::Right, Face::Front };
+			rotation = "B";
+			prime1 = "'";
+			prime2 = "";
+			break;
+		case Face::Front:
+			faces = { Face::Left , Face::Up, Face::Right, Face::Down };
+			rotation = "U";
+			prime1 = "'";
+			prime2 = "";
+			break;
+		default:
+			RubiksCubeSolverUtils::RunTimeAssert(false);
+		}
+
+		string postMove;
+		if (preMove.empty())
+			postMove = "";
+		else if (preMove[preMove.length() - 1] == '2')
+			postMove = preMove;
+		else if (preMove[preMove.length() - 1] == '\'')
+			postMove = string(preMove.begin(), preMove.end() - 1);
+		else
+			postMove = preMove + "'";
+
+		int target = -1;
+		int numCase = 0;
+
+		int size = rubiksCube_.getSize();
+		if ((target = targetLineIndexFromLeft) != -1
+			&& centerColumnToAvoid != target
+			&& columnFromLeftToAvoid != target
+			&& rubiksCube_.GetCube(fromFace, 1, faces[0], targetLineIndexFromLeft, faces[1], targetIndexFromUp).GetFaceColor(fromFace) == targetColor)
+		{
+			numCase = 1;
+		}
+		else if ((target = size - targetIndexFromUp + 1) != -1
+			&& centerColumnToAvoid != target
+			&& columnFromLeftToAvoid != target
+			&& rubiksCube_.GetCube(fromFace, 1, faces[1], targetLineIndexFromLeft, faces[2], targetIndexFromUp).GetFaceColor(fromFace) == targetColor)
+		{
+			numCase = 2;
+		}
+		else if ((target = size - targetLineIndexFromLeft + 1) != -1
+			&& centerColumnToAvoid != target
+			&& columnFromLeftToAvoid != target
+			&& rubiksCube_.GetCube(fromFace, 1, faces[2], targetLineIndexFromLeft, faces[3], targetIndexFromUp).GetFaceColor(fromFace) == targetColor)
+		{
+			numCase = 3;
+		}
+		else if ((target = targetIndexFromUp) != -1
+			&& centerColumnToAvoid != target
+			&& columnFromLeftToAvoid != target
+			&& rubiksCube_.GetCube(fromFace, 1, faces[3], targetLineIndexFromLeft, faces[0], targetIndexFromUp).GetFaceColor(fromFace) == targetColor)
+		{
+			numCase = 4;
+		}
+
+		if (numCase != 0)
+		{
+			applyAlgorithm(preMove);
+			applyAlgorithm(rotation + string{ "(" + to_string(target) + ")" + prime1 });
+			applyAlgorithm("R2");
+			applyAlgorithm(rotation + string{ "(" + to_string(target) + ")" + prime2 });
+			//applyAlgorithm("R2");
+			applyAlgorithm(postMove);
+			return true;
+		}
+
+		return false;
+	}
+
+	/*
 	bool RubiksCubeModel_v5::RubiksCubeSolver_NxNxN::fixCenterCubes_moveTargetCubeFromRightToFrontFace(int targetLineIndexFromLeft, int targetIndexFromUp, Color targetColor)
 	{
 		bool retVal = false;
@@ -1703,6 +1837,116 @@ namespace mm {
 		}
 
 		return retVal;
+	}
+	*/
+
+	//----- editing now-----
+
+	bool RubiksCubeModel_v5::RubiksCubeSolver_NxNxN::fixCenterCubes_moveTargetCubeToFrontFace(Face fromFace, const string& frontFacePreMove,
+		int targetLineIndexFromLeft, int targetIndexFromUp, Color targetColor)
+	{
+		vector<Face> faces(0);
+		string rotation;
+		string numRotations = "1";
+		string prime1, prime2;
+		string faceMove;
+		switch (fromFace)
+		{
+		case Face::Right:
+			faces = { Face::Front , Face::Up, Face::Back, Face::Down };
+			rotation = "U";
+			prime1 = "";
+			prime2 = "'";
+			faceMove = "R";
+			break;
+		case Face::Back:
+			faces = { Face::Right , Face::Up, Face::Left, Face::Down };
+			rotation = "U";
+			prime1 = "";
+			prime2 = "'";
+			faceMove = "B";
+			numRotations = "2";
+			break;
+		case Face::Down:
+			faces = { Face::Front , Face::Right, Face::Back, Face::Left };
+			rotation = "R";
+			prime1 = "";
+			prime2 = "'";
+			faceMove = "D";
+			break;
+		case Face::Left:
+			faces = { Face::Front , Face::Down, Face::Back, Face::Up };
+			rotation = "D";
+			prime1 = "";
+			prime2 = "'";
+			faceMove = "L";
+			break;
+		default:
+			RubiksCubeSolverUtils::RunTimeAssert(false);
+		}
+
+		string frontFacePostMove;
+		if (frontFacePreMove.empty())
+			frontFacePostMove = "";
+		else if (frontFacePreMove[frontFacePreMove.length() - 1] == '2')
+			frontFacePostMove = frontFacePreMove;
+		else if (frontFacePreMove[frontFacePreMove.length() - 1] == '\'')
+			frontFacePostMove = string(frontFacePreMove.begin(), frontFacePreMove.end() - 1);
+		else
+			frontFacePostMove = frontFacePreMove + "'";
+
+		int target = -1;
+		int numCase = 0;
+
+		if (rubiksCube_.GetCube(fromFace, 1, faces[0], targetLineIndexFromLeft, faces[1], targetIndexFromUp).GetFaceColor(fromFace) == targetColor)
+		{
+			numCase = 1;
+			faceMove = "";
+		}
+		else if (rubiksCube_.GetCube(fromFace, 1, faces[1], targetLineIndexFromLeft, faces[2], targetIndexFromUp).GetFaceColor(fromFace) == targetColor)
+		{
+			numCase = 2;
+			faceMove += "'";
+		}
+		else if (rubiksCube_.GetCube(fromFace, 1, faces[2], targetLineIndexFromLeft, faces[3], targetIndexFromUp).GetFaceColor(fromFace) == targetColor)
+		{
+			numCase = 3;
+			faceMove += "2";
+		}
+		else if (rubiksCube_.GetCube(fromFace, 1, faces[3], targetLineIndexFromLeft, faces[0], targetIndexFromUp).GetFaceColor(fromFace) == targetColor)
+		{
+			numCase = 4;
+			//faceMove remains unchanged
+		}
+
+		if(numCase != 0)
+		{
+			applyAlgorithm(frontFacePreMove);
+
+			applyAlgorithm(faceMove);
+
+			//applyAlgorithm("U" + string{ "(" + to_string(targetIndexFromUp) + ")" });
+			applyAlgorithm(rotation + string{ "(" + to_string(targetIndexFromUp) + ")" + prime1 + numRotations });
+
+			if (targetLineIndexFromLeft == targetIndexFromUp)
+				applyAlgorithm("F'");
+			else
+				applyAlgorithm("F");
+
+			//applyAlgorithm("U" + string{ "(" + to_string(targetIndexFromUp) + ")'" });
+			applyAlgorithm(rotation + string{ "(" + to_string(targetIndexFromUp) + ")" + prime2 + numRotations });
+
+			if (targetLineIndexFromLeft == targetIndexFromUp)
+				applyAlgorithm("F");
+			else
+				applyAlgorithm("F'");
+
+			applyAlgorithm(frontFacePostMove);
+
+			return true;
+		}
+
+		return false;
 	}
 
 	//This version does not change any structure on Right Face, but rearranges Front Face
@@ -1804,134 +2048,6 @@ namespace mm {
 		//}
 
 		return retVal;
-	}
-
-	/*
-	bool RubiksCubeModel_v5::RubiksCubeSolver_NxNxN::fixCenterCubes_moveTargetCubeFromFrontToRightFace(int targetLineIndexFromLeft, int targetIndexFromUp, Color targetColor
-		, int rowFromTopToAvoid, int centerRowToAvoid)
-	{
-		int size = rubiksCube_.getSize();
-		if (targetIndexFromUp != centerRowToAvoid
-			&& targetIndexFromUp != rowFromTopToAvoid
-			&& rubiksCube_.GetCube(Face::Front, 1, Face::Left, targetLineIndexFromLeft, Face::Up, targetIndexFromUp).GetFaceColor(Face::Front) == targetColor)
-		{
-			applyAlgorithm("U" + string{ "(" + to_string(targetIndexFromUp) + ")'" });
-			applyAlgorithm("R2");
-			applyAlgorithm("U" + string{ "(" + to_string(targetIndexFromUp) + ")" });
-			//applyAlgorithm("R2");
-			return true;
-		}
-		else if (targetLineIndexFromLeft != centerRowToAvoid
-			&& targetLineIndexFromLeft != rowFromTopToAvoid
-			&& rubiksCube_.GetCube(Face::Front, 1, Face::Up, targetLineIndexFromLeft, Face::Right, targetIndexFromUp).GetFaceColor(Face::Front) == targetColor)
-		{
-			applyAlgorithm("U" + string{ "(" + to_string(targetLineIndexFromLeft) + ")'" });
-			applyAlgorithm("R2");
-			applyAlgorithm("U" + string{ "(" + to_string(targetLineIndexFromLeft) + ")" });
-			//applyAlgorithm("R2");
-			return true;
-		}
-		else if (targetIndexFromUp != centerRowToAvoid
-			&& (size - targetIndexFromUp + 1) != rowFromTopToAvoid
-			&& rubiksCube_.GetCube(Face::Front, 1, Face::Right, targetLineIndexFromLeft, Face::Down, targetIndexFromUp).GetFaceColor(Face::Front) == targetColor)
-		{
-			applyAlgorithm("U" + string{ "(" + to_string((size - targetIndexFromUp + 1)) + ")'" });
-			applyAlgorithm("R2");
-			applyAlgorithm("U" + string{ "(" + to_string((size - targetIndexFromUp + 1)) + ")" });
-			//applyAlgorithm("R2");
-			return true;
-		}
-		else if (targetLineIndexFromLeft != centerRowToAvoid
-			&& (size - targetLineIndexFromLeft + 1) != rowFromTopToAvoid
-			&& rubiksCube_.GetCube(Face::Front, 1, Face::Down, targetLineIndexFromLeft, Face::Left, targetIndexFromUp).GetFaceColor(Face::Front) == targetColor)
-		{
-			applyAlgorithm("U" + string{ "(" + to_string((size - targetLineIndexFromLeft + 1)) + ")'" });
-			applyAlgorithm("R2");
-			applyAlgorithm("U" + string{ "(" + to_string((size - targetLineIndexFromLeft + 1)) + ")" });
-			//applyAlgorithm("R2");
-			return true;
-		}
-
-		return false;
-	}
-	*/
-
-	bool RubiksCubeModel_v5::RubiksCubeSolver_NxNxN::fixCenterCubes_moveTargetCubeToRightFace(Face fromFace, const string& preMove,
-		int targetLineIndexFromLeft, int targetIndexFromUp, Color targetColor,
-		int columnFromLeftToAvoid, int centerColumnToAvoid)
-	{
-		vector<Face> faces(0);
-		string rotation;
-		string prime1, prime2;
-		switch (fromFace)
-		{
-		case Face::Up:
-			faces = { Face::Left , Face::Back, Face::Right, Face::Front };
-			rotation = "B";
-			prime1 = "'";
-			prime2 = "";
-			break;
-		case Face::Front:
-			faces = { Face::Left , Face::Up, Face::Right, Face::Down };
-			rotation = "U";
-			prime1 = "'";
-			prime2 = "";
-			break;
-		default:
-			RubiksCubeSolverUtils::RunTimeAssert(false);
-		}
-
-		string postMove;
-		if (preMove[preMove.length() - 1] == '\'')
-			postMove = string(preMove.begin(), preMove.end() - 1);
-		else
-			postMove = preMove + "'";
-
-		int target = -1;
-		int numCase = 0;
-
-		int size = rubiksCube_.getSize();
-		if ((target = targetLineIndexFromLeft) != -1
-			&& centerColumnToAvoid != target
-			&& columnFromLeftToAvoid != target
-			&& rubiksCube_.GetCube(fromFace, 1, faces[0], targetLineIndexFromLeft, faces[1], targetIndexFromUp).GetFaceColor(fromFace) == targetColor)
-		{
-			numCase = 1;
-		}
-		else if ((target = size - targetIndexFromUp + 1) != -1
-			&& centerColumnToAvoid != target
-			&& columnFromLeftToAvoid != target
-			&& rubiksCube_.GetCube(fromFace, 1, faces[1], targetLineIndexFromLeft, faces[2], targetIndexFromUp).GetFaceColor(fromFace) == targetColor)
-		{
-			numCase = 2;
-		}
-		else if ((target = size - targetLineIndexFromLeft + 1) != -1
-			&& centerColumnToAvoid != target
-			&& columnFromLeftToAvoid != target
-			&& rubiksCube_.GetCube(fromFace, 1, faces[2], targetLineIndexFromLeft, faces[3], targetIndexFromUp).GetFaceColor(fromFace) == targetColor)
-		{
-			numCase = 3;
-		}
-		else if ((target = targetIndexFromUp) != -1
-			&& centerColumnToAvoid != target
-			&& columnFromLeftToAvoid != target
-			&& rubiksCube_.GetCube(fromFace, 1, faces[3], targetLineIndexFromLeft, faces[0], targetIndexFromUp).GetFaceColor(fromFace) == targetColor)
-		{
-			numCase = 4;
-		}
-
-		if (numCase != 0)
-		{
-			applyAlgorithm(preMove);
-			applyAlgorithm(rotation + string{ "(" + to_string(target) + ")" + prime1 });
-			applyAlgorithm("R2");
-			applyAlgorithm(rotation + string{ "(" + to_string(target) + ")" + prime2 });
-			//applyAlgorithm("R2");
-			applyAlgorithm(postMove);
-			return true;
-		}
-
-		return false;
 	}
 
 	bool RubiksCubeModel_v5::RubiksCubeSolver_NxNxN::fixCenterCubes_fixTopAndFrontFaces(Color targetTopColor, Color targetFrontColor)

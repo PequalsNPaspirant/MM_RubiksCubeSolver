@@ -400,15 +400,17 @@ namespace mm {
 		private:
 			void reduceTo3x3x3();
 			/**/void fixCenterCubes(Color targetColor, Color targetColor2);
-			/**//**/bool fixCenterCubes_moveTargetCubeFromRightToFrontFace(int targetLineIndexFromLeft, int targetIndexFromUp, Color targetColor);
-			
-			/**//**/bool fixCenterCubes_moveTargetCubeFromRightToFrontFace_2(int targetLineIndexFromLeft, int targetIndexFromUp, Color targetColor, int rowFromTopToAvoid, int centerRowToAvoid);
-			///**//**/bool fixCenterCubes_moveTargetCubeFromRightToFrontFace_2(int targetLineIndexFromLeft, int targetIndexFromUp, Color targetColor, int rowFromTopToAvoid, int centerRowToAvoid);
 
 			///**//**/bool fixCenterCubes_moveTargetCubeFromFrontToRightFace(int targetLineIndexFromLeft, int targetIndexFromUp, Color targetColor, int rowFromTopToAvoid, int centerRowToAvoid);
 			/**//**/bool fixCenterCubes_moveTargetCubeToRightFace(Face fromFace, const string& preMove,
 				int targetLineIndexFromLeft, int targetIndexFromUp, Color targetColor, 
 				int columnFromLeftToAvoid, int centerColumnToAvoid);
+
+			///**//**/bool fixCenterCubes_moveTargetCubeFromRightToFrontFace(int targetLineIndexFromLeft, int targetIndexFromUp, Color targetColor);
+			/**//**/bool fixCenterCubes_moveTargetCubeToFrontFace(Face fromFace, const string& frontFacePreMove,
+				int targetLineIndexFromLeft, int targetIndexFromUp, Color targetColor);
+
+			/**//**/bool fixCenterCubes_moveTargetCubeFromRightToFrontFace_2(int targetLineIndexFromLeft, int targetIndexFromUp, Color targetColor, int rowFromTopToAvoid, int centerRowToAvoid);
 
 			/**//**/bool fixCenterCubes_fixTopAndFrontFaces(Color targetTopColor, Color targetFrontColor);
 			/**/void fixEdgeCubes(Color targetColor1, Color targetColor2);
