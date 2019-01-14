@@ -74,8 +74,8 @@ namespace mm {
 		//scene_(*this, "RubiksCubeModel_v5", 6),
 		//scene_(*this, "RubiksCubeModel_v5", 7),
 		//scene_(*this, "RubiksCubeModel_v5", 8),
-		framesPerRotation_(20), //ideal value = 25
-		sleepTimeMilliSec_(10), //ideal value = slow=30, moderate=10, fast=3
+		framesPerRotation_(5), //ideal value: slow=25, moderate=10, fast=5
+		sleepTimeMilliSec_(2), //ideal value: slow=25, moderate=10, fast=2
 		tester_(*this)
 	{
 	}

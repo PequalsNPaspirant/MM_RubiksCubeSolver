@@ -399,27 +399,21 @@ namespace mm {
 
 		private:
 			void reduceTo3x3x3();
-			/**/void fixCenterCubes(Color targetColor, Color targetColor2);
-
-			///**//**/bool fixCenterCubes_moveTargetCubeFromFrontToRightFace(int targetLineIndexFromLeft, int targetIndexFromUp, Color targetColor, int rowFromTopToAvoid, int centerRowToAvoid);
+			/**/void fixCenterCubes_singleFace(Color targetColor);
 			/**//**/bool fixCenterCubes_moveTargetCubeToRightFace(Face fromFace, const string& preMove,
 				int targetLineIndexFromLeft, int targetIndexFromUp, Color targetColor, 
 				int columnFromLeftToAvoid, int centerColumnToAvoid);
-
-			///**//**/bool fixCenterCubes_moveTargetCubeFromRightToFrontFace(int targetLineIndexFromLeft, int targetIndexFromUp, Color targetColor);
 			/**//**/bool fixCenterCubes_moveTargetCubeToFrontFace(Face fromFace, const string& frontFacePreMove,
 				int targetLineIndexFromLeft, int targetIndexFromUp, Color targetColor);
-
-			/**//**/bool fixCenterCubes_bothFrontAndUpFaces(int targetLineIndexFromLeft, int targetIndexFromUp, Color targetColor, int rowFromTopToAvoid, int centerRowToAvoid);
+			/**/void fixCenterCubes_twoFaces(Color targetColor1, Color targetColor2);
 			/**//**/bool fixCenterCubes_bothFrontAndUpFaces_CheckIfLineExist(Face faceFront, Face faceLeft, int targetLineIndexFromLeft, Face faceUp, Color targetColorRightFace, const string& algo);
-
-			/**//**/bool fixCenterCubes_fixTopAndFrontFaces(Color targetTopColor, Color targetFrontColor);
+			/**//**/bool fixCenterCubes_bothFrontAndUpFaces(int targetLineIndexFromLeft, int targetIndexFromUp, Color targetColor, int rowFromTopToAvoid, int centerRowToAvoid);
+			
 			/**/void fixEdgeCubes(Color targetColor1, Color targetColor2);
 			void positionTheCube();
 			void buildCross();
 			/**/void buildCross_PlaceEdgePiece(const Color& targetColorFront, const Color& targetColorBottom);
 			void buildF2L();
-			/**///void buildF2L_PositionCornerPieces(const Color& targetColorFront, const Color& targetColorRight, const Color& targetColorBottom = Color::White);
 			/**/bool buildF2L_PositionEdgeColumns(const Color& targetColorFront, const Color& targetColorRight);
 			void buildOLL();
 			void buildPLL();
