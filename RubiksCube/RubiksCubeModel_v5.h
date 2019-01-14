@@ -327,7 +327,7 @@ namespace mm {
 		//const Cube& GetCube(double x, double y, double z);
 		Cube& GetCube(Face layer1, int layerIndex1, Face layer2, int layerIndex2, Face layer3, int layerIndex3);
 		void Rotate(CVector3 rotationAxis, Face rotatingSection, int layerIndex, double rotationAngle);
-		int getSize() { return size_; }
+		int getSize() const { return size_; }
 
 	private:
 		//const CVector3& getRotationAxis(Groups rotationSection); //TODO: add this to localise group <--> Axis relation
@@ -410,7 +410,8 @@ namespace mm {
 			/**//**/bool fixCenterCubes_moveTargetCubeToFrontFace(Face fromFace, const string& frontFacePreMove,
 				int targetLineIndexFromLeft, int targetIndexFromUp, Color targetColor);
 
-			/**//**/bool fixCenterCubes_moveTargetCubeFromRightToFrontFace_2(int targetLineIndexFromLeft, int targetIndexFromUp, Color targetColor, int rowFromTopToAvoid, int centerRowToAvoid);
+			/**//**/bool fixCenterCubes_bothFrontAndUpFaces(int targetLineIndexFromLeft, int targetIndexFromUp, Color targetColor, int rowFromTopToAvoid, int centerRowToAvoid);
+			/**//**/bool fixCenterCubes_bothFrontAndUpFaces_CheckIfLineExist(Face faceFront, Face faceLeft, int targetLineIndexFromLeft, Face faceUp, Color targetColorRightFace, const string& algo);
 
 			/**//**/bool fixCenterCubes_fixTopAndFrontFaces(Color targetTopColor, Color targetFrontColor);
 			/**/void fixEdgeCubes(Color targetColor1, Color targetColor2);

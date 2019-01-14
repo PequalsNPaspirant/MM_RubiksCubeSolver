@@ -1406,12 +1406,14 @@ namespace mm {
 		fixCenterCubes(Color::Green, Color::Black);
 
 		//Fix center cubes on Left & Down Face together
-		applyAlgorithm("Z");
+		//applyAlgorithm("Z");
+		applyAlgorithm("");
 		fixCenterCubes(Color::White, Color::Orange);
 
 		//Reset the cube
-		//applyAlgorithm("XY'2");
-		applyAlgorithm("XY'");
+		//applyAlgorithm("XY'");
+		applyAlgorithm("XY'2");
+		
 
 		//=====FIX EDGES====
 
@@ -1495,71 +1497,98 @@ namespace mm {
 				//On Right Face, lines will be vertical first and then moved to Right Face
 				for (int move = 0; move < 2; ++move)
 				{
-					//Check if we have the line formed already
-					bool lineAlreadyPresent = true;
+					if (move == 0 && (
+						//Check Left vertical line on Right Face
+						fixCenterCubes_bothFrontAndUpFaces_CheckIfLineExist(Face::Right, Face::Front, targetLineIndexFromLeft, Face::Up, targetColorRightFace, "R")
+						//Check Up horizontal line on Right Face
+						|| (fixCenterCubes_bothFrontAndUpFaces_CheckIfLineExist(Face::Right, Face::Up, targetLineIndexFromLeft, Face::Back, targetColorRightFace, ""))
+						//Check Right vertical line on Right Face
+						|| fixCenterCubes_bothFrontAndUpFaces_CheckIfLineExist(Face::Right, Face::Back, targetLineIndexFromLeft, Face::Down, targetColorRightFace, "R'")
+						//Check Down horizontal line on Right Face
+						|| fixCenterCubes_bothFrontAndUpFaces_CheckIfLineExist(Face::Right, Face::Down, targetLineIndexFromLeft, Face::Front, targetColorRightFace, "R2")
+						)
+						)
+						continue;
+
+					if (
+						//Check Left vertical line on Front Face
+						fixCenterCubes_bothFrontAndUpFaces_CheckIfLineExist(Face::Front, Face::Left, targetLineIndexFromLeft, Face::Up, targetColorRightFace, "F")
+						//Check Up horizontal line on Front Face
+						|| fixCenterCubes_bothFrontAndUpFaces_CheckIfLineExist(Face::Front, Face::Up, targetLineIndexFromLeft, Face::Right, targetColorRightFace, "")
+						//Check Right vertical line on Front Face
+						|| fixCenterCubes_bothFrontAndUpFaces_CheckIfLineExist(Face::Front, Face::Right, targetLineIndexFromLeft, Face::Down, targetColorRightFace, "F'")
+						//Check Down horizontal line on Front Face
+						|| fixCenterCubes_bothFrontAndUpFaces_CheckIfLineExist(Face::Front, Face::Down, targetLineIndexFromLeft, Face::Left, targetColorRightFace, "F2")
+						)
+					{
+						// Once we have all cubes in target line on Front Face at right position(i.e.Left - i, Up - j), move it to Right Face					
+						applyAlgorithm("U" + string{ "(" + to_string(targetLineIndexFromLeft) + ")'" });
+						applyAlgorithm("R2");
+						applyAlgorithm("U" + string{ "(" + to_string(targetLineIndexFromLeft) + ")" });
+						if (move == 0)
+							applyAlgorithm("R2");
+						continue;
+					}
+
+					//Check all orientations
+					bool found = false;
 					for (int orientation = 0; orientation < 4; ++orientation)
 					{
-						lineAlreadyPresent = true;
+						//Check the vertical line from Left
 						for (int targetIndexFromUp = 2; targetIndexFromUp < size; ++targetIndexFromUp)
 						{
-							if (rubiksCube_.GetCube(Face::Front, 1, Face::Left, targetLineIndexFromLeft, Face::Up, targetIndexFromUp).GetFaceColor(Face::Front) != targetColorRightFace)
-							{
-								lineAlreadyPresent = false;
+							//If the target cube is already at right position, continue...
+							if (rubiksCube_.GetCube(Face::Front, 1, Face::Left, targetLineIndexFromLeft, Face::Up, targetIndexFromUp).GetFaceColor(Face::Front) == targetColorRightFace)
+								continue;
+
+							int rowFromTopToAvoid = -1;
+							if (move == 1)
+								rowFromTopToAvoid = targetLineIndexFromLeft;
+							found = fixCenterCubes_bothFrontAndUpFaces(targetLineIndexFromLeft, targetIndexFromUp, targetColorRightFace, rowFromTopToAvoid, centerLineIndex);
+							if (!found)
 								break;
-							}
 						}
-						if (lineAlreadyPresent == true)
+						if (found)
+						{
+							//Make line horizontal
+							applyAlgorithm("F");
 							break;
+						}
+
+						//Check the vertical line from Right
+						for (int targetIndexFromUp = 2; targetIndexFromUp < size; ++targetIndexFromUp)
+						{
+							//If the target cube is already at right position, continue...
+							if (rubiksCube_.GetCube(Face::Front, 1, Face::Right, targetLineIndexFromLeft, Face::Up, targetIndexFromUp).GetFaceColor(Face::Front) == targetColorRightFace)
+								continue;
+
+							int rowFromTopToAvoid = -1;
+							if (move == 1)
+								rowFromTopToAvoid = targetLineIndexFromLeft;
+							found = fixCenterCubes_bothFrontAndUpFaces((size - targetLineIndexFromLeft + 1), targetIndexFromUp, targetColorRightFace, rowFromTopToAvoid, centerLineIndex);
+							if (!found)
+								break;
+						}
+						if (found)
+						{
+							//Make line horizontal
+							applyAlgorithm("F'");
+							break;
+						}
+
+						//Try next orientation
 						applyAlgorithm("F");
 					}
 
-					if (!lineAlreadyPresent)
-					{
-						//Check all orientations
-						bool found = false;
-						for (int orientation = 0; orientation < 4; ++orientation)
-						{
-							for (int targetIndexFromUp = 2; targetIndexFromUp < size; ++targetIndexFromUp)
-							{
-								//If the target cube is already at right position, continue...
-								if (rubiksCube_.GetCube(Face::Front, 1, Face::Left, targetLineIndexFromLeft, Face::Up, targetIndexFromUp).GetFaceColor(Face::Front) == targetColorRightFace)
-									continue;
-								
-								int rowFromTopToAvoid = -1;
-								if (move == 1)
-									rowFromTopToAvoid = targetLineIndexFromLeft;
-								found = fixCenterCubes_moveTargetCubeFromRightToFrontFace_2(targetLineIndexFromLeft, targetIndexFromUp, targetColorRightFace
-									, rowFromTopToAvoid, centerLineIndex);
-								if (found)
-								{
-									break;
-									//Check if target is on Front Face
-									//found = fixCenterCubes_moveTargetCubeFromFrontToRightFace(targetLineIndexFromLeft, targetIndexFromUp, targetColorRightFace
-									//	, targetLineIndexFromLeft, centerLineIndex);
-								}
-								//RubiksCubeSolverUtils::RunTimeAssert(found);
-							}
+					RubiksCubeSolverUtils::RunTimeAssert(found);
 
-							if (found)
-							{
-								//RubiksCubeSolverUtils::RunTimeAssert(rubiksCube_.GetCube(Face::Front, 1, Face::Left, targetLineIndexFromLeft, Face::Up, targetIndexFromUp).GetFaceColor(Face::Front) == targetColorRightFace);
-								break;
-							}
-							else
-								applyAlgorithm("F");
-						}
-
-						RubiksCubeSolverUtils::RunTimeAssert(found);
-					}
-
-					// Once we have all cubes in target line on Front Face at right position(i.e.Left - i, Up - j), move it to Right Face
-					applyAlgorithm("F");
+					// Once we have all cubes in target line on Front Face at right position(i.e.Left - i, Up - j), move it to Right Face					
 					applyAlgorithm("U" + string{ "(" + to_string(targetLineIndexFromLeft) + ")'" });
 					applyAlgorithm("R2");
 					applyAlgorithm("U" + string{ "(" + to_string(targetLineIndexFromLeft) + ")" });
 					if (move == 0)
 						applyAlgorithm("R2");
-					applyAlgorithm("F'");
+					//applyAlgorithm("F'");
 				}
 			}
 
@@ -1723,6 +1752,24 @@ namespace mm {
 	return false;
 	}
 	*/
+
+	bool RubiksCubeModel_v5::RubiksCubeSolver_NxNxN::fixCenterCubes_bothFrontAndUpFaces_CheckIfLineExist(Face faceFront, Face faceLeft, int targetLineIndexFromLeft, Face faceUp, Color targetColorRightFace, const string& algo)
+	{
+		int size = rubiksCube_.getSize();
+		bool lineAlreadyPresent = true;
+		for (int targetIndexFromUp = 2; targetIndexFromUp < size; ++targetIndexFromUp)
+		{
+			if (rubiksCube_.GetCube(faceFront, 1, faceLeft, targetLineIndexFromLeft, faceUp, targetIndexFromUp).GetFaceColor(faceFront) != targetColorRightFace)
+			{
+				lineAlreadyPresent = false;
+				break;
+			}
+		}
+		if (lineAlreadyPresent)
+			applyAlgorithm(algo);
+
+		return lineAlreadyPresent;
+	}
 
 	bool RubiksCubeModel_v5::RubiksCubeSolver_NxNxN::fixCenterCubes_moveTargetCubeToRightFace(Face fromFace, const string& preMove,
 		int targetLineIndexFromLeft, int targetIndexFromUp, Color targetColor,
@@ -1950,8 +1997,8 @@ namespace mm {
 	}
 
 	//This version does not change any structure on Right Face, but rearranges Front Face
-	bool RubiksCubeModel_v5::RubiksCubeSolver_NxNxN::fixCenterCubes_moveTargetCubeFromRightToFrontFace_2(int targetLineIndexFromLeft, int targetIndexFromUp, Color targetColor
-		, int rowFromTopToAvoid, int centerRowToAvoid)
+	bool RubiksCubeModel_v5::RubiksCubeSolver_NxNxN::fixCenterCubes_bothFrontAndUpFaces(int targetLineIndexFromLeft, int targetIndexFromUp, Color targetColor,
+		int rowFromTopToAvoid, int centerRowToAvoid)
 	{
 		int size = rubiksCube_.getSize();
 		bool retVal = false;
@@ -2000,29 +2047,29 @@ namespace mm {
 		//	retVal = true;
 
 		//}
-		else if (targetIndexFromUp != centerRowToAvoid
-			&& (size - targetIndexFromUp + 1) != rowFromTopToAvoid
-			&& rubiksCube_.GetCube(Face::Right, 1, Face::Back, targetLineIndexFromLeft, Face::Down, targetIndexFromUp).GetFaceColor(Face::Right) == targetColor)
-		{
-			applyAlgorithm("F2");
+		//else if (targetIndexFromUp != centerRowToAvoid
+		//	&& (size - targetIndexFromUp + 1) != rowFromTopToAvoid
+		//	&& rubiksCube_.GetCube(Face::Right, 1, Face::Back, targetLineIndexFromLeft, Face::Down, targetIndexFromUp).GetFaceColor(Face::Right) == targetColor)
+		//{
+		//	applyAlgorithm("F2");
 
-			applyAlgorithm("U" + string{ "(" + to_string((size - targetIndexFromUp + 1)) + ")" });
+		//	applyAlgorithm("U" + string{ "(" + to_string((size - targetIndexFromUp + 1)) + ")" });
 
-			if (targetLineIndexFromLeft == targetIndexFromUp)
-				applyAlgorithm("F'");
-			else
-				applyAlgorithm("F");
+		//	if (targetLineIndexFromLeft == targetIndexFromUp)
+		//		applyAlgorithm("F'");
+		//	else
+		//		applyAlgorithm("F");
 
-			applyAlgorithm("U" + string{ "(" + to_string((size - targetIndexFromUp + 1)) + ")'" });
+		//	applyAlgorithm("U" + string{ "(" + to_string((size - targetIndexFromUp + 1)) + ")'" });
 
-			if (targetLineIndexFromLeft == targetIndexFromUp)
-				applyAlgorithm("F");
-			else
-				applyAlgorithm("F'");
+		//	if (targetLineIndexFromLeft == targetIndexFromUp)
+		//		applyAlgorithm("F");
+		//	else
+		//		applyAlgorithm("F'");
 
-			applyAlgorithm("F2");
-			retVal = true;
-		}
+		//	applyAlgorithm("F2");
+		//	retVal = true;
+		//}
 		//else if (targetLineIndexFromLeft != centerRowToAvoid
 		//	&& (size - targetLineIndexFromLeft + 1) != rowFromTopToAvoid
 		//	&& rubiksCube_.GetCube(Face::Right, 1, Face::Down, targetLineIndexFromLeft, Face::Front, targetIndexFromUp).GetFaceColor(Face::Right) == targetColor)
