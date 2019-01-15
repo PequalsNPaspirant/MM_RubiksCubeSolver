@@ -1388,6 +1388,10 @@ namespace mm {
 
 	void RubiksCubeModel_v5::RubiksCubeSolver_NxNxN::reduceTo3x3x3()
 	{
+		int size = rubiksCube_.getSize();
+		if (size <= 3)
+			return;
+
 		//=====FIX CENTER CUBES====
 
 		//Fix center cubes on Up Face
@@ -1436,8 +1440,9 @@ namespace mm {
 		//Always fix center cubes on top face
 		//First search Top and Front face for target cubes, then Right, Down, Left, Back (we are fixing exactly in reverse order)
 
-		bool noMismatch = true;
 		int size = rubiksCube_.getSize();
+
+		bool noMismatch = true;
 		for (int i = 2; i < size && noMismatch; ++i)
 		{
 			for (int j = 2; j < size && noMismatch; ++j)
@@ -2023,7 +2028,132 @@ namespace mm {
 
 	void RubiksCubeModel_v5::RubiksCubeSolver_NxNxN::fixEdgeCubes(Color color1, Color color2)
 	{
+		//return for now until the algorithm is ready
+		return;
+
 		//Always fix front and back edges on top face
+		int size = rubiksCube_.getSize();
+		int numEdgeCubes = size - 2;
+		//Collect all edge cubes one by one on Front-Up edge from Left to Right
+		Color targetColorFront = color1;
+		Color targetColorUp = color2;
+		
+		Cube cube;
+		int index1 = fixEdgeCubes_bringToUpBackEdge(-1, targetColorFront, targetColorUp);
+		//Find similar edge and take it to Back-Up edge
+		for (int edgeCubeIndexFromLeft = 3; edgeCubeIndexFromLeft < size; ++edgeCubeIndexFromLeft)
+		{
+			int index2 = fixEdgeCubes_bringToUpBackEdge(index1, targetColorUp, targetColorFront);
+			//Cubes can never be in same orientation when we come here. Above function ensures its it correct orientation.
+			if (index1 == index2)
+			{
+				//Move cubes into other index, preserve orientation.
+				//This case may not be called
+			}
+			else
+			{
+				//Apply algorithm to join edge cubes
+				//Ensure that the new edge is at front again
+			}			
+		}
+	}
+
+	//This function searches in all edges (searches Front-Up edge only when index = -1)
+	//This function ensures that the cube is in expected orientation while taking to Up-Back edge
+	int RubiksCubeModel_v5::RubiksCubeSolver_NxNxN::fixEdgeCubes_bringToUpBackEdge(int index, Color targetColorFront, Color targetColorUp)
+	{
+		int size = rubiksCube_.getSize();
+		int targetBits = (1 << targetColorFront) | (1 << targetColorUp);
+		int retIndex = -1;
+		Cube* actualCube;
+
+		//Search Up-Front edge
+		if (index == -1)
+		{
+			retIndex = fixEdgeCubes_bringToUpBackEdge_searchEdge(index, targetColorFront, targetColorUp, Face::Up, Face::Front, Face::Left, actualCube);
+			if (retIndex != -1)
+			{
+				Color up = actualCube->GetFaceColor(Face::Up);
+				if (targetColorUp != up)
+				{
+					applyAlgorithm("FRU");
+					return size - retIndex + 1;
+				}
+				else
+					return retIndex; // return the index from left
+			}
+		}
+
+		//Search Up-Back edge
+		retIndex = fixEdgeCubes_bringToUpBackEdge_searchEdge(index, targetColorFront, targetColorUp, Face::Up, Face::Back, Face::Left, actualCube);
+		if (retIndex != -1)
+		{
+			Color up = actualCube->GetFaceColor(Face::Up);
+			if (targetColorUp != up)
+			{
+				applyAlgorithm("B'UR'U'");
+				return size - retIndex + 1;
+			}
+			else
+				return retIndex; // return the index from left
+		}
+
+		//Search Up-Left edge
+		retIndex = fixEdgeCubes_bringToUpBackEdge_searchEdge(index, targetColorFront, targetColorUp, Face::Up, Face::Left, Face::Back, actualCube);
+		if (retIndex != -1)
+		{
+			Color up = actualCube->GetFaceColor(Face::Up);
+			if (targetColorUp != up)
+			{
+				applyAlgorithm("L'B'");
+				return retIndex;
+			}
+			else
+				return retIndex; // return the index from left
+		}
+
+		//Search Up-Right edge
+		retIndex = fixEdgeCubes_bringToUpBackEdge_searchEdge(index, targetColorFront, targetColorUp, Face::Up, Face::Left, Face::Back, actualCube);
+		if (retIndex != -1)
+		{
+			Color up = actualCube->GetFaceColor(Face::Up);
+			if (targetColorUp != up)
+			{
+				applyAlgorithm("RB");
+				return size - retIndex + 1;
+			}
+			else
+				return retIndex; // return the index from left
+		}
+
+		//Search Front-Left edge
+		//Search Front-Right edge
+		//Search Back-Left edge
+		//Search Back-Right edge
+
+		//Search Down-Front edge
+		//Search Down-Left edge
+		//Search Down-Right edge
+		//Search Down-Back edge
+
+		RubiksCubeSolverUtils::RunTimeAssert(false); //We must find edge before reaching here
+		return -1;
+	}
+
+	int RubiksCubeModel_v5::RubiksCubeSolver_NxNxN::fixEdgeCubes_bringToUpBackEdge_searchEdge(int index, Color targetColorFront, Color targetColorUp,
+		Face face1, Face face2, Face face3, Cube*& actualCube)
+	{
+		int size = rubiksCube_.getSize();
+		int targetBits = (1 << targetColorFront) | (1 << targetColorUp);
+		for (int i = 2; i < size; ++i)
+		{
+			actualCube = &rubiksCube_.GetCube(face1, 1, face2, 1, face3, i);
+			int bits = (1 << actualCube->GetFaceColor(Face::Front)) | (1 << actualCube->GetFaceColor(Face::Up));
+			if (bits == targetBits)
+				return i; // return the index from left
+		}
+
+		return -1;
 	}
 
 	void RubiksCubeModel_v5::RubiksCubeSolver_NxNxN::applyAlgorithm(const string& step)

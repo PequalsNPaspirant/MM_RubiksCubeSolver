@@ -410,6 +410,10 @@ namespace mm {
 			/**//**/bool fixCenterCubes_bothFrontAndUpFaces(int targetLineIndexFromLeft, int targetIndexFromUp, Color targetColor, int rowFromTopToAvoid, int centerRowToAvoid);
 			
 			/**/void fixEdgeCubes(Color targetColor1, Color targetColor2);
+			/**//**/int fixEdgeCubes_bringToUpBackEdge(int index, Color targetColorFront, Color targetColorUp);
+			/**//**//**/int fixEdgeCubes_bringToUpBackEdge_searchEdge(int index, Color targetColorFront, Color targetColorUp,
+				Face face1, Face face2, Face face3, Cube*& actualCube);
+
 			void positionTheCube();
 			void buildCross();
 			/**/void buildCross_PlaceEdgePiece(const Color& targetColorFront, const Color& targetColorBottom);

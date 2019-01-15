@@ -59,7 +59,7 @@ namespace mm {
 			{ "RubiksCubeModel_v5", 3 },
 
 			{ "RubiksCubeModel_v4", 4 },
-			{ "RubiksCubeModel_v5", 4 }
+			//{ "RubiksCubeModel_v5", 4 }
 		};
 
 		//Specific test cases to test
