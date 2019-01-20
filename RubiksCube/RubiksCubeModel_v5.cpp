@@ -1350,7 +1350,8 @@ namespace mm {
 		: rubiksCube_(rubiksCube),
 		solutionSteps_(0),
 		animate_(animate),
-		ui_(ui)
+		ui_(ui),
+		solvedEdges_(0)
 	{
 	}
 
@@ -1394,6 +1395,8 @@ namespace mm {
 
 		//=====FIX CENTER CUBES====
 
+		//TODO: Check if we already have solved face centers 
+
 		//Fix center cubes on Up Face
 		fixCenterCubes_singleFace(Color::Yellow);
 
@@ -1421,18 +1424,38 @@ namespace mm {
 
 		//=====FIX EDGES====
 
-		fixEdgeCubes(Color::Yellow, Color::Blue);
-		fixEdgeCubes(Color::Yellow, Color::Red);
-		fixEdgeCubes(Color::Yellow, Color::Green);
-		fixEdgeCubes(Color::Yellow, Color::Orange);
+		//TODO: Check if we already have any solved edges
 
+		//Take while face up
+		//applyAlgorithm("X2"); //This may help create cross
+		applyAlgorithm("Z");
 		fixEdgeCubes(Color::Blue, Color::Red);
+		applyAlgorithm("X");
 		fixEdgeCubes(Color::Red, Color::Green);
+		applyAlgorithm("X");
 		fixEdgeCubes(Color::Green, Color::Orange);
+		applyAlgorithm("X");
 		fixEdgeCubes(Color::Orange, Color::Blue);
+		applyAlgorithm("XZ");
 
-		fixEdgeCubes(Color::White, Color::Blue);
-		fixEdgeCubes(Color::White, Color::Red); //This will fix remaining two edges as well
+		fixEdgeCubes(Color::Blue, Color::White);
+		applyAlgorithm("Y'");
+		fixEdgeCubes(Color::Red, Color::White);
+		applyAlgorithm("Y'");
+		fixEdgeCubes(Color::Green, Color::White);
+		applyAlgorithm("Y'");
+		//applyAlgorithm("R2");
+		fixEdgeCubes(Color::Orange, Color::White);
+		//applyAlgorithm("R2");
+		
+		applyAlgorithm("X2");
+		fixEdgeCubes(Color::Blue, Color::Yellow);
+		//applyAlgorithm("Y'");
+
+		//Collect all 3 remaining broken edges on Up Face (Front, Right and Back edges)
+		//fixEdgeCubes(Color::Red, Color::Yellow); //This will fix remaining two edges as well
+		//fixEdgeCubes(Color::Green, Color::Yellow);
+		//fixEdgeCubes(Color::Orange, Color::Yellow);
 	}
 
 	void RubiksCubeModel_v5::RubiksCubeSolver_NxNxN::fixCenterCubes_singleFace(Color targetColor)
@@ -2028,9 +2051,6 @@ namespace mm {
 
 	void RubiksCubeModel_v5::RubiksCubeSolver_NxNxN::fixEdgeCubes(Color color1, Color color2)
 	{
-		//return for now until the algorithm is ready
-		return;
-
 		//Always fix front and back edges on top face
 		int size = rubiksCube_.getSize();
 		int numEdgeCubes = size - 2;
@@ -2038,122 +2058,319 @@ namespace mm {
 		Color targetColorFront = color1;
 		Color targetColorUp = color2;
 		
-		Cube cube;
-		int index1 = fixEdgeCubes_bringToUpBackEdge(-1, targetColorFront, targetColorUp);
-		//Find similar edge and take it to Back-Up edge
-		for (int edgeCubeIndexFromLeft = 3; edgeCubeIndexFromLeft < size; ++edgeCubeIndexFromLeft)
+		//Ensure that the Up-Front edge is broken/unsolved edge
+		int i = 0;
+		vector<string> algoToCheckAllUpFrontEdges{
+			"", "U", "U", "U",		// Up face
+			"F", "F", "F",			// Front face
+			"BF2", "BF2", "BF2",	// Bottom face
+			"R'U",					// Right face
+			"LU'"					// Left face
+		};
+		for (; i < algoToCheckAllUpFrontEdges.size(); ++i)
 		{
-			int index2 = fixEdgeCubes_bringToUpBackEdge(index1, targetColorUp, targetColorFront);
-			//Cubes can never be in same orientation when we come here. Above function ensures its it correct orientation.
-			if (index1 == index2)
+			applyAlgorithm(algoToCheckAllUpFrontEdges[i]);
+			Cube& cube = rubiksCube_.GetCube(Face::Up, 1, Face::Front, 1, Face::Left, 2);
+			Color up = cube.GetFaceColor(Face::Up);
+			Color front = cube.GetFaceColor(Face::Front);
+			unsigned int targetColorPair = ((1u << up) | (1u << front));
+			if (solvedEdges_.find(targetColorPair) == solvedEdges_.end())
+				break;
+		}
+		RubiksCubeSolverUtils::RunTimeAssert(i != algoToCheckAllUpFrontEdges.size());
+
+		Cube cube;
+		//int index1 = fixEdgeCubes_bringToUpBackEdge(-1, targetColorFront, targetColorUp);
+		//Find similar edge and take it to Up-Back edge
+		for (int edgeCubeIndexFromLeft = 2; edgeCubeIndexFromLeft < size; ++edgeCubeIndexFromLeft)
+		{
+			//check if its found at right position
+			if (fixEdgeCubes_bringToUpBackEdge_searchEdge(edgeCubeIndexFromLeft, targetColorUp, targetColorFront, Face::Up, Face::Front, Face::Left, "", true))
+				continue;
+
+			//bring the cube at Up-Back edge in opposite orientation
+			Color expectedUp = targetColorFront;
+			Color expectedBack = targetColorUp;
+
+			int targetIndexRight = size - edgeCubeIndexFromLeft + 1;
+			if (edgeCubeIndexFromLeft < targetIndexRight)
 			{
+				//TODO: remove it from Up-Front edge
+				bool found = fixEdgeCubes_bringToUpBackEdge_searchEdge(targetIndexRight, expectedUp, expectedBack, Face::Up, Face::Front, Face::Left, "", true);
+				//if (found) casesCovered[16] = true;
+				if (found)
+				{
+					//Ensure Up-Right edge is broken
+					fixEdgeCubes_ensureUpRightEdgeUnsolved();
+
+					//Ensure that Up-Back edge is broken/unsolved
+					Cube& cube = rubiksCube_.GetCube(Face::Up, 1, Face::Back, 1, Face::Left, 2);
+					Color up = cube.GetFaceColor(Face::Up);
+					Color back = cube.GetFaceColor(Face::Back);
+					unsigned int targetColorPair = ((1u << up) | (1u << back));
+					if (solvedEdges_.find(targetColorPair) != solvedEdges_.end())
+					{
+						//Take Up-Right edge to Up-Back
+						applyAlgorithm("RB");
+						//Ensure Up-Right edge is broken
+						fixEdgeCubes_ensureUpRightEdgeUnsolved();
+					}
+
+					//Remove this cube from Up-Front edge
+					applyAlgorithm("L(" + to_string(targetIndexRight) + ")");
+					applyAlgorithm("F");
+					applyAlgorithm("R'");
+					applyAlgorithm("F'");
+					applyAlgorithm("L(" + to_string(targetIndexRight) + ")'");
+					applyAlgorithm("R");
+					applyAlgorithm("F'");
+				}
+			}
+			
+			bool found = fixEdgeCubes_bringToUpBackEdge(edgeCubeIndexFromLeft, expectedUp, expectedBack);
+			//RubiksCubeSolverUtils::RunTimeAssert(found);
+			//Cubes can never be in same orientation when we come here. Above function ensures its in correct orientation.
+			//if (index1 == index2)
+			//{
 				//Move cubes into other index, preserve orientation.
 				//This case may not be called
-			}
-			else
-			{
-				//Apply algorithm to join edge cubes
-				//Ensure that the new edge is at front again
-			}			
+			//}
+
+			//Ensure that the Up-Right edge is broken/unsolved edge. Do not touch Up-Front and Up-Back edges.
+			fixEdgeCubes_ensureUpRightEdgeUnsolved();
+			
+			//Apply algorithm to join edge cubes
+			//Ensure that the new edge is at front again
+			applyAlgorithm("L(" + to_string(edgeCubeIndexFromLeft) + ")");
+			applyAlgorithm("F");
+			applyAlgorithm("R'");
+			applyAlgorithm("F'");
+			applyAlgorithm("L(" + to_string(edgeCubeIndexFromLeft) + ")'");
+			applyAlgorithm("R");
+			applyAlgorithm("F'");
+
+			solvedEdges_.insert((1u << color1) | (1u << color2));
 		}
+
+		//Once done, move this edge to left
+		//applyAlgorithm("F'");
+	}
+
+	bool RubiksCubeModel_v5::RubiksCubeSolver_NxNxN::fixEdgeCubes_ensureUpRightEdgeUnsolved()
+	{
+		int j = 0;
+		vector<string> algoToCheckAllUpRightEdges{
+			"", "R", "R", "R",			//Right face
+			"DR2", "DR2", "DR2",		//Down face
+			"LD2R2", "LD2R2", "LD2R2"	//Left face
+		};
+		for (; j < algoToCheckAllUpRightEdges.size(); ++j)
+		{
+			applyAlgorithm(algoToCheckAllUpRightEdges[j]);
+			Cube& cube = rubiksCube_.GetCube(Face::Up, 1, Face::Right, 1, Face::Front, 2);
+			Color up = cube.GetFaceColor(Face::Up);
+			Color right = cube.GetFaceColor(Face::Right);
+			unsigned int targetColorPair = ((1u << up) | (1u << right));
+			if (solvedEdges_.find(targetColorPair) == solvedEdges_.end())
+				break;
+		}
+		RubiksCubeSolverUtils::RunTimeAssert(j != algoToCheckAllUpRightEdges.size());
+		return true;
 	}
 
 	//This function searches in all edges (searches Front-Up edge only when index = -1)
 	//This function ensures that the cube is in expected orientation while taking to Up-Back edge
-	int RubiksCubeModel_v5::RubiksCubeSolver_NxNxN::fixEdgeCubes_bringToUpBackEdge(int index, Color targetColorFront, Color targetColorUp)
+	bool RubiksCubeModel_v5::RubiksCubeSolver_NxNxN::fixEdgeCubes_bringToUpBackEdge(int targetIndexLeft, Color expectedUp, Color expectedBack)
 	{
 		int size = rubiksCube_.getSize();
-		int targetBits = (1 << targetColorFront) | (1 << targetColorUp);
-		int retIndex = -1;
-		Cube* actualCube;
+		int targetBits = (1 << expectedBack) | (1 << expectedUp);
+		int targetIndexRight = size - targetIndexLeft + 1;
 
-		//Search Up-Front edge
-		if (index == -1)
+		string algo1{ "L'B'" };
+		string algo2{ "FUF'" };
+		string algo3{ "F'U'F" };
+		string algo4{ "FU'F'" };
+		string algo{ "" };
+
+		bool found = false;
+		static vector<bool> casesCovered(24, false);
+		
+		//Move from Down edges to vertical edge
+		if (!found)
 		{
-			retIndex = fixEdgeCubes_bringToUpBackEdge_searchEdge(index, targetColorFront, targetColorUp, Face::Up, Face::Front, Face::Left, actualCube);
-			if (retIndex != -1)
-			{
-				Color up = actualCube->GetFaceColor(Face::Up);
-				if (targetColorUp != up)
-				{
-					applyAlgorithm("FRU");
-					return size - retIndex + 1;
-				}
-				else
-					return retIndex; // return the index from left
-			}
+			found = fixEdgeCubes_bringToUpBackEdge_searchEdge(targetIndexLeft, expectedUp, expectedBack, Face::Down, Face::Front, Face::Left, "D2B", true);
+			if(found) casesCovered[0] = true;
+		}
+		if (!found)
+		{
+			found = fixEdgeCubes_bringToUpBackEdge_searchEdge(targetIndexRight, expectedUp, expectedBack, Face::Down, Face::Front, Face::Left, "D2B", false);
+			if (found) casesCovered[1] = true;
 		}
 
-		//Search Up-Back edge
-		retIndex = fixEdgeCubes_bringToUpBackEdge_searchEdge(index, targetColorFront, targetColorUp, Face::Up, Face::Back, Face::Left, actualCube);
-		if (retIndex != -1)
+		if (!found)
 		{
-			Color up = actualCube->GetFaceColor(Face::Up);
-			if (targetColorUp != up)
-			{
-				applyAlgorithm("B'UR'U'");
-				return size - retIndex + 1;
-			}
-			else
-				return retIndex; // return the index from left
+			found = fixEdgeCubes_bringToUpBackEdge_searchEdge(targetIndexLeft, expectedUp, expectedBack, Face::Down, Face::Back, Face::Right, "B", true);
+			if (found) casesCovered[2] = true;
+		}
+		if (!found)
+		{
+			found = fixEdgeCubes_bringToUpBackEdge_searchEdge(targetIndexRight, expectedUp, expectedBack, Face::Down, Face::Back, Face::Right, "B" /*+ algo*/, false);
+			if (found) casesCovered[3] = true;
 		}
 
-		//Search Up-Left edge
-		retIndex = fixEdgeCubes_bringToUpBackEdge_searchEdge(index, targetColorFront, targetColorUp, Face::Up, Face::Left, Face::Back, actualCube);
-		if (retIndex != -1)
+		if (!found)
 		{
-			Color up = actualCube->GetFaceColor(Face::Up);
-			if (targetColorUp != up)
-			{
-				applyAlgorithm("L'B'");
-				return retIndex;
-			}
-			else
-				return retIndex; // return the index from left
+			found = fixEdgeCubes_bringToUpBackEdge_searchEdge(targetIndexLeft, expectedUp, expectedBack, Face::Down, Face::Left, Face::Front, "L" /*+ algo1*/, false);
+			if (found) casesCovered[4] = true;
+		}
+		if (!found)
+		{
+			found = fixEdgeCubes_bringToUpBackEdge_searchEdge(targetIndexRight, expectedUp, expectedBack, Face::Down, Face::Left, Face::Front, "L" /*+ algo2*/, true);
+			if (found) casesCovered[5] = true;
 		}
 
-		//Search Up-Right edge
-		retIndex = fixEdgeCubes_bringToUpBackEdge_searchEdge(index, targetColorFront, targetColorUp, Face::Up, Face::Left, Face::Back, actualCube);
-		if (retIndex != -1)
+		if (!found)
 		{
-			Color up = actualCube->GetFaceColor(Face::Up);
-			if (targetColorUp != up)
-			{
-				applyAlgorithm("RB");
-				return size - retIndex + 1;
-			}
-			else
-				return retIndex; // return the index from left
+			found = fixEdgeCubes_bringToUpBackEdge_searchEdge(targetIndexLeft, expectedUp, expectedBack, Face::Down, Face::Right, Face::Back, "R'" /*+ algo3*/, false);
+			if (found) casesCovered[6] = true;
+		}
+		if (!found)
+		{
+			found = fixEdgeCubes_bringToUpBackEdge_searchEdge(targetIndexRight, expectedUp, expectedBack, Face::Down, Face::Right, Face::Back, "R'" /*+ algo4*/, true);
+			if (found) casesCovered[7] = true;
 		}
 
-		//Search Front-Left edge
-		//Search Front-Right edge
-		//Search Back-Left edge
-		//Search Back-Right edge
+		found = false;
+			
+		//Move from vertical edges to Up edge
+		if (!found)
+		{
+			found = fixEdgeCubes_bringToUpBackEdge_searchEdge(targetIndexLeft, expectedUp, expectedBack, Face::Front, Face::Left, Face::Down, "L'" /*+ algo1*/, true);
+			if (found) casesCovered[8] = true;
+		}
+		if (!found)
+		{
+			found = fixEdgeCubes_bringToUpBackEdge_searchEdge(targetIndexRight, expectedUp, expectedBack, Face::Front, Face::Left, Face::Down, "L'" /*+ algo2*/, false);
+			if (found) casesCovered[9] = true;
+		}
 
-		//Search Down-Front edge
-		//Search Down-Left edge
-		//Search Down-Right edge
-		//Search Down-Back edge
+		if (!found)
+		{
+			found = fixEdgeCubes_bringToUpBackEdge_searchEdge(targetIndexLeft, expectedUp, expectedBack, Face::Front, Face::Right, Face::Up, "R" /*+ algo3*/, true);
+			if (found) casesCovered[10] = true;
+		}
+		if (!found)
+		{
+			found = fixEdgeCubes_bringToUpBackEdge_searchEdge(targetIndexRight, expectedUp, expectedBack, Face::Front, Face::Right, Face::Up, "R" /*+ algo4*/, false);
+			if (found) casesCovered[11] = true;
+		}
 
-		RubiksCubeSolverUtils::RunTimeAssert(false); //We must find edge before reaching here
-		return -1;
+		if (!found)
+		{
+			found = fixEdgeCubes_bringToUpBackEdge_searchEdge(targetIndexLeft, expectedUp, expectedBack, Face::Back, Face::Left, Face::Down, "B'", false);
+			if (found) casesCovered[12] = true;
+		}
+		if (!found)
+		{
+			found = fixEdgeCubes_bringToUpBackEdge_searchEdge(targetIndexRight, expectedUp, expectedBack, Face::Back, Face::Left, Face::Down, "B'" /*+ algo*/, true);
+			if (found) casesCovered[13] = true;
+		}
+
+		if (!found)
+		{
+			found = fixEdgeCubes_bringToUpBackEdge_searchEdge(targetIndexLeft, expectedUp, expectedBack, Face::Back, Face::Right, Face::Up, "B", false);
+			if (found) casesCovered[14] = true;
+		}
+		if (!found)
+		{
+			found = fixEdgeCubes_bringToUpBackEdge_searchEdge(targetIndexRight, expectedUp, expectedBack, Face::Back, Face::Right, Face::Up, "B" /*+ algo*/, true);
+			if (found) casesCovered[15] = true;
+		}
+
+		found = false;
+
+		//Move from Up edges to Up-Back edge
+		//Up-Front edge
+		//if (!found && targetIndexLeft < targetIndexRight)
+		//{
+		//	//TODO: remove it from Up-Front edge
+		//	found = fixEdgeCubes_bringToUpBackEdge_searchEdge(targetIndexRight, targetColorUp, targetColorFront, Face::Up, Face::Front, Face::Left, string("") + "B'UR'U'", true);
+		//	if (found) casesCovered[16] = true;
+		//}
+		//Up-Back edge
+		if (!found)
+		{
+			found = fixEdgeCubes_bringToUpBackEdge_searchEdge(targetIndexLeft, expectedUp, expectedBack, Face::Up, Face::Back, Face::Left, "", true);
+			if (found) casesCovered[17] = true;
+		}
+		if (!found)
+		{
+			found = fixEdgeCubes_bringToUpBackEdge_searchEdge(targetIndexRight, expectedUp, expectedBack, Face::Up, Face::Back, Face::Left, "B'UR'U'", false);
+			if (found) casesCovered[18] = true;
+		}
+		//Up-Left edge
+		if (!found)
+		{
+			found = fixEdgeCubes_bringToUpBackEdge_searchEdge(targetIndexLeft, expectedUp, expectedBack, Face::Up, Face::Left, Face::Front, "F'UF", true);
+			if (found) casesCovered[19] = true;
+		}
+		if (!found)
+		{
+			found = fixEdgeCubes_bringToUpBackEdge_searchEdge(targetIndexRight, expectedUp, expectedBack, Face::Up, Face::Left, Face::Front, string("F'UF") + "B'UR'U'", false);
+			if (found) casesCovered[20] = true;
+		}
+		//Up-Right edge
+		if (!found)
+		{
+			found = fixEdgeCubes_bringToUpBackEdge_searchEdge(targetIndexLeft, expectedUp, expectedBack, Face::Up, Face::Right, Face::Back, "F'U'F", true);
+			if (found) casesCovered[21] = true;
+		}
+		if (!found)
+		{
+			found = fixEdgeCubes_bringToUpBackEdge_searchEdge(targetIndexRight, expectedUp, expectedBack, Face::Up, Face::Right, Face::Back, string("F'U'F") + "", false);
+			if (found) casesCovered[22] = true;
+		}
+
+		RubiksCubeSolverUtils::RunTimeAssert(found); //We must find edge before reaching here
+		return found;
 	}
 
-	int RubiksCubeModel_v5::RubiksCubeSolver_NxNxN::fixEdgeCubes_bringToUpBackEdge_searchEdge(int index, Color targetColorFront, Color targetColorUp,
-		Face face1, Face face2, Face face3, Cube*& actualCube)
+	bool RubiksCubeModel_v5::RubiksCubeSolver_NxNxN::fixEdgeCubes_bringToUpBackEdge_searchEdge(int targetIndex, Color targetColorUp, Color targetColorFront,
+		Face face1, Face face2, Face face3, const string& algo, bool sameOrientation)
 	{
 		int size = rubiksCube_.getSize();
 		int targetBits = (1 << targetColorFront) | (1 << targetColorUp);
-		for (int i = 2; i < size; ++i)
-		{
-			actualCube = &rubiksCube_.GetCube(face1, 1, face2, 1, face3, i);
-			int bits = (1 << actualCube->GetFaceColor(Face::Front)) | (1 << actualCube->GetFaceColor(Face::Up));
-			if (bits == targetBits)
-				return i; // return the index from left
-		}
+		//for (int i = 2; i < size; ++i)
+		//{
+			Cube& cube = rubiksCube_.GetCube(face1, 1, face2, 1, face3, targetIndex);
+			Color up = cube.GetFaceColor(face1);
+			Color front = cube.GetFaceColor(face2);
+			if ((sameOrientation && targetColorUp == up && targetColorFront == front) ||
+				(!sameOrientation && targetColorUp == front && targetColorFront == up))
+			{
+				applyAlgorithm(algo);
+				return true;
+			}
 
-		return -1;
+			//int bits = ((1 << front) | (1 << up));
+			//if (bits == targetBits)
+			//{
+			//	if (targetColorUp == up)
+			//	{
+			//		applyAlgorithm(correctionAlgo);
+			//		//retIndex = size - retIndex + 1;
+			//	}
+			//	else
+			//	{
+			//		applyAlgorithm(algo);
+			//		//retIndex = i; // return the index from left
+			//	}
+
+			//	return true;
+			//}
+		//
+
+		return false;
 	}
 
 	void RubiksCubeModel_v5::RubiksCubeSolver_NxNxN::applyAlgorithm(const string& step)

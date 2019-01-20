@@ -30,6 +30,7 @@
 #include <vector>
 #include <unordered_map>
 #include <memory>
+#include <unordered_set>
 using namespace std;
 
 #include <gl\gl.h>
@@ -410,9 +411,10 @@ namespace mm {
 			/**//**/bool fixCenterCubes_bothFrontAndUpFaces(int targetLineIndexFromLeft, int targetIndexFromUp, Color targetColor, int rowFromTopToAvoid, int centerRowToAvoid);
 			
 			/**/void fixEdgeCubes(Color targetColor1, Color targetColor2);
-			/**//**/int fixEdgeCubes_bringToUpBackEdge(int index, Color targetColorFront, Color targetColorUp);
-			/**//**//**/int fixEdgeCubes_bringToUpBackEdge_searchEdge(int index, Color targetColorFront, Color targetColorUp,
-				Face face1, Face face2, Face face3, Cube*& actualCube);
+			/**//**/bool fixEdgeCubes_ensureUpRightEdgeUnsolved();
+			/**//**/bool fixEdgeCubes_bringToUpBackEdge(int targetIndexLeft, Color targetColorUp, Color targetColorFront);
+			/**//**//**/bool fixEdgeCubes_bringToUpBackEdge_searchEdge(int targetIndex, Color targetColorUp, Color targetColorFront,
+				Face face1, Face face2, Face face3, const string& algo, bool sameOrientation);
 
 			void positionTheCube();
 			void buildCross();
@@ -432,6 +434,8 @@ namespace mm {
 
 			bool animate_;
 			RubiksCubeSolverUI& ui_;
+
+			unordered_set<unsigned int> solvedEdges_;
 		};
 	};
 
