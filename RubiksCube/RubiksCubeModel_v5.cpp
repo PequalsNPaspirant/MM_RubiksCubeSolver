@@ -2383,6 +2383,206 @@ namespace mm {
 		fixEdgeCubes_ensureUpRightEdgeUnsolved();
 		applyAlgorithm("RB");
 
+		int size = rubiksCube_.getSize();
+		bool hasCenterPiece = (size % 2 == 1);
+		int totalVeticalLines = size - 2;
+		int totalVerticalLinesToBeFormed = 0;
+		int centerLineIndex = -1;
+		if (hasCenterPiece)
+		{
+			totalVerticalLinesToBeFormed = (totalVeticalLines + 1) / 2; //including center line
+			--totalVerticalLinesToBeFormed; //Exclude center line for now
+			centerLineIndex = 1 + totalVerticalLinesToBeFormed;
+		}
+		else
+			totalVerticalLinesToBeFormed = totalVeticalLines / 2;
+
+		//Use checkIfEdgeSolved() instead of below two conditions to flip edge
+		if(fixEdgeCubes_bringToUpBackEdge_searchEdge(2, targetColorUp1, targetColorFront1, Face::Up, Face::Front, Face::Left, "", false) &&
+			fixEdgeCubes_bringToUpBackEdge_searchEdge(2, targetColorUp1, targetColorFront1, Face::Up, Face::Front, Face::Right, "", false))
+			applyAlgorithm("FU'RU");
+
+		if(fixEdgeCubes_bringToUpBackEdge_searchEdge(2, targetColorUp2, targetColorBack2, Face::Up, Face::Back, Face::Left, "", false) &&
+			fixEdgeCubes_bringToUpBackEdge_searchEdge(2, targetColorUp2, targetColorBack2, Face::Up, Face::Back, Face::Right, "", false))
+			applyAlgorithm("BU'LU");
+
+		Cube cube;
+		for (int indexFromLeft = 2; indexFromLeft <= size/2; ++indexFromLeft)
+		{
+			int indexFromRight = size - indexFromLeft + 1;
+			//check if its found at right position
+			if (fixEdgeCubes_bringToUpBackEdge_searchEdge(indexFromLeft, targetColorUp1, targetColorFront1, Face::Up, Face::Front, Face::Left, "", true) &&
+				fixEdgeCubes_bringToUpBackEdge_searchEdge(indexFromLeft, targetColorUp1, targetColorFront1, Face::Up, Face::Front, Face::Right, "", true) &&
+				fixEdgeCubes_bringToUpBackEdge_searchEdge(indexFromLeft, targetColorUp2, targetColorBack2, Face::Up, Face::Back, Face::Left, "", true) && 
+				fixEdgeCubes_bringToUpBackEdge_searchEdge(indexFromLeft, targetColorUp2, targetColorBack2, Face::Up, Face::Back, Face::Right, "", true))
+				continue;
+
+			cube = rubiksCube_.GetCube(Face::Up, 1, Face::Front, 1, Face::Left, indexFromLeft);
+			unsigned int frontLeft = ((1u << cube.GetFaceColor(Face::Up)) | (1u << cube.GetFaceColor(Face::Front)));
+			cube = rubiksCube_.GetCube(Face::Up, 1, Face::Front, 1, Face::Right, indexFromLeft);
+			unsigned int frontRight = ((1u << cube.GetFaceColor(Face::Up)) | (1u << cube.GetFaceColor(Face::Front)));
+			cube = rubiksCube_.GetCube(Face::Up, 1, Face::Back, 1, Face::Left, indexFromLeft);
+			unsigned int backLeft = ((1u << cube.GetFaceColor(Face::Up)) | (1u << cube.GetFaceColor(Face::Back)));
+			cube = rubiksCube_.GetCube(Face::Up, 1, Face::Back, 1, Face::Right, indexFromLeft);
+			unsigned int backRight = ((1u << cube.GetFaceColor(Face::Up)) | (1u << cube.GetFaceColor(Face::Back)));
+
+			//if this layer is good, but layer at indexFromRight has cubes swapped 
+			if (frontLeft == backRight && frontRight == backLeft)
+			{
+				applyAlgorithm("L(" + to_string(indexFromLeft) + ")'");
+				applyAlgorithm("U2");
+				applyAlgorithm("L(" + to_string(indexFromLeft) + ")'");
+				applyAlgorithm("U2");
+				applyAlgorithm("F2");
+				applyAlgorithm("L(" + to_string(indexFromLeft) + ")'");
+				applyAlgorithm("F2");
+				applyAlgorithm("R(" + to_string(indexFromLeft) + ")");
+				applyAlgorithm("U2");
+				applyAlgorithm("R(" + to_string(indexFromLeft) + ")'");
+				applyAlgorithm("U2");
+				applyAlgorithm("L(" + to_string(indexFromLeft) + ")2");
+			}
+			/*
+			if (fixEdgeCubes_bringToUpBackEdge_searchEdge(indexFromLeft, targetColorUp1, targetColorFront1, Face::Up, Face::Front, Face::Left, "", true) &&
+				fixEdgeCubes_bringToUpBackEdge_searchEdge(indexFromLeft, targetColorUp2, targetColorBack2, Face::Up, Face::Front, Face::Right, "", false) &&
+				fixEdgeCubes_bringToUpBackEdge_searchEdge(indexFromLeft, targetColorUp2, targetColorBack2, Face::Up, Face::Back, Face::Left, "", true) &&
+				fixEdgeCubes_bringToUpBackEdge_searchEdge(indexFromLeft, targetColorUp1, targetColorFront1, Face::Up, Face::Back, Face::Right, "", false))
+			{
+				applyAlgorithm("L(" + to_string(indexFromLeft) + ")'");
+				applyAlgorithm("U2");
+				applyAlgorithm("L(" + to_string(indexFromLeft) + ")'");
+				applyAlgorithm("U2");
+				applyAlgorithm("F2");
+				applyAlgorithm("L(" + to_string(indexFromLeft) + ")'");
+				applyAlgorithm("F2");
+				applyAlgorithm("R(" + to_string(indexFromLeft) + ")");
+				applyAlgorithm("U2");
+				applyAlgorithm("R(" + to_string(indexFromLeft) + ")'");
+				applyAlgorithm("U2");
+				applyAlgorithm("L(" + to_string(indexFromLeft) + ")2");
+			}
+			else if (fixEdgeCubes_bringToUpBackEdge_searchEdge(indexFromLeft, targetColorUp1, targetColorFront1, Face::Up, Face::Front, Face::Right, "", true) &&
+				fixEdgeCubes_bringToUpBackEdge_searchEdge(indexFromLeft, targetColorUp2, targetColorBack2, Face::Up, Face::Front, Face::Left, "", false) &&
+				fixEdgeCubes_bringToUpBackEdge_searchEdge(indexFromLeft, targetColorUp2, targetColorBack2, Face::Up, Face::Back, Face::Right, "", true) &&
+				fixEdgeCubes_bringToUpBackEdge_searchEdge(indexFromLeft, targetColorUp1, targetColorFront1, Face::Up, Face::Back, Face::Left, "", false))
+			{
+				applyAlgorithm("Y2");
+
+				applyAlgorithm("L(" + to_string(indexFromLeft) + ")'");
+				applyAlgorithm("U2");
+				applyAlgorithm("L(" + to_string(indexFromLeft) + ")'");
+				applyAlgorithm("U2");
+				applyAlgorithm("F2");
+				applyAlgorithm("L(" + to_string(indexFromLeft) + ")'");
+				applyAlgorithm("F2");
+				applyAlgorithm("R(" + to_string(indexFromLeft) + ")");
+				applyAlgorithm("U2");
+				applyAlgorithm("R(" + to_string(indexFromLeft) + ")'");
+				applyAlgorithm("U2");
+				applyAlgorithm("L(" + to_string(indexFromLeft) + ")2");
+
+				applyAlgorithm("Y2");
+
+				//applyAlgorithm("R(" + to_string(indexFromLeft) + ")'");
+				//applyAlgorithm("U2");
+				//applyAlgorithm("R(" + to_string(indexFromLeft) + ")'");
+				//applyAlgorithm("U2");
+				//applyAlgorithm("B2");
+				//applyAlgorithm("R(" + to_string(indexFromLeft) + ")'");
+				//applyAlgorithm("B2");
+				//applyAlgorithm("L(" + to_string(indexFromLeft) + ")");
+				//applyAlgorithm("U2");
+				//applyAlgorithm("L(" + to_string(indexFromLeft) + ")'");
+				//applyAlgorithm("U2");
+				//applyAlgorithm("R(" + to_string(indexFromLeft) + ")2");
+			}
+			*/
+			//if this layer has same colored cubes in Front and Back layer
+			//and layer at indexFromRight has other colored cubes in Front and Back layer
+			/*
+			else if (
+				(fixEdgeCubes_bringToUpBackEdge_searchEdge(indexFromLeft, targetColorUp1, targetColorFront1, Face::Up, Face::Front, Face::Left, "", true) &&
+				fixEdgeCubes_bringToUpBackEdge_searchEdge(indexFromLeft, targetColorUp1, targetColorFront1, Face::Up, Face::Back, Face::Left, "", true) &&
+				fixEdgeCubes_bringToUpBackEdge_searchEdge(indexFromLeft, targetColorUp2, targetColorBack2, Face::Up, Face::Front, Face::Right, "", true) &&
+				fixEdgeCubes_bringToUpBackEdge_searchEdge(indexFromLeft, targetColorUp2, targetColorBack2, Face::Up, Face::Back, Face::Right, "", true))
+				||
+				(fixEdgeCubes_bringToUpBackEdge_searchEdge(indexFromLeft, targetColorUp1, targetColorFront1, Face::Up, Face::Front, Face::Right, "", true) &&
+				fixEdgeCubes_bringToUpBackEdge_searchEdge(indexFromLeft, targetColorUp1, targetColorFront1, Face::Up, Face::Back, Face::Right, "", true) &&
+				fixEdgeCubes_bringToUpBackEdge_searchEdge(indexFromLeft, targetColorUp2, targetColorBack2, Face::Up, Face::Front, Face::Left, "", true) &&
+				fixEdgeCubes_bringToUpBackEdge_searchEdge(indexFromLeft, targetColorUp2, targetColorBack2, Face::Up, Face::Back, Face::Left, "", true))
+				)
+				*/
+			else if (frontLeft == backLeft && frontRight == backRight)
+			{
+				//Edge-flipping algo
+				applyAlgorithm("L(" + to_string(indexFromLeft) + ")");
+
+				applyAlgorithm("F");
+				applyAlgorithm("R");
+				applyAlgorithm("F'");
+				applyAlgorithm("U");
+				applyAlgorithm("F'");
+				applyAlgorithm("U'");
+				applyAlgorithm("F");
+
+				applyAlgorithm("L(" + to_string(indexFromLeft) + ")'");
+			}
+			else
+				RubiksCubeSolverUtils::RunTimeAssert(false, "Unhandled case in last two edges");
+
+			//Use parity algo if Back edge is good, but Front edge has both cubes (at indexFromLeft and at indexFromRight) in opposite orientation
+			if (fixEdgeCubes_bringToUpBackEdge_searchEdge(indexFromLeft, targetColorUp1, targetColorFront1, Face::Up, Face::Front, Face::Left, "", false) &&
+				fixEdgeCubes_bringToUpBackEdge_searchEdge(indexFromLeft, targetColorUp1, targetColorFront1, Face::Up, Face::Front, Face::Right, "", false) &&
+				fixEdgeCubes_bringToUpBackEdge_searchEdge(indexFromLeft, targetColorUp2, targetColorBack2, Face::Up, Face::Back, Face::Left, "", true) &&
+				fixEdgeCubes_bringToUpBackEdge_searchEdge(indexFromLeft, targetColorUp2, targetColorBack2, Face::Up, Face::Back, Face::Right, "", true))
+			{
+				applyAlgorithm("R(" + to_string(indexFromLeft) + ")'");
+				applyAlgorithm("U2");
+				applyAlgorithm("L(" + to_string(indexFromLeft) + ")");
+				applyAlgorithm("F2");
+				applyAlgorithm("L(" + to_string(indexFromLeft) + ")'");
+				applyAlgorithm("F2");
+				applyAlgorithm("R(" + to_string(indexFromLeft) + ")2");
+				applyAlgorithm("U2");
+				applyAlgorithm("R(" + to_string(indexFromLeft) + ")");
+				applyAlgorithm("U2");
+				applyAlgorithm("R(" + to_string(indexFromLeft) + ")'");
+				applyAlgorithm("U2");
+				applyAlgorithm("F2");
+				applyAlgorithm("R(" + to_string(indexFromLeft) + ")2");
+				applyAlgorithm("F2");
+			}
+			else if (fixEdgeCubes_bringToUpBackEdge_searchEdge(indexFromLeft, targetColorUp1, targetColorFront1, Face::Up, Face::Front, Face::Left, "", true) &&
+				fixEdgeCubes_bringToUpBackEdge_searchEdge(indexFromLeft, targetColorUp1, targetColorFront1, Face::Up, Face::Front, Face::Right, "", true) &&
+				fixEdgeCubes_bringToUpBackEdge_searchEdge(indexFromLeft, targetColorUp2, targetColorBack2, Face::Up, Face::Back, Face::Left, "", false) &&
+				fixEdgeCubes_bringToUpBackEdge_searchEdge(indexFromLeft, targetColorUp2, targetColorBack2, Face::Up, Face::Back, Face::Right, "", false))
+			{
+				applyAlgorithm("Y2");
+
+				applyAlgorithm("R(" + to_string(indexFromLeft) + ")'");
+				applyAlgorithm("U2");
+				applyAlgorithm("L(" + to_string(indexFromLeft) + ")");
+				applyAlgorithm("F2");
+				applyAlgorithm("L(" + to_string(indexFromLeft) + ")'");
+				applyAlgorithm("F2");
+				applyAlgorithm("R(" + to_string(indexFromLeft) + ")2");
+				applyAlgorithm("U2");
+				applyAlgorithm("R(" + to_string(indexFromLeft) + ")");
+				applyAlgorithm("U2");
+				applyAlgorithm("R(" + to_string(indexFromLeft) + ")'");
+				applyAlgorithm("U2");
+				applyAlgorithm("F2");
+				applyAlgorithm("R(" + to_string(indexFromLeft) + ")2");
+				applyAlgorithm("F2");
+
+				applyAlgorithm("Y2");
+			}
+			else
+			{
+				RubiksCubeSolverUtils::RunTimeAssert(false, "both the last two edges have parity issue");
+			}
+		}
+
 		return true;
 	}
 
