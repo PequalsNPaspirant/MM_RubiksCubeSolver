@@ -1429,33 +1429,33 @@ namespace mm {
 		//Take while face up
 		//applyAlgorithm("X2"); //This may help create cross
 		applyAlgorithm("Z");
-		fixEdgeCubes(Color::Blue, Color::Red);
+		fixEdgeCubes(Color::Red, Color::Blue);
 		applyAlgorithm("X");
-		fixEdgeCubes(Color::Red, Color::Green);
+		fixEdgeCubes(Color::Green, Color::Red);
 		applyAlgorithm("X");
-		fixEdgeCubes(Color::Green, Color::Orange);
+		fixEdgeCubes(Color::Orange, Color::Green);
 		applyAlgorithm("X");
-		fixEdgeCubes(Color::Orange, Color::Blue);
+		fixEdgeCubes(Color::Blue, Color::Orange);
 		applyAlgorithm("XZ");
 
-		fixEdgeCubes(Color::Blue, Color::White);
+		fixEdgeCubes(Color::White, Color::Blue);
 		applyAlgorithm("Y'");
-		fixEdgeCubes(Color::Red, Color::White);
+		fixEdgeCubes(Color::White, Color::Orange);
 		applyAlgorithm("Y'");
-		fixEdgeCubes(Color::Green, Color::White);
+		fixEdgeCubes(Color::White, Color::Green);
 		applyAlgorithm("Y'");
-		//applyAlgorithm("R2");
-		fixEdgeCubes(Color::Orange, Color::White);
-		//applyAlgorithm("R2");
+		fixEdgeCubes(Color::White, Color::Red);
 		
 		applyAlgorithm("X2");
-		fixEdgeCubes(Color::Blue, Color::Yellow);
-		//applyAlgorithm("Y'");
+		fixEdgeCubes(Color::Yellow, Color::Orange);
+		applyAlgorithm("Y'");
+		fixEdgeCubes(Color::Yellow, Color::Blue);
 
-		//Collect all 3 remaining broken edges on Up Face (Front, Right and Back edges)
-		//fixEdgeCubes(Color::Red, Color::Yellow); //This will fix remaining two edges as well
-		//fixEdgeCubes(Color::Green, Color::Yellow);
-		//fixEdgeCubes(Color::Orange, Color::Yellow);
+		//Bring 2 remaining broken edges on Up Face (Front and Back edges)
+		//fixEdgeCubes(Color::Yellow, Color::Red);
+		//fixEdgeCubes(Color::Yellow, Color::Green);
+		applyAlgorithm("Y'");
+		fixEdgeCubes_lastTwoEdges(Color::Yellow, Color::Red, Color::Yellow, Color::Green);
 	}
 
 	void RubiksCubeModel_v5::RubiksCubeSolver_NxNxN::fixCenterCubes_singleFace(Color targetColor)
@@ -2049,14 +2049,14 @@ namespace mm {
 		return retVal;
 	}
 
-	void RubiksCubeModel_v5::RubiksCubeSolver_NxNxN::fixEdgeCubes(Color color1, Color color2)
+	void RubiksCubeModel_v5::RubiksCubeSolver_NxNxN::fixEdgeCubes(Color targetColorUp, Color targetColorFront)
 	{
 		//Always fix front and back edges on top face
 		int size = rubiksCube_.getSize();
 		int numEdgeCubes = size - 2;
 		//Collect all edge cubes one by one on Front-Up edge from Left to Right
-		Color targetColorFront = color1;
-		Color targetColorUp = color2;
+		//Color targetColorFront = color1;
+		//Color targetColorUp = color2;
 		
 		//Ensure that the Up-Front edge is broken/unsolved edge
 		int i = 0;
@@ -2148,9 +2148,9 @@ namespace mm {
 			applyAlgorithm("L(" + to_string(edgeCubeIndexFromLeft) + ")'");
 			applyAlgorithm("R");
 			applyAlgorithm("F'");
-
-			solvedEdges_.insert((1u << color1) | (1u << color2));
 		}
+
+		solvedEdges_.insert((1u << targetColorUp) | (1u << targetColorFront));
 
 		//Once done, move this edge to left
 		//applyAlgorithm("F'");
@@ -2327,7 +2327,7 @@ namespace mm {
 		}
 		if (!found)
 		{
-			found = fixEdgeCubes_bringToUpBackEdge_searchEdge(targetIndexRight, expectedUp, expectedBack, Face::Up, Face::Right, Face::Back, string("F'U'F") + "", false);
+			found = fixEdgeCubes_bringToUpBackEdge_searchEdge(targetIndexRight, expectedUp, expectedBack, Face::Up, Face::Right, Face::Back, "RB", false);
 			if (found) casesCovered[22] = true;
 		}
 
@@ -2371,6 +2371,19 @@ namespace mm {
 		//
 
 		return false;
+	}
+
+	bool RubiksCubeModel_v5::RubiksCubeSolver_NxNxN::fixEdgeCubes_lastTwoEdges(Color targetColorUp1, Color targetColorFront1, Color targetColorUp2, Color targetColorBack2)
+	{
+		//Ensure Up-Front edge is unsolved
+		fixEdgeCubes_ensureUpRightEdgeUnsolved();
+		applyAlgorithm("U");
+
+		//Ensure Up-Back edge is unsolved
+		fixEdgeCubes_ensureUpRightEdgeUnsolved();
+		applyAlgorithm("RB");
+
+		return true;
 	}
 
 	void RubiksCubeModel_v5::RubiksCubeSolver_NxNxN::applyAlgorithm(const string& step)
