@@ -2398,6 +2398,7 @@ namespace mm {
 			totalVerticalLinesToBeFormed = totalVeticalLines / 2;
 
 		//Use checkIfEdgeSolved() instead of below two conditions to flip edge
+		//TODO: Do not use this trick as it can be parity issue only with these cubes and rest cubes are in right orientation
 		if(fixEdgeCubes_bringToUpBackEdge_searchEdge(2, targetColorUp1, targetColorFront1, Face::Up, Face::Front, Face::Left, "", false) &&
 			fixEdgeCubes_bringToUpBackEdge_searchEdge(2, targetColorUp1, targetColorFront1, Face::Up, Face::Front, Face::Right, "", false))
 			applyAlgorithm("FU'RU");
@@ -2532,9 +2533,10 @@ namespace mm {
 
 			//Use parity algo if Back edge is good, but Front edge has both cubes (at indexFromLeft and at indexFromRight) in opposite orientation
 			if (fixEdgeCubes_bringToUpBackEdge_searchEdge(indexFromLeft, targetColorUp1, targetColorFront1, Face::Up, Face::Front, Face::Left, "", false) &&
-				fixEdgeCubes_bringToUpBackEdge_searchEdge(indexFromLeft, targetColorUp1, targetColorFront1, Face::Up, Face::Front, Face::Right, "", false) &&
-				fixEdgeCubes_bringToUpBackEdge_searchEdge(indexFromLeft, targetColorUp2, targetColorBack2, Face::Up, Face::Back, Face::Left, "", true) &&
-				fixEdgeCubes_bringToUpBackEdge_searchEdge(indexFromLeft, targetColorUp2, targetColorBack2, Face::Up, Face::Back, Face::Right, "", true))
+				fixEdgeCubes_bringToUpBackEdge_searchEdge(indexFromLeft, targetColorUp1, targetColorFront1, Face::Up, Face::Front, Face::Right, "", false) //&&
+				//fixEdgeCubes_bringToUpBackEdge_searchEdge(indexFromLeft, targetColorUp2, targetColorBack2, Face::Up, Face::Back, Face::Left, "", true) &&
+				//fixEdgeCubes_bringToUpBackEdge_searchEdge(indexFromLeft, targetColorUp2, targetColorBack2, Face::Up, Face::Back, Face::Right, "", true)
+				)
 			{
 				applyAlgorithm("R(" + to_string(indexFromLeft) + ")'");
 				applyAlgorithm("U2");
@@ -2552,8 +2554,8 @@ namespace mm {
 				applyAlgorithm("R(" + to_string(indexFromLeft) + ")2");
 				applyAlgorithm("F2");
 			}
-			else if (fixEdgeCubes_bringToUpBackEdge_searchEdge(indexFromLeft, targetColorUp1, targetColorFront1, Face::Up, Face::Front, Face::Left, "", true) &&
-				fixEdgeCubes_bringToUpBackEdge_searchEdge(indexFromLeft, targetColorUp1, targetColorFront1, Face::Up, Face::Front, Face::Right, "", true) &&
+			if (//fixEdgeCubes_bringToUpBackEdge_searchEdge(indexFromLeft, targetColorUp1, targetColorFront1, Face::Up, Face::Front, Face::Left, "", true) &&
+				//fixEdgeCubes_bringToUpBackEdge_searchEdge(indexFromLeft, targetColorUp1, targetColorFront1, Face::Up, Face::Front, Face::Right, "", true) &&
 				fixEdgeCubes_bringToUpBackEdge_searchEdge(indexFromLeft, targetColorUp2, targetColorBack2, Face::Up, Face::Back, Face::Left, "", false) &&
 				fixEdgeCubes_bringToUpBackEdge_searchEdge(indexFromLeft, targetColorUp2, targetColorBack2, Face::Up, Face::Back, Face::Right, "", false))
 			{
@@ -2577,10 +2579,19 @@ namespace mm {
 
 				applyAlgorithm("Y2");
 			}
-			else
-			{
-				RubiksCubeSolverUtils::RunTimeAssert(false, "both the last two edges have parity issue");
-			}
+			
+			bool verified = (
+				(fixEdgeCubes_bringToUpBackEdge_searchEdge(indexFromLeft, targetColorUp1, targetColorFront1, Face::Up, Face::Front, Face::Left, "", true) &&
+				fixEdgeCubes_bringToUpBackEdge_searchEdge(indexFromLeft, targetColorUp1, targetColorFront1, Face::Up, Face::Front, Face::Right, "", true) &&
+				fixEdgeCubes_bringToUpBackEdge_searchEdge(indexFromLeft, targetColorUp2, targetColorBack2, Face::Up, Face::Back, Face::Left, "", true) &&
+				fixEdgeCubes_bringToUpBackEdge_searchEdge(indexFromLeft, targetColorUp2, targetColorBack2, Face::Up, Face::Back, Face::Right, "", true))
+				||
+				(fixEdgeCubes_bringToUpBackEdge_searchEdge(indexFromLeft, targetColorUp1, targetColorFront1, Face::Up, Face::Back, Face::Left, "", true) &&
+				fixEdgeCubes_bringToUpBackEdge_searchEdge(indexFromLeft, targetColorUp1, targetColorFront1, Face::Up, Face::Back, Face::Right, "", true) &&
+				fixEdgeCubes_bringToUpBackEdge_searchEdge(indexFromLeft, targetColorUp2, targetColorBack2, Face::Up, Face::Front, Face::Left, "", true) &&
+				fixEdgeCubes_bringToUpBackEdge_searchEdge(indexFromLeft, targetColorUp2, targetColorBack2, Face::Up, Face::Front, Face::Right, "", true))
+				);
+			RubiksCubeSolverUtils::RunTimeAssert(verified, "The last two edges verification failed");
 		}
 
 		return true;
