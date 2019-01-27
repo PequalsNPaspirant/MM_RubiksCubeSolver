@@ -27,6 +27,7 @@
 #pragma once
 
 #include <string>
+#include <unordered_map>
 using namespace std;
 
 namespace mm {
@@ -35,6 +36,9 @@ namespace mm {
 
 	struct testInfoAggregate
 	{
+		testInfoAggregate()
+		{}
+
 		testInfoAggregate(const string& modelName, unsigned int size)
 			: modelName_(modelName), size_(size), numTestCases_(0), nsAggregateDuration_(0)
 		{}
@@ -104,11 +108,13 @@ namespace mm {
 		static const int numAlgoOfEachLength;
 		static vector<string> genericModels;
 
-		void generateHardcodedTestCases(vector<AlgoPairs>& scrambleAlgosHardcoded, vector<testInfoAggregate>& testInfoAggregateSetHardcoded);
+		void generateHardcodedTestCases(unordered_map<int, vector<AlgoPairs>>& scrambleAlgosHardcoded, vector<testInfoAggregate>& testInfoAggregateSetHardcoded);
 		void generateBasicTestCases(vector<AlgoPairs>& scrambleAlgosBasic, vector<testInfoAggregate>& testInfoAggregateSetBasic);
 		void generateGenericTestCases(vector<AlgoPairs>& scrambleAlgosGeneric, vector<testInfoAggregate>& testInfoAggregateSetGeneric);
 
-		bool executeAllTests(const vector<AlgoPairs>& scrambleAlgos, vector<testInfoAggregate>& testInfoAggregateSet,
+		void generateTestCases(unordered_map<int, vector<AlgoPairs>>& scrambleAlgos, vector<testInfoAggregate>& testInfoAggregateSet);
+
+		bool executeAllTests(unordered_map<int, vector<AlgoPairs>>& scrambleAlgos, vector<testInfoAggregate>& testInfoAggregateSet,
 			vector<testInfo>& testInfoSet, bool animate);
 	};
 	
