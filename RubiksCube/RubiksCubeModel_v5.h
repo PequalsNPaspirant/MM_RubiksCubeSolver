@@ -297,7 +297,7 @@ namespace mm {
 
 			const Location& getLocation() const { return location_; }
 			void rotate(CVector3 rotationAxis, double rotationAngle);
-			bool belongsTo(Face rotatingSection, int layerIndex, int size) const;
+			bool belongsTo(Face rotatingSection, int layerIndexFrom, int layerIndexTo, int size) const;
 
 		private:
 			static const int FACE_COUNT = 6;
@@ -327,7 +327,7 @@ namespace mm {
 
 		//const Cube& GetCube(double x, double y, double z);
 		Cube& GetCube(Face layer1, int layerIndex1, Face layer2, int layerIndex2, Face layer3, int layerIndex3);
-		void Rotate(CVector3 rotationAxis, Face rotatingSection, int layerIndex, double rotationAngle);
+		void Rotate(CVector3 rotationAxis, Face rotatingSection, int layerIndexFrom, int layerIndexTo, double rotationAngle);
 		int getSize() const { return size_; }
 
 	private:
@@ -363,7 +363,7 @@ namespace mm {
 
 		bool IsValidCube(int x, int y, int z);
 		unique_ptr<Cube> CreateCube(double x, double y, double z, const Location& location);
-		void applyStep(const char& face, int layerIndex, bool isPrime, int numRotations, bool animate, RubiksCubeSolverUI& ui);
+		void applyStep(const char& face, int layerIndexFrom, int layerIndexTo, bool isPrime, int numRotations, bool animate, RubiksCubeSolverUI& ui);
 		void fixRubiksCubeFaces();
 
 		//vector< vector< vector<Cube> > > cubes_; // Total elements = size_ * size_ * size_
@@ -379,7 +379,8 @@ namespace mm {
 		bool g_bFlipRotation;
 		CVector3 g_vRotationAxis;
 		Face g_nRotatingSection;
-		int g_nLayerIndex;
+		int g_nLayerIndexFrom;
+		int g_nLayerIndexTo;
 		double g_nRotationAngle;
 		int cubeSize_;
 		double extend_;
@@ -401,8 +402,11 @@ namespace mm {
 		private:
 			void reduceTo3x3x3();
 			/**/void fixCenterCubes_singleFace(Color targetColor);
-			/**//**/bool fixCenterCubes_moveTargetCubeToRightFace(Face fromFace, const string& preMove,
+			/**//**/bool fixCenterCubes_moveTargetCubeFromUpToRightFace(Face fromFace, const string& preMove,
 				int targetLineIndexFromLeft, int targetIndexFromUp, Color targetColor, 
+				int columnFromLeftToAvoid, int centerColumnToAvoid);
+			/**//**/bool fixCenterCubes_moveTargetCubeFromFrontToRightFace(Face fromFace, const string& preMove,
+				int targetLineIndexFromLeft, int targetIndexFromUp, Color targetColor,
 				int columnFromLeftToAvoid, int centerColumnToAvoid);
 			/**//**/bool fixCenterCubes_moveTargetCubeToFrontFace(Face fromFace, const string& frontFacePreMove,
 				int targetLineIndexFromLeft, int targetIndexFromUp, Color targetColor);
@@ -411,6 +415,7 @@ namespace mm {
 			/**//**/bool fixCenterCubes_bothFrontAndUpFaces(int targetLineIndexFromLeft, int targetIndexFromUp, Color targetColor, int rowFromTopToAvoid, int centerRowToAvoid);
 			
 			/**/void fixEdgeCubes(Color targetColorUp, Color targetColorFront);
+			/**//**/bool fixEdgeCubes_checkIfEdgeIsAlreadySolved(Color targetColorUp, Color targetColorFront);
 			/**//**/bool fixEdgeCubes_ensureUpRightEdgeUnsolved();
 			/**//**/bool fixEdgeCubes_bringToUpBackEdge(int targetIndexLeft, Color targetColorUp, Color targetColorFront);
 			/**//**//**/bool fixEdgeCubes_bringToUpBackEdge_searchEdge(int targetIndex, Color targetColorUp, Color targetColorFront,

@@ -75,6 +75,12 @@ namespace mm {
 		string actualSolution_;
 	};
 
+	struct AlgoPairs
+	{
+		string scramble;
+		string solution;
+	};
+
 	class RubiksCubeSolverTest
 	{
 	public:
@@ -86,13 +92,24 @@ namespace mm {
 		static string getCurrentLocalTimeInNanoSeconds2();
 
 	private:
-		int executeAllTests(vector<testInfoAggregate>& testInfoAggregateSet, bool animate);
-		void executeTest(testInfo& info, ofstream& testResultsFile, bool animate, unsigned int testNum);
+		void executeTest(testInfo& info, bool animate, unsigned int testNum);
 
 		void writeResultsToCSVFile(ofstream& testResultsFile, const vector<testInfoAggregate>& testInfoAggregateSet);
 		void writeResultsToCSVFile(ofstream& testResultsFile, const vector<testInfo>& testInfoSet);
 
 		RubiksCubeSolverUI& refUI_;
+
+		static int maxSize;
+		static vector<int> scramblingAlgoLengths;
+		static const int numAlgoOfEachLength;
+		static vector<string> genericModels;
+
+		void generateHardcodedTestCases(vector<AlgoPairs>& scrambleAlgosHardcoded, vector<testInfoAggregate>& testInfoAggregateSetHardcoded);
+		void generateBasicTestCases(vector<AlgoPairs>& scrambleAlgosBasic, vector<testInfoAggregate>& testInfoAggregateSetBasic);
+		void generateGenericTestCases(vector<AlgoPairs>& scrambleAlgosGeneric, vector<testInfoAggregate>& testInfoAggregateSetGeneric);
+
+		bool executeAllTests(const vector<AlgoPairs>& scrambleAlgos, vector<testInfoAggregate>& testInfoAggregateSet,
+			vector<testInfo>& testInfoSet, bool animate);
 	};
 	
 }

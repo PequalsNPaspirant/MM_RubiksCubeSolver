@@ -45,55 +45,78 @@ using namespace std;
 
 namespace mm {
 
+	int RubiksCubeSolverTest::maxSize = 7;
+	vector<int> RubiksCubeSolverTest::scramblingAlgoLengths{ 5, 10, 15, 20, 25, 30, 50, 75, 100, 200 };
+	const int RubiksCubeSolverTest::numAlgoOfEachLength = 100;
+	vector<string> RubiksCubeSolverTest::genericModels{
+		"RubiksCubeModel_v5"
+	};
+
 	bool RubiksCubeSolverTest::testRubiksCube(bool animate)
 	{
-		vector<testInfoAggregate> testInfoAggregateSet{
-			{ "RubiksCubeModel_v3", 2 },
-			{ "RubiksCubeModel_v4", 2 },
-			{ "RubiksCubeModel_v5", 2 },
-
-			{ "RubiksCubeModel_v1", 3 },
-			{ "RubiksCubeModel_v2", 3 },
-			{ "RubiksCubeModel_v3", 3 },
-			{ "RubiksCubeModel_v4", 3 },
-			{ "RubiksCubeModel_v5", 3 },
-
-			{ "RubiksCubeModel_v4", 4 },
-			//{ "RubiksCubeModel_v5", 4 }
-		};
-
-		//Specific test cases to test
-		//testInfoSet.push_back({ "RubiksCubeModel_v2", 3, "X", "X'" });
-		//testInfoSet.push_back({ "RubiksCubeModel_v2", 3, "D2", "D'2" });
-		//testInfoSet.push_back({ "RubiksCubeModel_v3", 2, "F", "" });
-		//testInfoSet.push_back({ "RubiksCubeModel_v3", 2, "D'", "" });
-		//testInfoSet.push_back({ "RubiksCubeModel_v4", 3, "D", "" });
-		//testInfoSet.push_back({ "RubiksCubeModel_v4", 3, "D'", "" });
-		//testInfoSet.push_back({ "RubiksCubeModel_v4", 3, "D2", "" });
-		//testInfoSet.push_back({ "RubiksCubeModel_v4", 3, "LRDFL'", "" });
-
 		unique_ptr<RubiksCubeModel> originalModel = refUI_.replaceModelBy("RubiksCubeModel_v1", 3, false);
 
-		int numTestCases = executeAllTests(testInfoAggregateSet, animate);
-		refUI_.CreateOkDialog("All " + to_string(numTestCases) + " tests are successfully completed!");
+		vector<AlgoPairs> scrambleAlgosHardcoded;
+		vector<testInfoAggregate> testInfoAggregateSetHardcoded;
+		generateHardcodedTestCases(scrambleAlgosHardcoded, testInfoAggregateSetHardcoded);
+		vector<testInfo> testInfoSetHardcoded;
+		executeAllTests(scrambleAlgosHardcoded, testInfoAggregateSetHardcoded, testInfoSetHardcoded, animate);
+		refUI_.CreateOkDialog("All " + to_string(testInfoSetHardcoded.size()) + " Hardcoded tests are successfully completed!");
+
+		vector<AlgoPairs> scrambleAlgosBasic;
+		vector<testInfoAggregate> testInfoAggregateSetBasic;
+		generateBasicTestCases(scrambleAlgosBasic, testInfoAggregateSetBasic);
+		vector<testInfo> testInfoSetBasic;
+		executeAllTests(scrambleAlgosBasic, testInfoAggregateSetBasic, testInfoSetBasic, animate);
+		refUI_.CreateOkDialog("All " + to_string(testInfoSetBasic.size()) + " Basic tests are successfully completed!");
+
+		vector<AlgoPairs> scrambleAlgosGeneric;
+		vector<testInfoAggregate> testInfoAggregateSetGeneric;
+		generateGenericTestCases(scrambleAlgosGeneric, testInfoAggregateSetGeneric);
+		vector<testInfo> testInfoSetGeneric;
+		executeAllTests(scrambleAlgosGeneric, testInfoAggregateSetGeneric, testInfoSetGeneric, animate);
+		refUI_.CreateOkDialog("All " + to_string(testInfoSetGeneric.size()) + " Generic tests are successfully completed!");
+
+		ofstream testResultsFile;
+		testResultsFile.open("../test/RubiksCubeTestResults_" + getCurrentLocalTimeInNanoSeconds2() + ".csv");
+		if (testResultsFile.is_open())
+		{
+			writeResultsToCSVFile(testResultsFile, testInfoAggregateSetBasic);
+			writeResultsToCSVFile(testResultsFile, testInfoAggregateSetGeneric);
+			writeResultsToCSVFile(testResultsFile, testInfoSetBasic);
+			writeResultsToCSVFile(testResultsFile, testInfoSetGeneric);
+			testResultsFile.close();
+		}
+
+		int numTestCases = testInfoSetBasic.size() + testInfoSetGeneric.size();
+
+		refUI_.CreateOkDialog("All " + to_string(numTestCases) + " tests are successfully completed and written to .csv file!");
 
 		refUI_.replaceModelBy(std::move(originalModel), true);
 
 		return true;
 	}
 
-	int RubiksCubeSolverTest::executeAllTests(vector<testInfoAggregate>& testInfoAggregateSet, bool animate)
+	void RubiksCubeSolverTest::generateHardcodedTestCases(vector<AlgoPairs>& scrambleAlgosHardcoded, vector<testInfoAggregate>& testInfoAggregateSetHardcoded)
 	{
-		vector<int> lengths{ 5, 10, 15, 20, 25, 30, 50, 75, 100, 200 };
+		//Specific test cases to test
+		//testInfoSetHardcoded.push_back({ "RubiksCubeModel_v2", 3, "X", "X'" });
+		//testInfoSetHardcoded.push_back({ "RubiksCubeModel_v2", 3, "D2", "D'2" });
+		//testInfoSetHardcoded.push_back({ "RubiksCubeModel_v3", 2, "F", "" });
+		//testInfoSetHardcoded.push_back({ "RubiksCubeModel_v3", 2, "D'", "" });
+		//testInfoSetHardcoded.push_back({ "RubiksCubeModel_v4", 3, "D", "" });
+		//testInfoSetHardcoded.push_back({ "RubiksCubeModel_v4", 3, "D'", "" });
+		//testInfoSetHardcoded.push_back({ "RubiksCubeModel_v4", 3, "D2", "" });
+		//testInfoSetHardcoded.push_back({ "RubiksCubeModel_v4", 3, "LRDFL'", "" });
 
-		struct AlgoPairs
-		{
-			string scramble;
-			string solution;
-		};
+		//scrambleAlgosHardcoded.push_back({"U", "U'"});
+		//testInfoAggregateSetHardcoded.push_back({"RubiksCubeModel_v5", 4});
+	}
 
+	void RubiksCubeSolverTest::generateBasicTestCases(vector<AlgoPairs>& scrambleAlgosBasic, vector<testInfoAggregate>& testInfoAggregateSetBasic)
+	{
 		//50 hardcoded scrambling algos
-		vector<AlgoPairs> scrambleAlgos{
+		scrambleAlgosBasic = vector<AlgoPairs>{
 			{ "U", "U'" },
 			{ "D", "D'" },
 			{ "L", "L'" },
@@ -155,67 +178,123 @@ namespace mm {
 		//Add 10 x 100 = 1000 random srambling algos independent of Model
 		bool includeNonStandardRotations = false;
 		unique_ptr<RubiksCubeModel> model = RubiksCubeModelFactory::getRubiksCubeModel("RubiksCubeModel_v2", 3);
-		const int numAlgoOfEachLength = 100;
-		for (int len : lengths)
+		
+		for (int len : scramblingAlgoLengths)
 			for (int i = 0; i < numAlgoOfEachLength; ++i)
-				scrambleAlgos.push_back({ model->getScramblingAlgo(len, includeNonStandardRotations), "" });
+				scrambleAlgosBasic.push_back({ model->getScramblingAlgo(len, includeNonStandardRotations), "" });
 
-		vector<testInfo> testInfoSetCommon;
-		vector<testInfo> testInfoSetModelSpecific;
-		ofstream testResultsFile;
-		testResultsFile.open("../test/RubiksCubeTestResults_" + getCurrentLocalTimeInNanoSeconds2() + ".csv");
+		//vector<testInfoAggregate> testInfoAggregateSet{
+		//	{ "RubiksCubeModel_v3", 2 },
+		//	{ "RubiksCubeModel_v4", 2 },
+		//	{ "RubiksCubeModel_v5", 2 },
 
+		//	{ "RubiksCubeModel_v1", 3 },
+		//	{ "RubiksCubeModel_v2", 3 },
+		//	{ "RubiksCubeModel_v3", 3 },
+		//	{ "RubiksCubeModel_v4", 3 },
+		//	{ "RubiksCubeModel_v5", 3 },
+
+		//	{ "RubiksCubeModel_v4", 4 },
+		//	//{ "RubiksCubeModel_v5", 4 }
+		//};
+
+		//Fill up size == 2 models
+		//testInfoAggregateSetBasic.push_back({ "RubiksCubeModel_v3", 2 });
+		//testInfoAggregateSetBasic.push_back({ "RubiksCubeModel_v4", 2 });
+		for (int i = 0; i < genericModels.size(); ++i)
+			testInfoAggregateSetBasic.push_back({ genericModels[i], 2 });
+
+		//Fill up size == 3 models
+		//testInfoAggregateSetBasic.push_back({ "RubiksCubeModel_v1", 3 });
+		//testInfoAggregateSetBasic.push_back({ "RubiksCubeModel_v2", 3 });
+		//testInfoAggregateSetBasic.push_back({ "RubiksCubeModel_v3", 3 });
+		//testInfoAggregateSetBasic.push_back({ "RubiksCubeModel_v4", 3 });
+		for (int i = 0; i < genericModels.size(); ++i)
+			testInfoAggregateSetBasic.push_back({ genericModels[i], 3 });
+
+		//testInfoAggregateSetBasic.push_back({ "RubiksCubeModel_v4", 4 });
+		for (unsigned int size = 4; size <= maxSize; ++size)
+			for (int i = 0; i < genericModels.size(); ++i)
+				testInfoAggregateSetBasic.push_back({ genericModels[i], size });
+
+		//for (testInfoAggregate& modelinfo : testInfoAggregateSetBasic)
+		//{
+		//	modelinfo.nsAggregateDuration_ = 0;
+		//	modelinfo.numTestCases_ = scrambleAlgos.size();
+		//}
+	
+		////All above 50 + 1000 scrambling algos are tested on every model
+		//unsigned int testNum = 0;
+		//for (const AlgoPairs& algoPair : scrambleAlgos)
+		//{
+		//	for (testInfoAggregate& modelinfo : testInfoAggregateSetBasic)
+		//	{
+		//		testInfoSetBasic.emplace_back(modelinfo.modelName_, modelinfo.size_, algoPair.scramble, algoPair.solution);
+		//		executeTest(*testInfoSetBasic.rbegin(), animate, ++testNum);
+		//		modelinfo.nsAggregateDuration_ += testInfoSetBasic.rbegin()->nsDuration_;
+		//	}
+		//}
+	}
+
+	void RubiksCubeSolverTest::generateGenericTestCases(vector<AlgoPairs>& scrambleAlgosGeneric, vector<testInfoAggregate>& testInfoAggregateSetGeneric)
+	{
+		bool includeNonStandardRotations = true;
+		unique_ptr<RubiksCubeModel> model = RubiksCubeModelFactory::getRubiksCubeModel("RubiksCubeModel_v5", 3);
+
+		for (int len : scramblingAlgoLengths)
+			for (int i = 0; i < numAlgoOfEachLength; ++i)
+				scrambleAlgosGeneric.push_back({ model->getScramblingAlgo(len, includeNonStandardRotations), "" });
+
+		for (unsigned int size = 4; size <= maxSize; ++size)
+			for (int i = 0; i < genericModels.size(); ++i)
+				testInfoAggregateSetGeneric.push_back({ genericModels[i], size });
+
+		////numModex x 10 x 100 = numModex x 1000  Model specific scrambling algos
+		//bool includeNonStandardRotations = true;
+		//unsigned int testNum = 0;
+		//for (testInfoAggregate& modelinfo : testInfoAggregateSetGeneric)
+		//{
+		//	modelinfo.nsAggregateDuration_ = 0;
+		//	modelinfo.numTestCases_ = 0;
+		//	for (int len : scramblingAlgoLengths)
+		//	{
+		//		for (int i = 0; i < numAlgoOfEachLength; ++i)
+		//		{
+		//			testInfoSetGeneric.emplace_back(modelinfo.modelName_, modelinfo.size_, model->getScramblingAlgo(len, includeNonStandardRotations), "");
+		//			executeTest(*testInfoSetGeneric.rbegin(), animate, ++testNum);
+		//			modelinfo.nsAggregateDuration_ += testInfoSetGeneric.rbegin()->nsDuration_;
+		//			modelinfo.numTestCases_ += 1;
+		//		}
+		//	}
+		//}
+	}
+
+	bool RubiksCubeSolverTest::executeAllTests(const vector<AlgoPairs>& scrambleAlgos, vector<testInfoAggregate>& testInfoAggregateSet,
+		vector<testInfo>& testInfoSet, bool animate)
+	{
 		for (testInfoAggregate& modelinfo : testInfoAggregateSet)
 		{
 			modelinfo.nsAggregateDuration_ = 0;
 			modelinfo.numTestCases_ = scrambleAlgos.size();
 		}
 
-		if (testResultsFile.is_open())
+		unsigned int testNum = 0;
+		//for (const AlgoPairs& algoPair : scrambleAlgos)
+		for(int i = 0; i < scrambleAlgos.size(); ++i)
 		{
-			//All above 50 + 1000 scrambling algos are tested on every model
-			unsigned int testNum = 0;
-			for (const AlgoPairs& algoPair : scrambleAlgos)
+			//for (testInfoAggregate& modelinfo : testInfoAggregateSet)
+			for(int j = 0; j < testInfoAggregateSet.size(); ++j)
 			{
-				for (testInfoAggregate& modelinfo : testInfoAggregateSet)
-				{
-					testInfoSetCommon.emplace_back(modelinfo.modelName_, modelinfo.size_, algoPair.scramble, algoPair.solution);
-					executeTest(*testInfoSetCommon.rbegin(), testResultsFile, animate, ++testNum);
-					modelinfo.nsAggregateDuration_ += testInfoSetCommon.rbegin()->nsDuration_;
-				}
-			}			
-			writeResultsToCSVFile(testResultsFile, testInfoAggregateSet);
-
-			//numModex x 10 x 100 = numModex x 1000  Model specific scrambling algos
-			includeNonStandardRotations = true;
-			testNum = 0;
-			for (testInfoAggregate& modelinfo : testInfoAggregateSet)
-			{
-				modelinfo.nsAggregateDuration_ = 0;
-				modelinfo.numTestCases_ = 0;
-				for (int len : lengths)
-				{
-					for (int i = 0; i < numAlgoOfEachLength; ++i)
-					{
-						testInfoSetModelSpecific.emplace_back(modelinfo.modelName_, modelinfo.size_, model->getScramblingAlgo(len, includeNonStandardRotations), "");
-						executeTest(*testInfoSetModelSpecific.rbegin(), testResultsFile, animate, ++testNum);
-						modelinfo.nsAggregateDuration_ += testInfoSetModelSpecific.rbegin()->nsDuration_;
-						modelinfo.numTestCases_ += 1;
-					}
-				}
+				testInfoSet.emplace_back(testInfoAggregateSet[j].modelName_, testInfoAggregateSet[j].size_, scrambleAlgos[i].scramble, scrambleAlgos[i].solution);
+				executeTest(*testInfoSet.rbegin(), animate, ++testNum);
+				testInfoAggregateSet[j].nsAggregateDuration_ += testInfoSet.rbegin()->nsDuration_;
 			}
-			writeResultsToCSVFile(testResultsFile, testInfoAggregateSet);
-
-			writeResultsToCSVFile(testResultsFile, testInfoSetCommon);
-			writeResultsToCSVFile(testResultsFile, testInfoSetModelSpecific);
-
-			testResultsFile.close();
 		}
 
-		return testInfoSetCommon.size() + testInfoSetModelSpecific.size();
+		return true;
 	}
 
-	void RubiksCubeSolverTest::executeTest(testInfo& info, ofstream& testResultsFile, bool animate, unsigned int testNum)
+	void RubiksCubeSolverTest::executeTest(testInfo& info, bool animate, unsigned int testNum)
 	{			
 		if (animate)
 			refUI_.CreateOkDialog("Test No.: " + to_string(testNum)
