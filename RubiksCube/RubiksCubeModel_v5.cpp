@@ -1720,7 +1720,11 @@ namespace mm {
 
 		int target = -1;
 		int numCase = 0;
+		int leftBoundary = targetLineIndexFromLeft;
+		int rightBoundary = size - targetLineIndexFromLeft + 1;
 
+		//faces = { Face::Left , Face::Back, Face::Right, Face::Front };
+		//Avoid the center line, already done line and current line if move == 1
 		if ((target = targetLineIndexFromLeft) != -1
 			&& centerColumnToAvoid != target
 			&& columnFromLeftToAvoid != target
@@ -1729,7 +1733,7 @@ namespace mm {
 			numCase = 1;
 		}
 		else if ((target = size - targetIndexFromUp + 1) != -1
-			&& targetIndexFromUp < targetLineIndexFromLeft
+			&& (targetIndexFromUp <= leftBoundary || targetIndexFromUp >= rightBoundary)
 			&& centerColumnToAvoid != target
 			&& columnFromLeftToAvoid != target
 			&& rubiksCube_.GetCube(fromFace, 1, faces[1], targetLineIndexFromLeft, faces[2], targetIndexFromUp).GetFaceColor(fromFace) == targetColor)
@@ -1744,7 +1748,7 @@ namespace mm {
 			numCase = 3;
 		}
 		else if ((target = targetIndexFromUp) != -1
-			&& targetIndexFromUp < targetLineIndexFromLeft
+			&& (targetIndexFromUp <= leftBoundary || targetIndexFromUp >= rightBoundary)
 			&& centerColumnToAvoid != target
 			&& columnFromLeftToAvoid != target
 			&& rubiksCube_.GetCube(fromFace, 1, faces[3], targetLineIndexFromLeft, faces[0], targetIndexFromUp).GetFaceColor(fromFace) == targetColor)
@@ -4585,7 +4589,7 @@ namespace mm {
 		//Step 2
 		//while (true)
 		bool PLL_step2 = false;
-		for(int iterations = 0; iterations < 4; iterations++)
+		for(int iterations = 0; iterations < 7; iterations++)
 		{
 			Cube currentCube;
 			//Color c1, c2, c3, c4, c5, c6, c7, c8, c9;

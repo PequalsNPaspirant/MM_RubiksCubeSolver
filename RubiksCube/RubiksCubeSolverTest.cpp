@@ -82,7 +82,7 @@ namespace mm {
 		generateTestCases(scrambleAlgos, testInfoAggregateSet);
 		vector<testInfo> testInfoSet;
 		executeAllTests(scrambleAlgos, testInfoAggregateSet, testInfoSet, animate);
-		refUI_.CreateOkDialog("All " + to_string(testInfoSet.size()) + " Basic tests are successfully completed!");
+		refUI_.CreateOkDialog("All " + to_string(testInfoSet.size()) + " tests are successfully completed!");
 
 		ofstream testResultsFile;
 		testResultsFile.open("../test/RubiksCubeTestResults_" + getCurrentLocalTimeInNanoSeconds2() + ".csv");
@@ -286,22 +286,22 @@ namespace mm {
 	{
 		//50 hardcoded scrambling algos
 		vector<AlgoPairs> scrambleAlgos_size2{
-			//{ "U", "U'" },
-			//{ "D", "D'" },
-			//{ "L", "L'" },
-			//{ "R", "R'" },
-			//{ "F", "F'" },
-			//{ "B", "B'" },
-			//{ "X", "X'" },
-			//{ "Y", "Y'" },
-			//{ "Z", "Z'" },
+			{ "U", "U'" },
+			{ "D", "D'" },
+			{ "L", "L'" },
+			{ "R", "R'" },
+			{ "F", "F'" },
+			{ "B", "B'" },
+			{ "X", "X'" },
+			{ "Y", "Y'" },
+			{ "Z", "Z'" },
 
-			//{ "U'", "U" },
-			//{ "D'", "D" },
-			//{ "L'", "L" },
-			//{ "R'", "R" },
-			//{ "F'", "F" },
-			//{ "B'", "B" },
+			{ "U'", "U" },
+			{ "D'", "D" },
+			{ "L'", "L" },
+			{ "R'", "R" },
+			{ "F'", "F" },
+			{ "B'", "B" },
 			{ "X'", "X" },
 			{ "Y'", "Y" },
 			{ "Z'", "Z" },
@@ -363,16 +363,16 @@ namespace mm {
 		//Fill up size == 2 models
 		//testInfoAggregateSet.push_back({ "RubiksCubeModel_v3", 2 });
 		//testInfoAggregateSet.push_back({ "RubiksCubeModel_v4", 2 });
-		//for (int i = 0; i < genericModels.size(); ++i)
-		//	testInfoAggregateSet.push_back({ genericModels[i], 2 });
+		for (int i = 0; i < genericModels.size(); ++i)
+			testInfoAggregateSet.push_back({ genericModels[i], 2 });
 
 		//Fill up size == 3 models
 		//testInfoAggregateSet.push_back({ "RubiksCubeModel_v1", 3 });
 		//testInfoAggregateSet.push_back({ "RubiksCubeModel_v2", 3 });
 		//testInfoAggregateSet.push_back({ "RubiksCubeModel_v3", 3 });
 		//testInfoAggregateSet.push_back({ "RubiksCubeModel_v4", 3 });
-		//for (int i = 0; i < genericModels.size(); ++i)
-		//	testInfoAggregateSet.push_back({ genericModels[i], 3 });
+		for (int i = 0; i < genericModels.size(); ++i)
+			testInfoAggregateSet.push_back({ genericModels[i], 3 });
 
 		for (unsigned int size = 4; size <= maxSize; ++size)
 			for (int i = 0; i < genericModels.size(); ++i)
