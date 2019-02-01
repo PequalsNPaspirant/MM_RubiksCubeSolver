@@ -385,7 +385,7 @@ namespace mm {
 		for (testInfoAggregate& modelinfo : testInfoAggregateSet)
 		{
 			modelinfo.nsAggregateDuration_ = 0;
-			modelinfo.numTestCases_ = scrambleAlgos.size();
+			modelinfo.numTestCases_ = scrambleAlgos[modelinfo.size_].size();
 		}
 
 		unsigned int testNum = 0;
