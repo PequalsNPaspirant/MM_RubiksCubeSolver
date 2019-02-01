@@ -41,6 +41,7 @@ namespace mm {
 			if (!expression)
 			{
 				//cout << msg;
+				RubiksCubeSolverUI::getInstance().redrawWindow();
 				bool bContinue = RubiksCubeSolverUI::getInstance().CreateYesNoDialog("Assertion failure: " + msg + "\nDo you want to continue?");
 				if (!bContinue)
 				{

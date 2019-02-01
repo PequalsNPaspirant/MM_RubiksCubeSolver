@@ -411,9 +411,11 @@ namespace mm {
 			/**//**/bool fixCenterCubes_moveTargetCubeToFrontFace(Face fromFace, const string& frontFacePreMove,
 				int targetLineIndexFromLeft, int targetIndexFromUp, Color targetColor);
 			/**/void fixCenterCubes_twoFaces(Color targetColor1, Color targetColor2);
-			/**//**/bool fixCenterCubes_bothFrontAndUpFaces_CheckIfLineExist(Face faceFront, Face faceLeft, int targetLineIndexFromLeft, Face faceUp, Color targetColorRightFace, const string& algo);
-			/**//**/bool fixCenterCubes_bothFrontAndUpFaces(int targetLineIndexFromLeft, int targetIndexFromUp, Color targetColor, int rowFromTopToAvoid, int centerRowToAvoid);
-			
+			/**/void fixCenterCubes_twoFaces2(Color targetColor1, Color targetColor2);
+			/**//**/bool fixCenterCubes_twoFaces_CheckIfLineExist(Face faceFront, Face faceLeft, int targetLineIndexFromLeft, Face faceUp, Color targetColorRightFace, const string& algo);
+			/**//**/bool fixCenterCubes_twoFaces_moveTargetCubeFromRightToFrontFace(int targetLineIndexFromLeft, int targetIndexFromUp, Color targetColor, int startRowFromTopToAvoid, int endRowFromTopToAvoid);
+			/**//**/bool fixCenterCubes_twoFaces_moveTargetCubeFromFrontToRightFace(int targetLineIndexFromLeft, int targetIndexFromUp, Color targetColor);
+
 			/**/void fixEdgeCubes(Color targetColorUp, Color targetColorFront);
 			/**//**/bool fixEdgeCubes_checkIfEdgeIsAlreadySolved(Color targetColorUp, Color targetColorFront);
 			/**//**/bool fixEdgeCubes_ensureUpRightEdgeUnsolved();

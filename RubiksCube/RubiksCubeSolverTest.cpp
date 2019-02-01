@@ -61,7 +61,7 @@ namespace mm {
 		generateHardcodedTestCases(scrambleAlgosHardcoded, testInfoAggregateSetHardcoded);
 		vector<testInfo> testInfoSetHardcoded;
 		executeAllTests(scrambleAlgosHardcoded, testInfoAggregateSetHardcoded, testInfoSetHardcoded, animate);
-		refUI_.CreateOkDialog("All " + to_string(testInfoSetHardcoded.size()) + " Hardcoded tests are successfully completed!");
+		//refUI_.CreateOkDialog("All " + to_string(testInfoSetHardcoded.size()) + " Hardcoded tests are successfully completed!");
 
 		//vector<AlgoPairs> scrambleAlgosBasic;
 		//vector<testInfoAggregate> testInfoAggregateSetBasic;
@@ -212,16 +212,16 @@ namespace mm {
 		//};
 
 		//Fill up size == 2 models
-		//testInfoAggregateSetBasic.push_back({ "RubiksCubeModel_v3", 2 });
-		//testInfoAggregateSetBasic.push_back({ "RubiksCubeModel_v4", 2 });
+		testInfoAggregateSetBasic.push_back({ "RubiksCubeModel_v3", 2 });
+		testInfoAggregateSetBasic.push_back({ "RubiksCubeModel_v4", 2 });
 		for (int i = 0; i < genericModels.size(); ++i)
 			testInfoAggregateSetBasic.push_back({ genericModels[i], 2 });
 
 		//Fill up size == 3 models
-		//testInfoAggregateSetBasic.push_back({ "RubiksCubeModel_v1", 3 });
-		//testInfoAggregateSetBasic.push_back({ "RubiksCubeModel_v2", 3 });
-		//testInfoAggregateSetBasic.push_back({ "RubiksCubeModel_v3", 3 });
-		//testInfoAggregateSetBasic.push_back({ "RubiksCubeModel_v4", 3 });
+		testInfoAggregateSetBasic.push_back({ "RubiksCubeModel_v1", 3 });
+		testInfoAggregateSetBasic.push_back({ "RubiksCubeModel_v2", 3 });
+		testInfoAggregateSetBasic.push_back({ "RubiksCubeModel_v3", 3 });
+		testInfoAggregateSetBasic.push_back({ "RubiksCubeModel_v4", 3 });
 		for (int i = 0; i < genericModels.size(); ++i)
 			testInfoAggregateSetBasic.push_back({ genericModels[i], 3 });
 
@@ -286,22 +286,22 @@ namespace mm {
 	{
 		//50 hardcoded scrambling algos
 		vector<AlgoPairs> scrambleAlgos_size2{
-			{ "U", "U'" },
-			{ "D", "D'" },
-			{ "L", "L'" },
-			{ "R", "R'" },
-			{ "F", "F'" },
-			{ "B", "B'" },
-			{ "X", "X'" },
-			{ "Y", "Y'" },
-			{ "Z", "Z'" },
+			//{ "U", "U'" },
+			//{ "D", "D'" },
+			//{ "L", "L'" },
+			//{ "R", "R'" },
+			//{ "F", "F'" },
+			//{ "B", "B'" },
+			//{ "X", "X'" },
+			//{ "Y", "Y'" },
+			//{ "Z", "Z'" },
 
-			{ "U'", "U" },
-			{ "D'", "D" },
-			{ "L'", "L" },
-			{ "R'", "R" },
-			{ "F'", "F" },
-			{ "B'", "B" },
+			//{ "U'", "U" },
+			//{ "D'", "D" },
+			//{ "L'", "L" },
+			//{ "R'", "R" },
+			//{ "F'", "F" },
+			//{ "B'", "B" },
 			{ "X'", "X" },
 			{ "Y'", "Y" },
 			{ "Z'", "Z" },
@@ -363,16 +363,16 @@ namespace mm {
 		//Fill up size == 2 models
 		//testInfoAggregateSet.push_back({ "RubiksCubeModel_v3", 2 });
 		//testInfoAggregateSet.push_back({ "RubiksCubeModel_v4", 2 });
-		for (int i = 0; i < genericModels.size(); ++i)
-			testInfoAggregateSet.push_back({ genericModels[i], 2 });
+		//for (int i = 0; i < genericModels.size(); ++i)
+		//	testInfoAggregateSet.push_back({ genericModels[i], 2 });
 
 		//Fill up size == 3 models
 		//testInfoAggregateSet.push_back({ "RubiksCubeModel_v1", 3 });
 		//testInfoAggregateSet.push_back({ "RubiksCubeModel_v2", 3 });
 		//testInfoAggregateSet.push_back({ "RubiksCubeModel_v3", 3 });
 		//testInfoAggregateSet.push_back({ "RubiksCubeModel_v4", 3 });
-		for (int i = 0; i < genericModels.size(); ++i)
-			testInfoAggregateSet.push_back({ genericModels[i], 3 });
+		//for (int i = 0; i < genericModels.size(); ++i)
+		//	testInfoAggregateSet.push_back({ genericModels[i], 3 });
 
 		for (unsigned int size = 4; size <= maxSize; ++size)
 			for (int i = 0; i < genericModels.size(); ++i)
@@ -384,7 +384,8 @@ namespace mm {
 	{
 		for (testInfoAggregate& modelinfo : testInfoAggregateSet)
 		{
-			
+			modelinfo.nsAggregateDuration_ = 0;
+			modelinfo.numTestCases_ = scrambleAlgos.size();
 		}
 
 		unsigned int testNum = 0;
@@ -395,12 +396,12 @@ namespace mm {
 			{
 				for(int j = 0; j < testInfoAggregateSet.size(); ++j)
 				{
-					if (testInfoAggregateSet[j].size_ > size)
-						continue;
-
-					testInfoSet.emplace_back(testInfoAggregateSet[j].modelName_, testInfoAggregateSet[j].size_, algos[i].scramble, algos[i].solution);
-					executeTest(*testInfoSet.rbegin(), animate, ++testNum);
-					testInfoAggregateSet[j].nsAggregateDuration_ += testInfoSet.rbegin()->nsDuration_;
+					if (testInfoAggregateSet[j].size_ >= size)
+					{
+						testInfoSet.emplace_back(testInfoAggregateSet[j].modelName_, testInfoAggregateSet[j].size_, algos[i].scramble, algos[i].solution);
+						executeTest(*testInfoSet.rbegin(), animate, ++testNum);
+						testInfoAggregateSet[j].nsAggregateDuration_ += testInfoSet.rbegin()->nsDuration_;
+					}
 				}
 			}
 		}
