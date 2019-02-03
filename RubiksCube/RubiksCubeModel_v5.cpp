@@ -283,7 +283,7 @@ namespace mm {
 		//g_nRotationAngle(0)
 		scramblingSteps_(0),
 		scramblingAlgo_(""),
-		isScrambling(false),
+		isScrambling_(false),
 		solutionSteps_(0),
 		solution_("")
 	{
@@ -326,7 +326,12 @@ namespace mm {
 		g_nRotatingSection(copy.g_nRotatingSection),
 		g_nLayerIndexFrom(copy.g_nLayerIndexFrom),
 		g_nLayerIndexTo(copy.g_nLayerIndexTo),
-		g_nRotationAngle(copy.g_nRotationAngle)
+		g_nRotationAngle(copy.g_nRotationAngle),
+		scramblingSteps_(copy.scramblingSteps_),
+		scramblingAlgo_(copy.scramblingAlgo_),
+		isScrambling_(copy.isScrambling_),
+		solutionSteps_(copy.solutionSteps_),
+		solution_(copy.solution_)
 	{
 		for (auto& obj : copy.cubes_)
 		{
@@ -350,6 +355,7 @@ namespace mm {
 
 		scramblingSteps_ = 0;
 		scramblingAlgo_ = "";
+		isScrambling_ = false;
 		solutionSteps_ = 0;
 		solution_ = "";
 
@@ -792,55 +798,55 @@ namespace mm {
 
 	unique_ptr<RubiksCubeModel_v5::Cube> RubiksCubeModel_v5::CreateCube(double x, double y, double z, const Location& location)
 	{
-		Color left, right, top, bottom, front, back;
+		Color left(Black), right(Black), top(Black), bottom(Black), front(Black), back(Black);
 
 		if (x == 0)
 		{
 			left = Orange;
-			right = Black;
+			//right = Black;
 		}
-		else if (x == size_ - 1)
+		if (x == size_ - 1)
 		{
-			left = Black;
+			//left = Black;
 			right = Red;
 		}
-		else
-		{
-			left = Black;
-			right = Black;
-		}
+		//else
+		//{
+		//	left = Black;
+		//	right = Black;
+		//}
 
 		if (y == 0)
 		{
 			bottom = White;
-			top = Black;
+			//top = Black;
 		}
-		else if (y == size_ - 1)
+		if (y == size_ - 1)
 		{
-			bottom = Black;
+			//bottom = Black;
 			top = Yellow;
 		}
-		else
-		{
-			bottom = Black;
-			top = Black;
-		}
+		//else
+		//{
+		//	bottom = Black;
+		//	top = Black;
+		//}
 
 		if (z == 0)
 		{
 			back = Green;
-			front = Black;
+			//front = Black;
 		}
-		else if (z == size_ - 1)
+		if (z == size_ - 1)
 		{
-			back = Black;
+			//back = Black;
 			front = Blue;
 		}
-		else
-		{
-			back = Black;
-			front = Black;
-		}
+		//else
+		//{
+		//	back = Black;
+		//	front = Black;
+		//}
 
 		return make_unique<Cube>(top, bottom, left, right, front, back, location, cubeSize_);
 	}
@@ -1001,9 +1007,9 @@ namespace mm {
 	{
 		scramblingSteps_ = 0;
 		scramblingAlgo_ = "";
-		isScrambling = true;
+		isScrambling_ = true;
 		int steps = applyAlgorithm(algorithm, animate, ui);
-		isScrambling = false;
+		isScrambling_ = false;
 	}
 
 	int RubiksCubeModel_v5::applyAlgorithm(const string& algorithm, bool animate, RubiksCubeSolverUI& ui)
@@ -1063,7 +1069,7 @@ namespace mm {
 				numRotations = rotations;
 
 			string step{ algorithm.begin() + start, i < algorithm.size() ? algorithm.begin() + i : algorithm.end() };
-			if (isScrambling)
+			if (isScrambling_)
 			{
 				++scramblingSteps_;
 				scramblingAlgo_ += step;
@@ -1401,9 +1407,12 @@ namespace mm {
 			int index = rand() % numNotations;
 			retVal += charSet[index];
 
-			int layerIndex = rand() % (size_ - 1);
-			if(layerIndex > 1)
-				retVal += ("(" + to_string(layerIndex) + ")");
+			if(size_ > 1)
+			{
+				int layerIndex = rand() % (size_ - 1);
+				if(layerIndex > 1)
+					retVal += ("(" + to_string(layerIndex) + ")");
+			}
 
 			//Generate 50% prime rotations
 			bool isPrime = (rand() % 2) == 1;
@@ -1438,7 +1447,11 @@ namespace mm {
 	string RubiksCubeModel_v5::RubiksCubeSolver_NxNxN::solve(unsigned int& solutionSteps)
 	{
 		if (rubiksCube_.getSize() == 1)
-			return "";
+		{
+			positionTheCube();
+			solutionSteps = rubiksCube_.getSolutionSteps();
+			return rubiksCube_.getSolution();
+		}
 
 		if (rubiksCube_.getSize() % 2 == 1) // has center pieces
 		{
@@ -3454,8 +3467,8 @@ namespace mm {
 	void RubiksCubeModel_v5::RubiksCubeSolver_NxNxN::positionTheCube()
 	{
 		int size = rubiksCube_.getSize();
-		if (size <= 2)
-			return;
+		//if (size <= 2)
+		//	return;
 
 		/*
 		Make sure Cube is positioned in right way

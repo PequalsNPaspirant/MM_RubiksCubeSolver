@@ -61,6 +61,7 @@ namespace mm {
 		: WND_WIDTH(800),
 		WND_HEIGHT(800),
 		msgWindowHeight(100),
+		currentModelName_("RubiksCubeModel_v5"),
 		//scene_(*this, "RubiksCubeModel_v1", 3),
 		//scene_(*this, "RubiksCubeModel_v2", 3),
 		//scene_(*this, "RubiksCubeModel_v3", 3),
@@ -809,6 +810,58 @@ namespace mm {
 		{
 			fitToScreen();
 		}
+		else if (id == ID_RUBIK_1X1X1)
+		{
+			replaceModelBy(currentModelName_, 1, true);
+		}
+		else if (id == ID_RUBIK_2X2X2)
+		{
+			replaceModelBy(currentModelName_, 2, true);
+		}
+		else if (id == ID_RUBIK_3X3X3)
+		{
+			replaceModelBy(currentModelName_, 3, true);
+		}
+		else if (id == ID_RUBIK_4X4X4)
+		{
+			replaceModelBy(currentModelName_, 4, true);
+		}
+		else if (id == ID_RUBIK_5X5X5)
+		{
+			replaceModelBy(currentModelName_, 5, true);
+		}
+		else if (id == ID_RUBIK_6X6X6)
+		{
+			replaceModelBy(currentModelName_, 6, true);
+		}
+		else if (id == ID_RUBIK_7X7X7)
+		{
+			replaceModelBy(currentModelName_, 7, true);
+		}
+		else if (id == ID_RUBIK_8X8X8)
+		{
+			replaceModelBy(currentModelName_, 8, true);
+		}
+		else if (id == ID_RUBIK_9X9X9)
+		{
+			replaceModelBy(currentModelName_, 9, true);
+		}
+		else if (id == ID_RUBIK_10X10X10)
+		{
+			replaceModelBy(currentModelName_, 10, true);
+		}
+		else if (id == ID_RUBIK_INCREASEBYONE)
+		{
+			replaceModelBy(currentModelName_, scene_.getRubiksCubeSize() + 1, true);
+		}
+		else if (id == ID_RUBIK_INCREASEBYFIVE)
+		{
+			replaceModelBy(currentModelName_, scene_.getRubiksCubeSize() + 5, true);
+		}
+		else if (id == ID_RUBIK_INCREASEBYTEN)
+		{
+			replaceModelBy(currentModelName_, scene_.getRubiksCubeSize() + 10, true);
+		}
 		else if (id == IDM_ABOUT)
 		{
 			DialogBox(g_hInstance, MAKEINTRESOURCE(IDD_ABOUTBOX),
@@ -838,6 +891,9 @@ namespace mm {
 		{
 			scene_.scramble(algo, animate);
 		}
+
+		if (!animate)
+			redrawWindow();
 	}
 
 	string RubiksCubeSolverUI::SolveOnCopy(unsigned int& solutionSteps, unsigned long long& duration, bool askForAnimation)

@@ -123,6 +123,7 @@ namespace mm {
 		int framesPerRotation_;
 		int sleepTimeMilliSec_;
 
+		string currentModelName_;
 		RubiksCubeSolverScene scene_;
 		RubiksCubeSolverTest tester_;
 	};

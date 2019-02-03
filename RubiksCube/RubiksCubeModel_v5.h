@@ -389,7 +389,7 @@ namespace mm {
 
 		int scramblingSteps_;
 		string scramblingAlgo_;
-		bool isScrambling;
+		bool isScrambling_;
 		int solutionSteps_;
 		string solution_;
 		

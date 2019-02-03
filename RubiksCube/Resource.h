@@ -36,6 +36,19 @@
 #define ID_RUBIKSCUBE_TEST              32796
 #define ID_RUBIKSCUBE_TEST_ANIM         32797
 #define ID_RUBIKSCUBE_FITTOSCREEN       32798
+#define ID_RUBIK_1X1X1                  32799
+#define ID_RUBIK_2X2X2                  32800
+#define ID_RUBIK_3X3X3                  32801
+#define ID_RUBIK_4X4X4                  32802
+#define ID_RUBIK_5X5X5                  32803
+#define ID_RUBIK_6X6X6                  32804
+#define ID_RUBIK_7X7X7                  32805
+#define ID_RUBIK_8X8X8                  32806
+#define ID_RUBIK_9X9X9                  32807
+#define ID_RUBIK_10X10X10               32808
+#define ID_RUBIK_INCREASEBYONE          32809
+#define ID_RUBIK_INCREASEBYFIVE         32810
+#define ID_RUBIK_INCREASEBYTEN          32811
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
@@ -44,7 +57,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        146
-#define _APS_NEXT_COMMAND_VALUE         32799
+#define _APS_NEXT_COMMAND_VALUE         32812
 #define _APS_NEXT_CONTROL_VALUE         1006
 #define _APS_NEXT_SYMED_VALUE           110
 #endif

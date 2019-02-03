@@ -33,16 +33,32 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "E&xit",                       IDM_EXIT
     END
-    POPUP "Rubiks Cube"
+    POPUP "Rubik's Cube"
     BEGIN
-        MENUITEM "Reset Rubiks Cube",           IDM_RUBIKSCUBE_RESET
+        MENUITEM "Reset Rubik's Cube",          IDM_RUBIKSCUBE_RESET
         MENUITEM "&Scramble",                   IDM_RUBIKSCUBE_SCRAMBLE
         MENUITEM "Scramble (Show Animation)",   IDM_RUBIKSCUBE_SCRAMBLE_ANIM
         MENUITEM "Solve",                       IDM_RUBIKSCUBE_SOLVE
         MENUITEM "Solve (Show Animation)",      IDM_RUBIKSCUBE_SOLVE_ANIM
         MENUITEM "Test",                        ID_RUBIKSCUBE_TEST
         MENUITEM "Test (Show Animation)",       ID_RUBIKSCUBE_TEST_ANIM
-        MENUITEM "Fit to Screen",               ID_RUBIKSCUBE_FITTOSCREEN
+        MENUITEM "Fit to Window",               ID_RUBIKSCUBE_FITTOSCREEN
+    END
+    POPUP "Rubik's Cube Size"
+    BEGIN
+        MENUITEM "1x1x1",                       ID_RUBIK_1X1X1
+        MENUITEM "2x2x2",                       ID_RUBIK_2X2X2
+        MENUITEM "3x3x3",                       ID_RUBIK_3X3X3
+        MENUITEM "4x4x4",                       ID_RUBIK_4X4X4
+        MENUITEM "5x5x5",                       ID_RUBIK_5X5X5
+        MENUITEM "6x6x6",                       ID_RUBIK_6X6X6
+        MENUITEM "7x7x7",                       ID_RUBIK_7X7X7
+        MENUITEM "8x8x8",                       ID_RUBIK_8X8X8
+        MENUITEM "9x9x9",                       ID_RUBIK_9X9X9
+        MENUITEM "10x10x10",                    ID_RUBIK_10X10X10
+        MENUITEM "Increase by One",             ID_RUBIK_INCREASEBYONE
+        MENUITEM "Increase by Five",            ID_RUBIK_INCREASEBYFIVE
+        MENUITEM "Increase by Ten",             ID_RUBIK_INCREASEBYTEN
     END
     POPUP "&Help"
     BEGIN
