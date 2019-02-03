@@ -49,7 +49,8 @@ namespace mm {
 	vector<int> RubiksCubeSolverTest::scramblingAlgoLengths{ 5, 10, 15, 20, 25, 30, 50, 75, 100, 200 };
 	const int RubiksCubeSolverTest::numAlgoOfEachLength = 100;
 	vector<string> RubiksCubeSolverTest::genericModels{
-		"RubiksCubeModel_v5"
+		"RubiksCubeModel_v5",
+		"RubiksCubeModel_v6"
 	};
 
 	bool RubiksCubeSolverTest::testRubiksCube(bool animate)

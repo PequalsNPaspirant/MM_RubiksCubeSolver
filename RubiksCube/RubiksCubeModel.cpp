@@ -124,13 +124,15 @@ namespace mm {
 	unique_ptr<RubiksCubeModel> createRubiksCubeModel_v3(int size);
 	unique_ptr<RubiksCubeModel> createRubiksCubeModel_v4(int size);
 	unique_ptr<RubiksCubeModel> createRubiksCubeModel_v5(int size);
+	unique_ptr<RubiksCubeModel> createRubiksCubeModel_v6(int size);
 
 	unordered_map<string, fptrRubiksCubeModelCreator> RubiksCubeModelFactory::rubiksCubeFactoryMap_ = {
 		unordered_map<string, fptrRubiksCubeModelCreator>::value_type("RubiksCubeModel_v1", createRubiksCubeModel_v1),
 		unordered_map<string, fptrRubiksCubeModelCreator>::value_type("RubiksCubeModel_v2", createRubiksCubeModel_v2),
 		unordered_map<string, fptrRubiksCubeModelCreator>::value_type("RubiksCubeModel_v3", createRubiksCubeModel_v3),
 		unordered_map<string, fptrRubiksCubeModelCreator>::value_type("RubiksCubeModel_v4", createRubiksCubeModel_v4),
-		unordered_map<string, fptrRubiksCubeModelCreator>::value_type("RubiksCubeModel_v5", createRubiksCubeModel_v5)
+		unordered_map<string, fptrRubiksCubeModelCreator>::value_type("RubiksCubeModel_v5", createRubiksCubeModel_v5),
+		unordered_map<string, fptrRubiksCubeModelCreator>::value_type("RubiksCubeModel_v6", createRubiksCubeModel_v6)
 	};
 
 	unique_ptr<RubiksCubeModel> RubiksCubeModelFactory::getRubiksCubeModel(const string& modelName, int size)

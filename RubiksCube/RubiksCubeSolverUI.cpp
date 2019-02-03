@@ -61,7 +61,7 @@ namespace mm {
 		: WND_WIDTH(800),
 		WND_HEIGHT(800),
 		msgWindowHeight(100),
-		currentModelName_("RubiksCubeModel_v5"),
+		currentModelName_("RubiksCubeModel_v6"),
 		//scene_(*this, "RubiksCubeModel_v1", 3),
 		//scene_(*this, "RubiksCubeModel_v2", 3),
 		//scene_(*this, "RubiksCubeModel_v3", 3),
@@ -72,10 +72,11 @@ namespace mm {
 		//scene_(*this, "RubiksCubeModel_v4", 10),
 		//scene_(*this, "RubiksCubeModel_v4", 100),
 		//scene_(*this, "RubiksCubeModel_v5", 4),
-		scene_(*this, "RubiksCubeModel_v5", 5),
+		//scene_(*this, "RubiksCubeModel_v5", 5),
 		//scene_(*this, "RubiksCubeModel_v5", 6),
 		//scene_(*this, "RubiksCubeModel_v5", 7),
 		//scene_(*this, "RubiksCubeModel_v5", 8),
+		scene_(*this, "RubiksCubeModel_v6", 5),
 		framesPerRotation_(5), //ideal value: slow=25, moderate=10, fast=5
 		sleepTimeMilliSec_(2), //ideal value: slow=25, moderate=10, fast=2
 		tester_(*this)

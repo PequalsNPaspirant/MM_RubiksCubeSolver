@@ -311,7 +311,7 @@ namespace mm {
 	{
 		//Set appropriate zoom factor
 		//g_cCamera.SetDistance(45 + (10 * 2));
-		float approxDistToFitScreen = rubiksCubeSize_ * 4;
+		float approxDistToFitScreen = rubiksCubeSize_ * 5;
 		g_cCamera.SetDistance(approxDistToFitScreen);
 		//Dim	width	actual dist		diff
 		//10	20		- 65			45
