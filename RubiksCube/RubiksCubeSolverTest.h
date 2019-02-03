@@ -103,7 +103,9 @@ namespace mm {
 
 		RubiksCubeSolverUI& refUI_;
 
-		static int maxSize;
+		static const int minSize;
+		static const int maxSize;
+		static const int incrementSize;
 		static vector<int> scramblingAlgoLengths;
 		static const int numAlgoOfEachLength;
 		static vector<string> genericModels;
