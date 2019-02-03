@@ -50,11 +50,14 @@ namespace mm {
 		unique_ptr<RubiksCubeModel> replaceModelBy(const string& modelName, int size, bool animate);
 		unique_ptr<RubiksCubeModel> replaceModelBy(unique_ptr<RubiksCubeModel>&& newModel, bool animate);
 		bool isSolved();
-		/**/HWND createWindow(LPTSTR strTitle, int nWidth, int nHeight, DWORD dwStyle, BOOL bFullScreen, HINSTANCE hInstance);
+		/**/void createWindow(LPTSTR strTitle, int nWidth, int nHeight, DWORD dwStyle, BOOL bFullScreen, HINSTANCE hInstance);
 		/**//**/bool changeToFullScreen();
 		/**//**/bool setupPixelFormat(HDC hdc);
 		int getFramesPerRotation() { return framesPerRotation_; }
 		int getSleepTimeMilliSec() { return sleepTimeMilliSec_; }
+		void displayMessage(const string& message = "");
+		void displayMessage(int scramblingSteps_, const string& scramblingAlgo_, int solutionSteps_, const string& solution_);
+		void displayMessage_currentLine(int left, int top, const string& line);
 
 		//Menu Handlers
 		void Reset(bool animate);
@@ -93,14 +96,17 @@ namespace mm {
 		void OnSize(HWND hWnd, UINT state, int cx, int cy);
 		void OnMouseLeave(HWND hWnd);
 		void OnRubiksCubeChanged(HWND hWnd);
+		void OnPaint(HWND hWnd);
 		void OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify);
+		BOOL OnEraseBackground(HWND hwnd, HDC hdc);
 
 		HGLRC g_hRC;
 		HDC g_hDC;
 		TCHAR g_szWindowClass[MAX_LOADSTRING]; // the main window class name
 		HACCEL g_hAccelTable;
-		const int WND_WIDTH = 400;
-		const int WND_HEIGHT = 400;
+		int WND_WIDTH = 800;
+		int WND_HEIGHT = 800;
+		int msgWindowHeight;
 		const int SCREEN_DEPTH = 16;
 		bool g_bMouseDown;
 		int g_nPrevX;

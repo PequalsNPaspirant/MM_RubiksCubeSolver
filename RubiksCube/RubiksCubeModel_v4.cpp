@@ -274,7 +274,7 @@ namespace mm {
 		//g_nRotatingSection(None),
 		//g_nRotationAngle(0)
 	{
-		ResetCube();
+		ResetCube(false, nullptr);
 
 		//for(int i = 0; i < size; ++i)
 		//	for (int j = 0; j < size; ++j)
@@ -324,7 +324,7 @@ namespace mm {
 	{
 	}
 
-	void RubiksCubeModel_v4::ResetCube()
+	void RubiksCubeModel_v4::ResetCube(bool animate, RubiksCubeSolverUI* ui)
 	{
 		g_bRotating = false;
 		g_bFlipRotation = false;
@@ -366,6 +366,11 @@ namespace mm {
 						cubes_[loc] = CreateCube(i, j, k, loc);
 				}
 			}
+		}
+
+		if (animate)
+		{
+			ui->redrawWindow();
 		}
 	}
 
@@ -958,6 +963,11 @@ namespace mm {
 	int RubiksCubeModel_v4::getDimension()
 	{
 		return size_;
+	}
+
+	void RubiksCubeModel_v4::scramble(const string& algorithm, bool animate, RubiksCubeSolverUI& ui)
+	{
+		applyAlgorithm(algorithm, animate, ui);
 	}
 
 	int RubiksCubeModel_v4::applyAlgorithm(const string& algorithm, bool animate, RubiksCubeSolverUI& ui)

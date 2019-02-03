@@ -26,7 +26,8 @@
 #define IDC_COMBO1                      1001
 #define IDC_EDIT1                       1002
 #define IDC_SLIDER1                     1003
-
+#define IDC_STATIC_SOL                  1004
+#define IDC_STATIC_SCRAMBLE             1005
 #define IDM_RUBIKSCUBE_RESET            32791
 #define IDM_RUBIKSCUBE_SCRAMBLE         32792
 #define IDM_RUBIKSCUBE_SCRAMBLE_ANIM    32793
@@ -35,7 +36,6 @@
 #define ID_RUBIKSCUBE_TEST              32796
 #define ID_RUBIKSCUBE_TEST_ANIM         32797
 #define ID_RUBIKSCUBE_FITTOSCREEN       32798
-
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
@@ -45,7 +45,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        146
 #define _APS_NEXT_COMMAND_VALUE         32799
-#define _APS_NEXT_CONTROL_VALUE         1004
+#define _APS_NEXT_CONTROL_VALUE         1006
 #define _APS_NEXT_SYMED_VALUE           110
 #endif
 #endif

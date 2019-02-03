@@ -311,8 +311,9 @@ namespace mm {
 		~RubiksCubeModel_v3();
 		RubiksCubeModel_v3(const RubiksCubeModel_v3& copy);
 
-		void ResetCube() override;
-		int applyAlgorithm(const string& algorithm, bool animate, RubiksCubeSolverUI& ui) override;
+		void ResetCube(bool animate, RubiksCubeSolverUI* ui) override;
+		void scramble(const string& algorithm, bool animate, RubiksCubeSolverUI& ui) override;
+		int applyAlgorithm(const string& algorithm, bool animate, RubiksCubeSolverUI& ui);
 		string getScramblingAlgo(int length, bool includeNonStandardRotations) override;
 		string solve(unsigned int& solutionSteps, unsigned long long& duration, bool animate, RubiksCubeSolverUI& ui) override;
 		void render() override;

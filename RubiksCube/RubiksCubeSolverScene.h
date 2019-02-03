@@ -56,13 +56,15 @@ namespace mm {
 		//void getCubeSelection(int *x, int *y, int *z, Face *face, int g_nHitCount);
 		CVector3 mapCoordinates(int x, int y);
 
-		void Reset();
+		void Reset(bool animate);
 		string getScramblingAlgo(int length);
-		void applyAlgorithmToCube(const string& algo, bool animate);
+		void scramble(const string& algo, bool animate);
 		string Solve(unsigned int& solutionSteps, unsigned long long& duration, bool animate);
 		string SolveOnCopy(unsigned int& solutionSteps, unsigned long long& duration);
 		bool isSolved();
 		void fitToScreen();
+		int getRubiksCubeSize() { return rubiksCubeSize_; }
+		void getDisplayParameters(int& scramblingSteps, string& scramblingAlgo, int& solutionSteps, string& solution);
 
 		//deleted functions
 		RubiksCubeSolverScene(const RubiksCubeSolverScene&) = delete;

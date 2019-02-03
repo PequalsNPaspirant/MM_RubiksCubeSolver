@@ -398,6 +398,17 @@ namespace mm {
 				{
 					if (testInfoAggregateSet[j].size_ >= size)
 					{
+						if (!animate)
+						{
+							string message{
+								"Algo for Rubik's size: " + to_string(size) + " of maxSize " + to_string(maxSize) +
+								" | Algo number: " + to_string(i) + " of " + to_string(algos.size()) +
+								" | Rubik's size: " + to_string(testInfoAggregateSet[j].size_) +
+								" | Executing test number: " + to_string(testNum + 1)							
+							};
+							refUI_.displayMessage(message);
+						}
+
 						testInfoSet.emplace_back(testInfoAggregateSet[j].modelName_, testInfoAggregateSet[j].size_, algos[i].scramble, algos[i].solution);
 						executeTest(*testInfoSet.rbegin(), animate, ++testNum);
 						testInfoAggregateSet[j].nsAggregateDuration_ += testInfoSet.rbegin()->nsDuration_;
@@ -438,7 +449,10 @@ namespace mm {
 			refUI_.Reset(animate);
 			refUI_.applyAlgorithm(info.scrambleAlgo_, false);
 			if (animate)
+			{
 				refUI_.redrawWindow();
+				//refUI_.displayMessage();
+			}
 			//RubiksCubeSolverUtils::RunTimeAssert(!refUI_.isSolved()); //Rubik Cube may or may not be scrmabled depending upon the scrambling algo
 		}
 

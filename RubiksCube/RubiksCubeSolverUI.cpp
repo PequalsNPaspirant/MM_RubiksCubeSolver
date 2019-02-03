@@ -58,8 +58,9 @@ namespace mm {
 	}
 
 	RubiksCubeSolverUI::RubiksCubeSolverUI()
-		: WND_WIDTH(400),
-		WND_HEIGHT(400),
+		: WND_WIDTH(800),
+		WND_HEIGHT(800),
+		msgWindowHeight(100),
 		//scene_(*this, "RubiksCubeModel_v1", 3),
 		//scene_(*this, "RubiksCubeModel_v2", 3),
 		//scene_(*this, "RubiksCubeModel_v3", 3),
@@ -86,7 +87,7 @@ namespace mm {
 		LoadString(NULL, IDC_RUBIKSCUBE, g_szWindowClass, MAX_LOADSTRING);
 		g_hAccelTable = LoadAccelerators(g_hInstance, MAKEINTRESOURCE(IDC_RUBIKSCUBE));
 		g_hInstance = hInstance;
-		g_hWnd = createWindow(g_szTitle, WND_WIDTH, WND_HEIGHT, 0, g_bFullScreen, g_hInstance);
+		createWindow(g_szTitle, WND_WIDTH, WND_HEIGHT, 0, g_bFullScreen, g_hInstance);
 
 		GetClientRect(g_hWnd, &g_rWnd);
 		g_hDC = GetDC(g_hWnd);
@@ -94,14 +95,16 @@ namespace mm {
 		g_hRC = wglCreateContext(g_hDC);
 		wglMakeCurrent(g_hDC, g_hRC);
 
-		scene_.initOpenGl(g_rWnd.right, g_rWnd.bottom);
+		scene_.initOpenGl(g_rWnd.right, g_rWnd.bottom - msgWindowHeight);
 		scene_.initScene();
+
+		Reset(true); //there is some bug in initial display: the Rubiks cube is displayed scattered. Reset() is a workaround.
+		redrawWindow();
 	}
 
-	HWND RubiksCubeSolverUI::createWindow(LPTSTR strTitle, int nWidth, int nHeight, DWORD dwStyle,
+	void RubiksCubeSolverUI::createWindow(LPTSTR strTitle, int nWidth, int nHeight, DWORD dwStyle,
 		BOOL bFullScreen, HINSTANCE hInstance)
 	{
-		HWND hWnd;
 		WNDCLASSEX wndClass;
 
 		g_hArrow = LoadCursor(NULL, IDC_ARROW);
@@ -145,36 +148,35 @@ namespace mm {
 
 		HMENU hMenu = LoadMenu(hInstance, MAKEINTRESOURCE(IDC_RUBIKSCUBE));
 
-		hWnd = CreateWindowEx(0,
+		g_hWnd = CreateWindowEx(0,
 			g_szWindowClass,
 			g_szTitle,
 			dwStyle,
 			CW_USEDEFAULT, CW_USEDEFAULT,
 			rWnd.right - rWnd.left,
-			rWnd.bottom - rWnd.top,
+			rWnd.bottom - rWnd.top - msgWindowHeight,
 			NULL, hMenu, hInstance, NULL);
 
-		if (!hWnd) return NULL;
+		if (!g_hWnd) return;
 
-		ShowWindow(hWnd, SW_SHOWNORMAL);
+		ShowWindow(g_hWnd, SW_SHOWNORMAL);
 		//ShowWindow(hWnd, SW_MAXIMIZE);
-		UpdateWindow(hWnd);
+		UpdateWindow(g_hWnd);
 
-		SetFocus(hWnd);
+		SetFocus(g_hWnd);
 
-		GetClientRect(hWnd, &g_rWnd);
-		g_hDC = GetDC(hWnd);
+		GetClientRect(g_hWnd, &g_rWnd);
+		g_hDC = GetDC(g_hWnd);
 
 		if (!setupPixelFormat(g_hDC))
 			PostQuitMessage(-1);
-
-		return hWnd;
 	}
 
 	void RubiksCubeSolverUI::redrawWindow()
 	{
 		scene_.renderScene();
-		SwapBuffers(g_hDC);
+		bool result = SwapBuffers(g_hDC);
+		displayMessage();
 	}
 
 	bool RubiksCubeSolverUI::CreateYesNoDialog(const string& message)
@@ -194,7 +196,7 @@ namespace mm {
 
 	void RubiksCubeSolverUI::applyAlgorithm(const string& algo, bool animate)
 	{
-		scene_.applyAlgorithmToCube(algo, animate);
+		scene_.scramble(algo, animate);
 	}
 
 	unique_ptr<RubiksCubeModel> RubiksCubeSolverUI::replaceModelBy(const string& modelName, int size, bool animate)
@@ -272,6 +274,88 @@ namespace mm {
 		return true;
 	}
 
+	void RubiksCubeSolverUI::displayMessage(const string& message /*= ""*/)
+	{
+		//Fill up message area with different color
+		RECT messageWndRect;
+		messageWndRect.left = 0;
+		messageWndRect.right = WND_WIDTH;
+		messageWndRect.top = 0;
+		messageWndRect.bottom = msgWindowHeight;
+		HBRUSH brush = CreateSolidBrush(RGB(255, 255, 255));
+		FillRect(g_hDC, &messageWndRect, brush);
+
+		if (message.empty())
+		{
+			int scramblingSteps;
+			string scramblingAlgo;
+			int solutionSteps;
+			string solution;
+			scene_.getDisplayParameters(scramblingSteps, scramblingAlgo, solutionSteps, solution);
+			displayMessage(scramblingSteps, scramblingAlgo, solutionSteps, solution);
+		}
+		else
+		{
+			displayMessage_currentLine(6, 4, message);
+			//wstring wText(message.begin(), message.end());
+			//RECT textRect;
+			//textRect.left = 6;
+			//textRect.right = WND_WIDTH;
+			//textRect.top = 4;
+			//textRect.bottom = msgWindowHeight;
+			//
+			//SetBkMode(g_hDC, TRANSPARENT);
+			//SetTextColor(g_hDC, RGB(50, 50, 50));
+			//DrawText(g_hDC, wText.c_str(), -1, &textRect, DT_SINGLELINE | DT_NOCLIP);
+
+			//The following lines refreshes the screen and the message is displayed on screen (dont know the reason)
+			HDC wdc = GetWindowDC(g_hWnd);
+			DeleteDC(wdc);
+		}
+	}
+
+	void RubiksCubeSolverUI::displayMessage(int scramblingSteps_, const string& scramblingAlgo_, int solutionSteps_, const string& solution_)
+	{
+		int left = 6;
+		int top = 4;
+		int lineHeight = 18;
+
+		int currentTop = top;
+		string size = to_string(scene_.getRubiksCubeSize());
+		displayMessage_currentLine(left, currentTop, "Rubik's Cube Size: " + size + "x" + size + "x" + size);
+
+		currentTop += lineHeight;
+		displayMessage_currentLine(left, currentTop, "Scrambling Steps: " + to_string(scramblingSteps_));
+
+		currentTop += lineHeight;
+		displayMessage_currentLine(left, currentTop, "Scramblng Algorithm: " + scramblingAlgo_);
+
+		currentTop += lineHeight;
+		displayMessage_currentLine(left, currentTop, "Solution Steps: " + to_string(solutionSteps_));
+
+		currentTop += lineHeight;
+		displayMessage_currentLine(left, currentTop, "Solution Algorithm: " + solution_);
+	}
+
+	void RubiksCubeSolverUI::displayMessage_currentLine(int left, int top, const string& line)
+	{
+		wstring wText(line.begin(), line.end());
+		RECT textRect;
+		textRect.left = left;
+		textRect.right = WND_WIDTH;
+		textRect.top = top;
+		textRect.bottom = msgWindowHeight;
+
+		//HDC wdc = GetWindowDC(g_hWnd);
+		//g_hDC = GetWindowDC(g_hWnd);
+		//SetBkColor(wdc, RGB(255, 255, 255));
+		SetBkMode(g_hDC, TRANSPARENT);
+		//SetTextColor(g_hDC, RGB(255, 255, 255));
+		SetTextColor(g_hDC, RGB(50, 50, 50));
+		DrawText(g_hDC, wText.c_str(), -1, &textRect, DT_SINGLELINE | DT_NOCLIP);
+		//DeleteDC(wdc);
+	}
+
 	WPARAM RubiksCubeSolverUI::enterMainLoop()
 	{
 		MSG msg;
@@ -308,7 +392,9 @@ namespace mm {
 				// every frame, so we call our rendering function here.  Even though the scene
 				// doesn't change, it will bottle neck the message queue if we don't do something.
 				// Usually WaitMessage() is used to make sure the app doesn't eat up the CPU.
-				redrawWindow();
+				//redrawWindow();
+				WaitMessage();
+				//::Sleep(10);
 			}
 		}
 
@@ -333,6 +419,7 @@ namespace mm {
 			HANDLE_MSG(hWnd, WM_MOUSELEAVE, mainWindow.OnMouseLeave);
 			HANDLE_MSG(hWnd, WM_MOUSEWHEEL, mainWindow.OnMouseWheel);
 			HANDLE_MSG(hWnd, WM_DESTROY, mainWindow.OnDestroy);
+			//HANDLE_MSG(hWnd, WM_ERASEBKGND, mainWindow.OnEraseBackground);
 		default:
 			return DefWindowProc(hWnd, uMsg, wParam, lParam);
 		}
@@ -386,6 +473,17 @@ namespace mm {
 		}
 	}
 
+	void RubiksCubeSolverUI::OnPaint(HWND hWnd)
+	{
+		redrawWindow();
+	}
+
+	BOOL RubiksCubeSolverUI::OnEraseBackground(HWND hwnd, HDC hdc)
+	{
+		//redrawWindow();
+		return TRUE;
+	}
+
 	//  Process WM_LBUTTONDOWN message for window/dialog: 
 	void RubiksCubeSolverUI::OnLButtonDown(HWND hWnd, BOOL fDoubleClick, int x, int y, UINT keyFlags)
 	{
@@ -403,6 +501,8 @@ namespace mm {
 
 		g_nPrevX = x;
 		g_nPrevY = y;
+
+		redrawWindow();
 	}
 
 	//  Process WM_LBUTTONUP message for window/dialog: 
@@ -439,6 +539,8 @@ namespace mm {
 		PostMessage(g_hWnd, RC_CHANGED, 0, 0);
 		}
 		*/
+
+		redrawWindow();
 	}
 
 	//  Process WM_DESTROY message for window/dialog: 
@@ -472,6 +574,8 @@ namespace mm {
 				scene_.g_cCamera.Tilt(5);
 			else if (y > g_nPrevY)
 				scene_.g_cCamera.Tilt(-5);
+
+			redrawWindow();
 		}
 		/*
 		// rotating section
@@ -624,6 +728,8 @@ namespace mm {
 		*/
 		g_nPrevX = x;
 		g_nPrevY = y;
+
+		//redrawWindow();
 	}
 
 	//  Process WM_MOUSEWHEEL message for window/dialog: 
@@ -633,6 +739,8 @@ namespace mm {
 		float distance = rotations * 1.0f;
 
 		scene_.g_cCamera.Move(distance);
+
+		redrawWindow();
 	}
 
 	//  Process WM_SIZE message for window/dialog: 
@@ -640,9 +748,12 @@ namespace mm {
 	{
 		if (!g_bFullScreen)
 		{
-			scene_.sizeOpenGlScreen(cx, cy);
+			WND_WIDTH = cx;
+			WND_HEIGHT = cy;
+			scene_.sizeOpenGlScreen(cx, cy - msgWindowHeight);
 			GetClientRect(hWnd, &g_rWnd);
 		}
+		redrawWindow();
 	}
 
 	void RubiksCubeSolverUI::OnMouseLeave(HWND hWnd)
@@ -711,9 +822,7 @@ namespace mm {
 
 	void RubiksCubeSolverUI::Reset(bool animate)
 	{
-		scene_.Reset();
-		if(animate)
-			redrawWindow();
+		scene_.Reset(animate);
 	}
 
 	void RubiksCubeSolverUI::Scramble(bool animate)
@@ -727,16 +836,16 @@ namespace mm {
 		if (MessageBox(g_hWnd, wMessage.c_str(),
 			g_szTitle, MB_YESNO | MB_ICONQUESTION | MB_APPLMODAL) == IDYES)
 		{
-			scene_.applyAlgorithmToCube(algo, animate);
+			scene_.scramble(algo, animate);
 		}
 	}
 
 	string RubiksCubeSolverUI::SolveOnCopy(unsigned int& solutionSteps, unsigned long long& duration, bool askForAnimation)
 	{
-		string solution = scene_.SolveOnCopy(solutionSteps, duration);
+		string solution1 = scene_.SolveOnCopy(solutionSteps, duration);
 		
 		if(!askForAnimation)
-			return solution;
+			return solution1;
 
 		wstring wDuration = to_wstring(duration % 1000);
 		duration /= 1000;
@@ -747,18 +856,27 @@ namespace mm {
 			duration /= 1000;
 		}
 
-		wstring wSolution(solution.begin(), solution.end());
-		wstring wMessage = L"Solution: " + wSolution
+		string solution2;
+
+		wstring wSolution(solution1.begin(), solution1.end());
+		wstring wMessage = 
+			L"Solution: " + wSolution
 			+ L"\nNumber of steps: " + to_wstring(solutionSteps)
 			+ L"\nTime required: " + wDuration + L" ns" 
 			+ L"\nDo you want to see animation of solution?";
 		if (MessageBox(g_hWnd, wMessage.c_str(),
 			g_szTitle, MB_YESNO | MB_ICONQUESTION | MB_APPLMODAL) == IDYES)
 		{
-			scene_.applyAlgorithmToCube(solution, true);
+			//scene_.scramble(solution, true);
+			solution2 = scene_.Solve(solutionSteps, duration, true);
 		}
 
-		return solution;
+		if (solution1 != solution2)
+		{
+			CreateOkDialog("Both the solutions are not same!");
+		}
+
+		return solution1;
 	}
 
 	string RubiksCubeSolverUI::Solve(unsigned int& solutionSteps, unsigned long long& duration, bool animate)

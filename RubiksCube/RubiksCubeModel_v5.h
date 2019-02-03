@@ -312,14 +312,16 @@ namespace mm {
 		~RubiksCubeModel_v5();
 		RubiksCubeModel_v5(const RubiksCubeModel_v5& copy);
 
-		void ResetCube() override;
-		int applyAlgorithm(const string& algorithm, bool animate, RubiksCubeSolverUI& ui) override;
+		void ResetCube(bool animate, RubiksCubeSolverUI* ui) override;
+		void scramble(const string& algorithm, bool animate, RubiksCubeSolverUI& ui) override;
+		int applyAlgorithm(const string& algorithm, bool animate, RubiksCubeSolverUI& ui);
 		string getScramblingAlgo(int length, bool includeNonStandardRotations) override;
 		string solve(unsigned int& solutionSteps, unsigned long long& duration, bool animate, RubiksCubeSolverUI& ui) override;
 		void render() override;
 		void renderIndividualCube(const Cube& pCube, const Location& location);
 		bool isSolved() override;
 		bool IsFaceSolved(Face face);
+		void getDisplayParameters(int& scramblingSteps, string& scramblingAlgo, int& solutionSteps, string& solution) override;
 
 		unique_ptr<RubiksCubeModel> copy() override;
 		string getModelName() override;
@@ -384,9 +386,20 @@ namespace mm {
 		double g_nRotationAngle;
 		int cubeSize_;
 		double extend_;
+
+		int scramblingSteps_;
+		string scramblingAlgo_;
+		bool isScrambling;
+		int solutionSteps_;
+		string solution_;
 		
 		static const double scale_;
 
+	public:
+		int getScramblingSteps() { return scramblingSteps_; }
+		const string& getScramblingAlgo() { return scramblingAlgo_; }
+		int getSolutionSteps() { return solutionSteps_; }
+		const string& getSolution() { return solution_; }
 
 		//=======================================================================================================
 		// Solver
@@ -437,8 +450,8 @@ namespace mm {
 			//bool isEdgeCube(const Cube& currentCube, const Color& first, const Color& second);
 
 			RubiksCubeModel_v5& rubiksCube_;
-			string solution_;
-			int solutionSteps_;
+			//string solution_;
+			//int solutionSteps_;
 
 			bool animate_;
 			RubiksCubeSolverUI& ui_;

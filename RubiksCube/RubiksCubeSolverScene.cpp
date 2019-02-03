@@ -62,6 +62,7 @@ namespace mm {
 	{
 		unique_ptr<RubiksCubeModel> originalModel = std::move(rubicCubeModel_);
 		rubicCubeModel_ = RubiksCubeModelFactory::getRubiksCubeModel(modelName, size);
+		rubiksCubeSize_ = size;
 		return std::move(originalModel);
 	}
 
@@ -78,6 +79,7 @@ namespace mm {
 
 		glPolygonMode(GL_FRONT, GL_FILL);
 		glClearColor(0.1f, 0.2f, 0.3f, 0.0f);
+		//glClearColor(0.1f, 0.1f, 0.1f, 0.0f);
 
 		//glFrontFace(GL_CCW);
 		glEnable(GL_CULL_FACE); //This hides the mirror images of visible faces as those mirror images have face normal pointing into screen
@@ -267,9 +269,9 @@ namespace mm {
 	//	*face = (Face)ptrNames[3];
 	//}
 
-	void RubiksCubeSolverScene::Reset()
+	void RubiksCubeSolverScene::Reset(bool animate)
 	{
-		rubicCubeModel_->ResetCube();
+		rubicCubeModel_->ResetCube(animate, &refUI_);
 	}
 
 	string RubiksCubeSolverScene::getScramblingAlgo(int length)
@@ -278,9 +280,9 @@ namespace mm {
 		return rubicCubeModel_->getScramblingAlgo(length, includeNonStandardRotations);
 	}
 
-	void RubiksCubeSolverScene::applyAlgorithmToCube(const string& algo, bool animate)
+	void RubiksCubeSolverScene::scramble(const string& algo, bool animate)
 	{
-		rubicCubeModel_->applyAlgorithm(algo, animate, refUI_);
+		rubicCubeModel_->scramble(algo, animate, refUI_);
 	}
 
 	string RubiksCubeSolverScene::Solve(unsigned int& solutionSteps, unsigned long long& duration, bool animate)
@@ -309,13 +311,18 @@ namespace mm {
 	{
 		//Set appropriate zoom factor
 		//g_cCamera.SetDistance(45 + (10 * 2));
-		float approxDistToFitScreen = rubiksCubeSize_ * 3.5;
+		float approxDistToFitScreen = rubiksCubeSize_ * 4;
 		g_cCamera.SetDistance(approxDistToFitScreen);
 		//Dim	width	actual dist		diff
 		//10	20		- 65			45
 		//4		08		- 30			22	
 		//3		06		- 22			16
 		//2		04		- 17			13
+	}
+
+	void RubiksCubeSolverScene::getDisplayParameters(int& scramblingSteps, string& scramblingAlgo, int& solutionSteps, string& solution)
+	{
+		rubicCubeModel_->getDisplayParameters(scramblingSteps, scramblingAlgo, solutionSteps, solution);
 	}
 }
 

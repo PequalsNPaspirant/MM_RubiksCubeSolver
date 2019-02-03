@@ -275,14 +275,19 @@ namespace mm {
 		//cubes_(27),
 		size_(size),
 		cubeSize_(2),
-		extend_(cubeSize_ * (size - 1) / 2.0)
+		extend_(cubeSize_ * (size - 1) / 2.0),
 		//g_bRotating(false),
 		//g_bFlipRotation(false),
 		//g_vRotationAxis(0, 0, 0),
 		//g_nRotatingSection(None),
 		//g_nRotationAngle(0)
+		scramblingSteps_(0),
+		scramblingAlgo_(""),
+		isScrambling(false),
+		solutionSteps_(0),
+		solution_("")
 	{
-		ResetCube();
+		ResetCube(false, nullptr);
 
 		//for(int i = 0; i < size; ++i)
 		//	for (int j = 0; j < size; ++j)
@@ -333,7 +338,7 @@ namespace mm {
 	{
 	}
 
-	void RubiksCubeModel_v5::ResetCube()
+	void RubiksCubeModel_v5::ResetCube(bool animate, RubiksCubeSolverUI* ui)
 	{
 		g_bRotating = false;
 		g_bFlipRotation = false;
@@ -342,6 +347,11 @@ namespace mm {
 		g_nLayerIndexFrom = 1;
 		g_nLayerIndexTo = 1;
 		g_nRotationAngle = 0;
+
+		scramblingSteps_ = 0;
+		scramblingAlgo_ = "";
+		solutionSteps_ = 0;
+		solution_ = "";
 
 		double x = -extend_;
 		for (int i = 0; i < size_; i++, x += cubeSize_)
@@ -377,6 +387,12 @@ namespace mm {
 				}
 			}
 		}
+
+		if (animate)
+		{
+			ui->redrawWindow();
+			ui->displayMessage(scramblingSteps_, scramblingAlgo_, solutionSteps_, solution_);
+		}
 	}
 
 	string RubiksCubeModel_v5::solve(unsigned int& solutionSteps, unsigned long long& duration, bool animate, RubiksCubeSolverUI& ui)
@@ -403,6 +419,9 @@ namespace mm {
 		//	duration = time_span.count();
 		//}
 
+		solutionSteps_ = 0;
+		solution_ = "";
+
 		RubiksCubeSolver_NxNxN solver(*this, animate, ui);
 		using HRClock = std::chrono::high_resolution_clock;
 		HRClock::time_point start_time = HRClock::now();
@@ -412,6 +431,14 @@ namespace mm {
 		duration = time_span.count();
 
 		return solution;
+	}
+
+	void RubiksCubeModel_v5::getDisplayParameters(int& scramblingSteps, string& scramblingAlgo, int& solutionSteps, string& solution)
+	{
+		scramblingSteps = scramblingSteps_;
+		scramblingAlgo = scramblingAlgo_;
+		solutionSteps = solutionSteps_;
+		solution = solution_;
 	}
 
 	void RubiksCubeModel_v5::render()
@@ -970,13 +997,23 @@ namespace mm {
 		return size_;
 	}
 
+	void RubiksCubeModel_v5::scramble(const string& algorithm, bool animate, RubiksCubeSolverUI& ui)
+	{
+		scramblingSteps_ = 0;
+		scramblingAlgo_ = "";
+		isScrambling = true;
+		int steps = applyAlgorithm(algorithm, animate, ui);
+		isScrambling = false;
+	}
+
 	int RubiksCubeModel_v5::applyAlgorithm(const string& algorithm, bool animate, RubiksCubeSolverUI& ui)
 	{
-		int solutionSteps = 0;
+		int solutionSteps = solutionSteps_;
 		g_bFlipRotation = false;
 
 		for (int i = 0; i < algorithm.length();)
 		{
+			int start = i;
 			char face = algorithm[i];
 			if (face == ' ')
 			{
@@ -1025,11 +1062,21 @@ namespace mm {
 			if (rotations > 0)
 				numRotations = rotations;
 
+			string step{ algorithm.begin() + start, i < algorithm.size() ? algorithm.begin() + i : algorithm.end() };
+			if (isScrambling)
+			{
+				++scramblingSteps_;
+				scramblingAlgo_ += step;
+			}
+			else
+			{
+				++solutionSteps_;
+				solution_ += step;
+			}
 			applyStep(face, layerIndexFrom, layerIndexTo, isPrime, numRotations, animate, ui);
-			++solutionSteps;
 		}
 
-		return solutionSteps;
+		return solutionSteps_ - solutionSteps;
 	}
 
 	//const CVector3& RubiksCubeModel_v5::getRotationAxis(Groups rotationSection)
@@ -1179,6 +1226,7 @@ namespace mm {
 			{
 				g_nRotationAngle += step;
 				ui.redrawWindow();
+				//ui.displayMessage(scramblingSteps_, scramblingAlgo_, solutionSteps_, solution_);
 				Sleep(ui.getSleepTimeMilliSec());
 			}
 
@@ -1187,6 +1235,7 @@ namespace mm {
 			{
 				g_nRotationAngle = angle;
 				ui.redrawWindow();
+				//ui.displayMessage(scramblingSteps_, scramblingAlgo_, solutionSteps_, solution_);
 			}
 			g_bRotating = false;
 		}
@@ -1194,7 +1243,10 @@ namespace mm {
 		//Fix cube position and Reset all parameters
 		fixRubiksCubeFaces();
 		if (animate)
+		{
 			ui.redrawWindow();
+			//ui.displayMessage(scramblingSteps_, scramblingAlgo_, solutionSteps_, solution_);
+		}
 		g_vRotationAxis = CVector3{0.0, 0.0, 0.0};
 		g_nRotationAngle = 0;
 		g_nRotatingSection = None;
@@ -1377,7 +1429,6 @@ namespace mm {
 
 	RubiksCubeModel_v5::RubiksCubeSolver_NxNxN::RubiksCubeSolver_NxNxN(RubiksCubeModel_v5& rubiksCube, bool animate, RubiksCubeSolverUI& ui)
 		: rubiksCube_(rubiksCube),
-		solutionSteps_(0),
 		animate_(animate),
 		ui_(ui),
 		solvedEdges_(0)
@@ -1386,11 +1437,8 @@ namespace mm {
 
 	string RubiksCubeModel_v5::RubiksCubeSolver_NxNxN::solve(unsigned int& solutionSteps)
 	{
-		solutionSteps_ = 0;
-		solution_ = "";
-
 		if (rubiksCube_.getSize() == 1)
-			return solution_;
+			return "";
 
 		if (rubiksCube_.getSize() % 2 == 1) // has center pieces
 		{
@@ -1413,8 +1461,8 @@ namespace mm {
 		//verify
 		RubiksCubeSolverUtils::RunTimeAssert(rubiksCube_.isSolved());
 
-		solutionSteps = solutionSteps_;
-		return solution_;
+		solutionSteps = rubiksCube_.getSolutionSteps();
+		return rubiksCube_.getSolution();
 	}
 
 	void RubiksCubeModel_v5::RubiksCubeSolver_NxNxN::reduceTo3x3x3()
@@ -3244,8 +3292,7 @@ namespace mm {
 
 	void RubiksCubeModel_v5::RubiksCubeSolver_NxNxN::applyAlgorithm(const string& step)
 	{
-		solution_ += step;
-		solutionSteps_ += rubiksCube_.applyAlgorithm(step, animate_, ui_);
+		rubiksCube_.applyAlgorithm(step, animate_, ui_);
 	}
 
 	//bool RubiksCubeModel_v5::RubiksCubeSolver_NxNxN::isEdgeCube(const Cube& currentCube, const Color& first, const Color& second)
