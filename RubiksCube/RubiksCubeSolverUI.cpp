@@ -94,6 +94,23 @@ namespace mm {
 		GetClientRect(g_hWnd, &g_rWnd);
 		g_hDC = GetDC(g_hWnd);
 
+		HFONT hFont = CreateFont(15, 0, 0, 0, /*FW_BOLD*/FW_LIGHT, 0, 0, 0, 0, 0, 0, 2, FF_SCRIPT, L"SYSTEM_FIXED_FONT");
+		HFONT hTmp = (HFONT)SelectObject(g_hDC, hFont);
+		SetBkMode(g_hDC, TRANSPARENT);
+		//SetTextColor(g_hDC, RGB(255, 255, 255));
+		//SetTextColor(g_hDC, RGB(50, 50, 50));
+		SetTextColor(g_hDC, RGB(0, 0, 255));
+
+		//g_hWndList = GetDlgItem(g_hWnd, IDC_LIST2);
+		//
+		//ScrollBar_Show(g_hWndList, TRUE);
+		//
+		//ListBox_ResetContent(g_hWndList);
+
+		//g_hWndList = CreateWindowEx(NULL, L"LISTBOX", NULL, WS_BORDER | WS_CHILD | WS_VISIBLE | ES_AUTOVSCROLL | ES_AUTOHSCROLL | LBS_NOTIFY, 50, 35, 200, 100, g_hWnd, NULL, GetModuleHandle(NULL), NULL);
+		//ListBox_AddString(g_hWndList, L"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+		//ListBox_Enable(g_hWndList, TRUE);
+
 		g_hRC = wglCreateContext(g_hDC);
 		wglMakeCurrent(g_hDC, g_hRC);
 
@@ -348,14 +365,29 @@ namespace mm {
 		textRect.top = top;
 		textRect.bottom = msgWindowHeight;
 
+		//HDC hDC = GetWindowDC(g_hWnd);
+		//HFONT hFont = CreateFont(15, 0, 0, 0, /*FW_BOLD*/FW_LIGHT, 0, 0, 0, 0, 0, 0, 2, FF_SCRIPT, L"SYSTEM_FIXED_FONT");
+		//HFONT hTmp = (HFONT)SelectObject(g_hDC, hFont);
+		//LOGFONT logfont;
+		//GetObject(hFont, sizeof(LOGFONT), &logfont);
+		//logfont.lfHeight = logfont.lfHeight / 2;
+
+		//HFONT hNewFont = CreateFontIndirect(&logfont);
+		//HFONT hOldFont = (HFONT)SelectObject(hDC, hNewFont);
+
 		//HDC wdc = GetWindowDC(g_hWnd);
 		//g_hDC = GetWindowDC(g_hWnd);
 		//SetBkColor(wdc, RGB(255, 255, 255));
-		SetBkMode(g_hDC, TRANSPARENT);
-		//SetTextColor(g_hDC, RGB(255, 255, 255));
-		SetTextColor(g_hDC, RGB(50, 50, 50));
+		//SetBkMode(g_hDC, TRANSPARENT);
+		////SetTextColor(g_hDC, RGB(255, 255, 255));
+		//SetTextColor(g_hDC, RGB(50, 50, 50));
 		DrawText(g_hDC, wText.c_str(), -1, &textRect, DT_SINGLELINE | DT_NOCLIP);
 		//DeleteDC(wdc);
+
+		// Always select the old font back into the DC
+		//SelectObject(hDC, hOldFont);
+		//DeleteObject(hNewFont);
+		//DeleteDC(hDC);
 	}
 
 	WPARAM RubiksCubeSolverUI::enterMainLoop()
@@ -882,13 +914,13 @@ namespace mm {
 	void RubiksCubeSolverUI::Scramble(bool animate)
 	{
 		string algo = scene_.getScramblingAlgo(25);
-		wstring wAlgo(algo.begin(), algo.end());
-		wstring wMessage = L"Scramble using following Algorithm?";
-		wMessage = wMessage
-			+ L"\nAlgorithm      : " + wAlgo
-			+ L"\nNumber of steps: " + to_wstring(25);
-		if (MessageBox(g_hWnd, wMessage.c_str(),
-			g_szTitle, MB_YESNO | MB_ICONQUESTION | MB_APPLMODAL) == IDYES)
+		//wstring wAlgo(algo.begin(), algo.end());
+		//wstring wMessage = L"Scramble using following Algorithm?";
+		//wMessage = wMessage
+		//	+ L"\nAlgorithm      : " + wAlgo
+		//	+ L"\nNumber of steps: " + to_wstring(25);
+		//if (MessageBox(g_hWnd, wMessage.c_str(),
+		//	g_szTitle, MB_YESNO | MB_ICONQUESTION | MB_APPLMODAL) == IDYES)
 		{
 			scene_.scramble(algo, animate);
 		}
