@@ -1225,21 +1225,23 @@ namespace mm {
 		if (animate)
 		{
 			g_bRotating = true;
-			int angle = g_nRotationAngle;
+			int targetAngle = g_nRotationAngle;
 			g_nRotationAngle = 0;
-			int step = (angle - g_nRotationAngle) / ui.getFramesPerRotation();
-			for (int i = 0; i < ui.getFramesPerRotation(); ++i)
+			int step = targetAngle / ui.getFramesPerRotation();
+			step /= numRotations;
+			//for (int i = 0; i < ui.getFramesPerRotation(); ++i)
+			for(int angle = g_nRotationAngle + step; angle <= targetAngle; angle += step)
 			{
-				g_nRotationAngle += step;
+				g_nRotationAngle = angle;
 				ui.redrawWindow();
 				//ui.displayMessage(scramblingSteps_, scramblingAlgo_, solutionSteps_, solution_);
 				Sleep(ui.getSleepTimeMilliSec());
 			}
 
 			//If after above loop, the target angle is not achieved
-			if (g_nRotationAngle != angle)
+			if (g_nRotationAngle != targetAngle)
 			{
-				g_nRotationAngle = angle;
+				g_nRotationAngle = targetAngle;
 				ui.redrawWindow();
 				//ui.displayMessage(scramblingSteps_, scramblingAlgo_, solutionSteps_, solution_);
 			}

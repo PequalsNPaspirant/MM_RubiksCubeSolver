@@ -60,7 +60,7 @@ namespace mm {
 	RubiksCubeSolverUI::RubiksCubeSolverUI()
 		: WND_WIDTH(800),
 		WND_HEIGHT(800),
-		msgWindowHeight(100),
+		messageWndHeight(100),
 		currentModelName_("RubiksCubeModel_v6"),
 		//scene_(*this, "RubiksCubeModel_v1", 3),
 		//scene_(*this, "RubiksCubeModel_v2", 3),
@@ -77,8 +77,8 @@ namespace mm {
 		//scene_(*this, "RubiksCubeModel_v5", 7),
 		//scene_(*this, "RubiksCubeModel_v5", 8),
 		scene_(*this, "RubiksCubeModel_v6", 5),
-		framesPerRotation_(5), //ideal value: slow=25, moderate=10, fast=5
-		sleepTimeMilliSec_(2), //ideal value: slow=25, moderate=10, fast=2
+		framesPerRotation_(10), //ideal value: slow=25, moderate=10, fast=5
+		sleepTimeMilliSec_(10), //ideal value: slow=25, moderate=10, fast=2
 		tester_(*this)
 	{
 	}
@@ -94,27 +94,65 @@ namespace mm {
 		GetClientRect(g_hWnd, &g_rWnd);
 		g_hDC = GetDC(g_hWnd);
 
-		HFONT hFont = CreateFont(15, 0, 0, 0, /*FW_BOLD*/FW_LIGHT, 0, 0, 0, 0, 0, 0, 2, FF_SCRIPT, L"SYSTEM_FIXED_FONT");
-		HFONT hTmp = (HFONT)SelectObject(g_hDC, hFont);
-		SetBkMode(g_hDC, TRANSPARENT);
-		//SetTextColor(g_hDC, RGB(255, 255, 255));
-		//SetTextColor(g_hDC, RGB(50, 50, 50));
-		SetTextColor(g_hDC, RGB(0, 0, 255));
-
 		//g_hWndList = GetDlgItem(g_hWnd, IDC_LIST2);
 		//
 		//ScrollBar_Show(g_hWndList, TRUE);
 		//
 		//ListBox_ResetContent(g_hWndList);
 
-		//g_hWndList = CreateWindowEx(NULL, L"LISTBOX", NULL, WS_BORDER | WS_CHILD | WS_VISIBLE | ES_AUTOVSCROLL | ES_AUTOHSCROLL | LBS_NOTIFY, 50, 35, 200, 100, g_hWnd, NULL, GetModuleHandle(NULL), NULL);
-		//ListBox_AddString(g_hWndList, L"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-		//ListBox_Enable(g_hWndList, TRUE);
+		int gapUnderScrollBar = 20;
+		int top = 0;
+		int left = 0;
+		int width = WND_WIDTH;
+		int height = messageWndHeight + gapUnderScrollBar;
+		g_hWndMessage = CreateWindowEx(
+			NULL,
+			L"LISTBOX", 
+			NULL, 
+			WS_CHILD | WS_VISIBLE | WS_HSCROLL | WS_VSCROLL,
+			left,
+			top,
+			width,
+			height,
+			g_hWnd, 
+			NULL, 
+			GetModuleHandle(NULL), 
+			NULL);
+		//ListBox_AddString(g_hWndMessage, L"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+		ListBox_Enable(g_hWndMessage, TRUE);
+		ListBox_SetHorizontalExtent(g_hWndMessage, width + 100);
+		g_hDCMessage = GetDC(g_hWndMessage);
+
+		//https://docs.microsoft.com/en-us/windows/desktop/api/wingdi/nf-wingdi-createfonta
+		//HFONT hFont = CreateFont(15, 0, 0, 0, /*FW_BOLD*/FW_LIGHT, 0, 0, 0, 0, 0, 0, 2, FF_SCRIPT, L"SYSTEM_FIXED_FONT");
+		HFONT hFont = CreateFont(
+			15, //cHeight
+			0, //cWidth
+			0, //cEscapement
+			0, //cOrientation
+			300, //cWeight
+			true, //bItalic
+			false, //bUnderline
+			false,  //bStrikeOut
+			DEFAULT_CHARSET, //iCharSet
+			OUT_DEFAULT_PRECIS, //iOutPrecision
+			CLIP_DEFAULT_PRECIS, //iClipPrecision
+			DEFAULT_QUALITY, //iQuality
+			DEFAULT_PITCH, //iPitchAndFamily
+			L"Arial" //pszFaceName
+		);
+		HFONT hTmp = (HFONT)SelectObject(g_hDCMessage, hFont);
+		SendMessage(g_hWndMessage, WM_SETFONT, (WPARAM)hFont, 0);
+
+		SetBkMode(g_hDCMessage, TRANSPARENT);
+		//SetBkColor(g_hDCMessage, RGB(255, 0, 0));
+		//SetTextColor(g_hDCMessage, RGB(50, 50, 50));
+		SetTextColor(g_hDCMessage, RGB(0, 0, 255));
 
 		g_hRC = wglCreateContext(g_hDC);
 		wglMakeCurrent(g_hDC, g_hRC);
 
-		scene_.initOpenGl(g_rWnd.right, g_rWnd.bottom - msgWindowHeight);
+		scene_.initOpenGl(g_rWnd.right, g_rWnd.bottom - messageWndHeight);
 		scene_.initScene();
 
 		Reset(true); //there is some bug in initial display: the Rubiks cube is displayed scattered. Reset() is a workaround.
@@ -173,7 +211,7 @@ namespace mm {
 			dwStyle,
 			CW_USEDEFAULT, CW_USEDEFAULT,
 			rWnd.right - rWnd.left,
-			rWnd.bottom - rWnd.top - msgWindowHeight,
+			rWnd.bottom - rWnd.top - messageWndHeight,
 			NULL, hMenu, hInstance, NULL);
 
 		if (!g_hWnd) return;
@@ -296,13 +334,13 @@ namespace mm {
 	void RubiksCubeSolverUI::displayMessage(const string& message /*= ""*/)
 	{
 		//Fill up message area with different color
-		RECT messageWndRect;
-		messageWndRect.left = 0;
-		messageWndRect.right = WND_WIDTH;
-		messageWndRect.top = 0;
-		messageWndRect.bottom = msgWindowHeight;
-		HBRUSH brush = CreateSolidBrush(RGB(255, 255, 255));
-		FillRect(g_hDC, &messageWndRect, brush);
+		//RECT messageWndRect;
+		//messageWndRect.left = 0;
+		//messageWndRect.right = WND_WIDTH;
+		//messageWndRect.top = 0;
+		//messageWndRect.bottom = messageWndHeight;
+		//HBRUSH brush = CreateSolidBrush(RGB(255, 255, 255));
+		//FillRect(g_hDCMessage, &messageWndRect, brush);
 
 		if (message.empty())
 		{
@@ -321,15 +359,15 @@ namespace mm {
 			//textRect.left = 6;
 			//textRect.right = WND_WIDTH;
 			//textRect.top = 4;
-			//textRect.bottom = msgWindowHeight;
+			//textRect.bottom = messageWndHeight;
 			//
 			//SetBkMode(g_hDC, TRANSPARENT);
 			//SetTextColor(g_hDC, RGB(50, 50, 50));
 			//DrawText(g_hDC, wText.c_str(), -1, &textRect, DT_SINGLELINE | DT_NOCLIP);
 
 			//The following lines refreshes the screen and the message is displayed on screen (dont know the reason)
-			HDC wdc = GetWindowDC(g_hWnd);
-			DeleteDC(wdc);
+			//HDC wdc = GetWindowDC(g_hWnd);
+			//DeleteDC(wdc);
 		}
 	}
 
@@ -338,6 +376,8 @@ namespace mm {
 		int left = 6;
 		int top = 4;
 		int lineHeight = 18;
+
+		ListBox_ResetContent(g_hWndMessage);
 
 		int currentTop = top;
 		string size = to_string(scene_.getRubiksCubeSize());
@@ -354,6 +394,12 @@ namespace mm {
 
 		currentTop += lineHeight;
 		displayMessage_currentLine(left, currentTop, "Solution Algorithm: " + solution_);
+
+		//SendMessage(g_hWndMessage, WM_SETREDRAW, TRUE, 0);
+		BOOL result = UpdateWindow(g_hWndMessage);
+		//RECT d;
+		//GetClientRect(g_hWndMessage, &d);
+		//InvalidateRect(g_hWndMessage, &d, TRUE);
 	}
 
 	void RubiksCubeSolverUI::displayMessage_currentLine(int left, int top, const string& line)
@@ -363,7 +409,7 @@ namespace mm {
 		textRect.left = left;
 		textRect.right = WND_WIDTH;
 		textRect.top = top;
-		textRect.bottom = msgWindowHeight;
+		textRect.bottom = messageWndHeight;
 
 		//HDC hDC = GetWindowDC(g_hWnd);
 		//HFONT hFont = CreateFont(15, 0, 0, 0, /*FW_BOLD*/FW_LIGHT, 0, 0, 0, 0, 0, 0, 2, FF_SCRIPT, L"SYSTEM_FIXED_FONT");
@@ -375,19 +421,24 @@ namespace mm {
 		//HFONT hNewFont = CreateFontIndirect(&logfont);
 		//HFONT hOldFont = (HFONT)SelectObject(hDC, hNewFont);
 
+		HDC hdc = GetDC(g_hWndMessage);
+		SetTextColor(hdc, RGB(0, 0, 255));
+		SetTextColor(g_hDCMessage, RGB(0, 0, 255));
 		//HDC wdc = GetWindowDC(g_hWnd);
 		//g_hDC = GetWindowDC(g_hWnd);
 		//SetBkColor(wdc, RGB(255, 255, 255));
 		//SetBkMode(g_hDC, TRANSPARENT);
 		////SetTextColor(g_hDC, RGB(255, 255, 255));
 		//SetTextColor(g_hDC, RGB(50, 50, 50));
-		DrawText(g_hDC, wText.c_str(), -1, &textRect, DT_SINGLELINE | DT_NOCLIP);
+		//https://docs.microsoft.com/en-us/windows/desktop/api/winuser/nf-winuser-drawtext
+		//DrawText(g_hDCMessage, wText.c_str(), -1, &textRect, DT_SINGLELINE | DT_LEFT);
+		ListBox_AddString(g_hWndMessage, wText.c_str());
 		//DeleteDC(wdc);
 
 		// Always select the old font back into the DC
 		//SelectObject(hDC, hOldFont);
 		//DeleteObject(hNewFont);
-		//DeleteDC(hDC);
+		DeleteDC(hdc);
 	}
 
 	WPARAM RubiksCubeSolverUI::enterMainLoop()
@@ -784,7 +835,7 @@ namespace mm {
 		{
 			WND_WIDTH = cx;
 			WND_HEIGHT = cy;
-			scene_.sizeOpenGlScreen(cx, cy - msgWindowHeight);
+			scene_.sizeOpenGlScreen(cx, cy - messageWndHeight);
 			GetClientRect(hWnd, &g_rWnd);
 		}
 		redrawWindow();
@@ -894,6 +945,31 @@ namespace mm {
 		else if (id == ID_RUBIK_INCREASEBYTEN)
 		{
 			replaceModelBy(currentModelName_, scene_.getRubiksCubeSize() + 10, true);
+		}
+		else if (id == ID_ANIMATIONSPEED_VERYSLOW)
+		{
+			framesPerRotation_ = 40; //ideal value: slow=25, moderate=10, fast=5
+			sleepTimeMilliSec_ = 40;
+		}
+		else if (id == ID_ANIMATIONSPEED_SLOW)
+		{
+			framesPerRotation_ = 30;
+			sleepTimeMilliSec_ = 30;
+		}
+		else if (id == ID_ANIMATIONSPEED_MODERATE)
+		{
+			framesPerRotation_ = 20;
+			sleepTimeMilliSec_ = 20;
+		}
+		else if (id == ID_ANIMATIONSPEED_FAST)
+		{
+			framesPerRotation_ = 10;
+			sleepTimeMilliSec_ = 10;
+		}
+		else if (id == ID_ANIMATIONSPEED_VERYFAST)
+		{
+			framesPerRotation_ = 3;
+			sleepTimeMilliSec_ = 3;
 		}
 		else if (id == IDM_ABOUT)
 		{

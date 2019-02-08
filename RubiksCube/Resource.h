@@ -51,6 +51,12 @@
 #define ID_RUBIK_INCREASEBYONE          32809
 #define ID_RUBIK_INCREASEBYFIVE         32810
 #define ID_RUBIK_INCREASEBYTEN          32811
+#define ID_RUBIK_ANIMATIONSPEED         32812
+#define ID_ANIMATIONSPEED_VERYSLOW      32813
+#define ID_ANIMATIONSPEED_SLOW          32814
+#define ID_ANIMATIONSPEED_MODERATE      32815
+#define ID_ANIMATIONSPEED_FAST          32816
+#define ID_ANIMATIONSPEED_VERYFAST      32817
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
@@ -59,7 +65,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        146
-#define _APS_NEXT_COMMAND_VALUE         32812
+#define _APS_NEXT_COMMAND_VALUE         32820
 #define _APS_NEXT_CONTROL_VALUE         1007
 #define _APS_NEXT_SYMED_VALUE           110
 #endif

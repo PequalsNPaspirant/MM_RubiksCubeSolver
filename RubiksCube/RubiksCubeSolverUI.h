@@ -37,6 +37,15 @@ namespace mm {
 #define MAX_LOADSTRING 100
 #define RC_CHANGED WM_APP + 100
 
+	//enum class AnimationSpeed
+	//{
+	//	verySlow = 0,
+	//	slow,
+	//	moderate,
+	//	fast,
+	//	veryFast
+	//};
+
 	class RubiksCubeSolverUI
 	{
 	public:
@@ -101,12 +110,11 @@ namespace mm {
 		BOOL OnEraseBackground(HWND hwnd, HDC hdc);
 
 		HGLRC g_hRC;
-		HDC g_hDC;
 		TCHAR g_szWindowClass[MAX_LOADSTRING]; // the main window class name
 		HACCEL g_hAccelTable;
 		int WND_WIDTH = 800;
 		int WND_HEIGHT = 800;
-		int msgWindowHeight;
+		int messageWndHeight;
 		const int SCREEN_DEPTH = 16;
 		bool g_bMouseDown;
 		int g_nPrevX;
@@ -119,6 +127,9 @@ namespace mm {
 		HCURSOR g_hHand;
 		TCHAR g_szTitle[MAX_LOADSTRING]; // The title bar text
 		HWND g_hWnd;
+		HDC g_hDC;
+		HWND g_hWndMessage;
+		HDC g_hDCMessage;
 		HINSTANCE g_hInstance; // current instance
 		int framesPerRotation_;
 		int sleepTimeMilliSec_;
