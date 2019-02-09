@@ -1244,13 +1244,14 @@ namespace mm {
 			}
 
 			//After above loop, the target angle is not achieved, so set it now as a last step
-			g_nRotationAngle = targetAngle;
-			ui.redrawWindow();
+			//g_nRotationAngle = targetAngle;
+			//ui.redrawWindow();
 
 			g_bRotating = false;
 		}
 
 		//Fix cube position and Reset all parameters
+		g_nRotationAngle = targetAngle;
 		fixRubiksCubeFaces();
 		if (animate)
 		{

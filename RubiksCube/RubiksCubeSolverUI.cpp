@@ -80,7 +80,9 @@ namespace mm {
 		//scene_(*this, "RubiksCubeModel_v6", 5),
 		framesPerRotation_(20), //moderate
 		sleepTimeMilliSec_(20), //moderate
-		tester_(*this)
+		tester_(*this),
+		selMenuAnimationSpeed(ID_ANIMATIONSPEED_MODERATE),
+		selMenuRubiksCubeSize(ID_RUBIK_3X3X3)
 	{
 	}
 
@@ -207,6 +209,30 @@ namespace mm {
 		AdjustWindowRectEx(&rWnd, dwStyle, true, 0);
 
 		HMENU hMenu = LoadMenu(hInstance, MAKEINTRESOURCE(IDC_RUBIKSCUBE));
+
+		//Uncheck all menu items
+		//HMENU hmenu = GetMenu(g_hWnd);
+		CheckMenuItem(hMenu, ID_ANIMATIONSPEED_VERYSLOW, MF_UNCHECKED | MF_ENABLED);
+		CheckMenuItem(hMenu, ID_ANIMATIONSPEED_SLOW, MF_UNCHECKED | MF_ENABLED);
+		CheckMenuItem(hMenu, ID_ANIMATIONSPEED_MODERATE, MF_UNCHECKED | MF_ENABLED);
+		CheckMenuItem(hMenu, ID_ANIMATIONSPEED_FAST, MF_UNCHECKED | MF_ENABLED);
+		CheckMenuItem(hMenu, ID_ANIMATIONSPEED_VERYFAST, MF_UNCHECKED | MF_ENABLED);
+
+		CheckMenuItem(hMenu, ID_RUBIK_1X1X1, MF_UNCHECKED | MF_ENABLED);
+		CheckMenuItem(hMenu, ID_RUBIK_2X2X2, MF_UNCHECKED | MF_ENABLED);
+		CheckMenuItem(hMenu, ID_RUBIK_3X3X3, MF_UNCHECKED | MF_ENABLED);
+		CheckMenuItem(hMenu, ID_RUBIK_4X4X4, MF_UNCHECKED | MF_ENABLED);
+		CheckMenuItem(hMenu, ID_RUBIK_5X5X5, MF_UNCHECKED | MF_ENABLED);
+		CheckMenuItem(hMenu, ID_RUBIK_6X6X6, MF_UNCHECKED | MF_ENABLED);
+		CheckMenuItem(hMenu, ID_RUBIK_7X7X7, MF_UNCHECKED | MF_ENABLED);
+		CheckMenuItem(hMenu, ID_RUBIK_8X8X8, MF_UNCHECKED | MF_ENABLED);
+		CheckMenuItem(hMenu, ID_RUBIK_9X9X9, MF_UNCHECKED | MF_ENABLED);
+		CheckMenuItem(hMenu, ID_RUBIK_10X10X10, MF_UNCHECKED | MF_ENABLED);
+
+		//Check defalt menu selection on start
+		CheckMenuItem(hMenu, selMenuAnimationSpeed, MF_CHECKED | MF_UNHILITE);
+		//CheckMenuRadioItem(hMenu, ID_ANIMATIONSPEED_VERYSLOW, ID_ANIMATIONSPEED_VERYFAST, selMenuAnimationSpeed, MF_BYCOMMAND);
+		CheckMenuItem(hMenu, selMenuRubiksCubeSize, MF_CHECKED | MF_UNHILITE);
 
 		g_hWnd = CreateWindowEx(0,
 			g_szWindowClass,
@@ -879,6 +905,21 @@ namespace mm {
 	//  Process WM_COMMAND message for window/dialog: 
 	void RubiksCubeSolverUI::OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 	{
+		//Uncheck last selected menu items
+		HMENU hMenu = GetMenu(hwnd);
+		if(id >= ID_ANIMATIONSPEED_VERYSLOW && id <= ID_ANIMATIONSPEED_VERYFAST && id != selMenuAnimationSpeed)
+		{
+			CheckMenuItem(hMenu, selMenuAnimationSpeed, MF_UNCHECKED | MF_ENABLED);
+			selMenuAnimationSpeed = id;
+			CheckMenuItem(hMenu, selMenuAnimationSpeed, MF_CHECKED | MFS_GRAYED);
+		}
+		if (id >= ID_RUBIK_1X1X1 && id <= ID_RUBIK_10X10X10 && id != selMenuRubiksCubeSize)
+		{
+			CheckMenuItem(hMenu, selMenuRubiksCubeSize, MF_UNCHECKED | MF_ENABLED);
+			selMenuRubiksCubeSize = id;
+			CheckMenuItem(hMenu, selMenuRubiksCubeSize, MF_CHECKED | MFS_GRAYED);
+		}
+
 		// menu
 		if (id == IDM_RUBIKSCUBE_RESET)
 		{

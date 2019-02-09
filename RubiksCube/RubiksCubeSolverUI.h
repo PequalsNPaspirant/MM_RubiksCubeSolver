@@ -136,6 +136,9 @@ namespace mm {
 		int charHeight;
 		int charWidth;
 
+		int selMenuAnimationSpeed;
+		int selMenuRubiksCubeSize;
+
 		string currentModelName_;
 		RubiksCubeSolverScene scene_;
 		RubiksCubeSolverTest tester_;

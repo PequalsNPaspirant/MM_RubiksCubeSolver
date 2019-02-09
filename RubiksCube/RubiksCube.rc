@@ -43,14 +43,6 @@ BEGIN
         MENUITEM "Test",                        ID_RUBIKSCUBE_TEST
         MENUITEM "Test (Show Animation)",       ID_RUBIKSCUBE_TEST_ANIM
         MENUITEM "Fit to Window",               ID_RUBIKSCUBE_FITTOSCREEN
-        POPUP "Animation Speed"
-        BEGIN
-            MENUITEM "Very Slow",                   ID_ANIMATIONSPEED_VERYSLOW, CHECKED
-            MENUITEM "Slow",                        ID_ANIMATIONSPEED_SLOW, CHECKED
-            MENUITEM "Moderate",                    ID_ANIMATIONSPEED_MODERATE, CHECKED
-            MENUITEM "Fast",                        ID_ANIMATIONSPEED_FAST, CHECKED
-            MENUITEM "Very Fast",                   ID_ANIMATIONSPEED_VERYFAST, CHECKED
-        END
     END
     POPUP "Rubik's Cube Size"
     BEGIN
@@ -67,6 +59,14 @@ BEGIN
         MENUITEM "Increase by One",             ID_RUBIK_INCREASEBYONE
         MENUITEM "Increase by Five",            ID_RUBIK_INCREASEBYFIVE
         MENUITEM "Increase by Ten",             ID_RUBIK_INCREASEBYTEN
+    END
+    POPUP "Animation Speed"
+    BEGIN
+        MENUITEM "Very Slow",                   ID_ANIMATIONSPEED_VERYSLOW, CHECKED
+        MENUITEM "Slow",                        ID_ANIMATIONSPEED_SLOW, CHECKED
+        MENUITEM "Moderate",                    ID_ANIMATIONSPEED_MODERATE, CHECKED
+        MENUITEM "Fast",                        ID_ANIMATIONSPEED_FAST, CHECKED
+        MENUITEM "Very Fast",                   ID_ANIMATIONSPEED_VERYFAST, CHECKED
     END
     POPUP "&Help"
     BEGIN

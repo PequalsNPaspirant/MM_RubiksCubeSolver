@@ -38,6 +38,7 @@
 #define ID_RUBIKSCUBE_TEST              32796
 #define ID_RUBIKSCUBE_TEST_ANIM         32797
 #define ID_RUBIKSCUBE_FITTOSCREEN       32798
+
 #define ID_RUBIK_1X1X1                  32799
 #define ID_RUBIK_2X2X2                  32800
 #define ID_RUBIK_3X3X3                  32801
@@ -51,12 +52,14 @@
 #define ID_RUBIK_INCREASEBYONE          32809
 #define ID_RUBIK_INCREASEBYFIVE         32810
 #define ID_RUBIK_INCREASEBYTEN          32811
+
 #define ID_RUBIK_ANIMATIONSPEED         32812
 #define ID_ANIMATIONSPEED_VERYSLOW      32813
 #define ID_ANIMATIONSPEED_SLOW          32814
 #define ID_ANIMATIONSPEED_MODERATE      32815
 #define ID_ANIMATIONSPEED_FAST          32816
 #define ID_ANIMATIONSPEED_VERYFAST      32817
+
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
