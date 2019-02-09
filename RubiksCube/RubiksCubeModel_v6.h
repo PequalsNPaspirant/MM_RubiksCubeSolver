@@ -321,7 +321,8 @@ namespace mm {
 		void renderIndividualCube(const Cube& pCube, const Location& location);
 		bool isSolved() override;
 		bool IsFaceSolved(Face face);
-		void getDisplayParameters(int& scramblingSteps, string& scramblingAlgo, int& solutionSteps, string& solution) override;
+		void getDisplayParameters(int& scramblingSteps, string& scramblingAlgo, int& solutionSteps, string& solution, unsigned long long& duration) override;
+		void setDisplayParameters(int scramblingSteps, const string& scramblingAlgo, int solutionSteps, const string& solution, unsigned long long duration) override;
 
 		unique_ptr<RubiksCubeModel> copy() override;
 		string getModelName() override;
@@ -392,6 +393,7 @@ namespace mm {
 		bool isScrambling_;
 		int solutionSteps_;
 		string solution_;
+		unsigned long long duration_;
 		
 		static const double scale_;
 

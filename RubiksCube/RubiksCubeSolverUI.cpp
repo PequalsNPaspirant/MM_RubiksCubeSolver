@@ -60,7 +60,7 @@ namespace mm {
 	RubiksCubeSolverUI::RubiksCubeSolverUI()
 		: WND_WIDTH(800),
 		WND_HEIGHT(800),
-		messageWndHeight(100),
+		messageWndHeight(110),
 		currentModelName_("RubiksCubeModel_v6"),
 		//scene_(*this, "RubiksCubeModel_v1", 3),
 		//scene_(*this, "RubiksCubeModel_v2", 3),
@@ -377,8 +377,9 @@ namespace mm {
 			string scramblingAlgo;
 			int solutionSteps;
 			string solution;
-			scene_.getDisplayParameters(scramblingSteps, scramblingAlgo, solutionSteps, solution);
-			displayMessage(scramblingSteps, scramblingAlgo, solutionSteps, solution);
+			unsigned long long duration;
+			scene_.getDisplayParameters(scramblingSteps, scramblingAlgo, solutionSteps, solution, duration);
+			displayMessage(scramblingSteps, scramblingAlgo, solutionSteps, solution, duration);
 		}
 		else
 		{
@@ -400,7 +401,8 @@ namespace mm {
 		}
 	}
 
-	void RubiksCubeSolverUI::displayMessage(int scramblingSteps_, const string& scramblingAlgo_, int solutionSteps_, const string& solution_)
+	void RubiksCubeSolverUI::displayMessage(int scramblingSteps, const string& scramblingAlgo, 
+		int solutionSteps, const string& solution, unsigned long long duration)
 	{
 		int left = 6;
 		int top = 4;
@@ -408,21 +410,37 @@ namespace mm {
 
 		string size = to_string(scene_.getRubiksCubeSize());
 		string rubikCubeSize("Rubik's Cube Size: " + size + "x" + size + "x" + size);
-		string scrambleSteps("Scrambling Steps: " + to_string(scramblingSteps_));
-		string scrambleMsg("Scramblng Algorithm: " + scramblingAlgo_);
-		string solutionSteps("Solution Steps: " + to_string(solutionSteps_));
-		string solutionMsg("Solution Algorithm: " + solution_);
+		string scramblingStepsStr("Scrambling Steps: " + (scramblingSteps > 0 ? to_string(scramblingSteps) : ""));
+		string scrambleMsg("Scramblng Algorithm: " + scramblingAlgo);
+		string solutionStepsStr("Solution Steps: " + (solutionSteps > 0 ? to_string(solutionSteps) : ""));
+		string solutionMsg("Solution Algorithm: " + solution);
+		string durationStr;
+		if(duration > 0)
+		{
+			durationStr = to_string(duration % 1000);
+			duration /= 1000;
+			while (duration > 0)
+			{
+				durationStr = "," + durationStr;
+				durationStr = to_string(duration % 1000) + durationStr;
+				duration /= 1000;
+			}
+			durationStr += " nano-seconds";
+		}
+		string timeToSolveMsg("Time required to solve: " + durationStr);
 
 		//int horizontalExtent = ListBox_GetHorizontalExtent(g_hWndMessage);
 		string* pStr = &rubikCubeSize;
-		if (pStr->length() < scrambleSteps.length())
-			pStr = &scrambleSteps;
+		if (pStr->length() < scramblingStepsStr.length())
+			pStr = &scramblingStepsStr;
 		if (pStr->length() < scrambleMsg.length())
 			pStr = &scrambleMsg;
-		if (pStr->length() < solutionSteps.length())
-			pStr = &solutionSteps;
+		if (pStr->length() < solutionStepsStr.length())
+			pStr = &solutionStepsStr;
 		if (pStr->length() < solutionMsg.length())
 			pStr = &solutionMsg;
+		if (pStr->length() < timeToSolveMsg.length())
+			pStr = &timeToSolveMsg;
 
 		wstring wStrMsg(pStr->begin(), pStr->end());
 
@@ -430,24 +448,27 @@ namespace mm {
 		DrawText(g_hDCMessage, wStrMsg.c_str(), wStrMsg.length(), &c, DT_CALCRECT);
 
 		int clearance = 20;
-		if (WND_WIDTH < c.right + clearance)
-			ListBox_SetHorizontalExtent(g_hWndMessage, c.right + clearance);
+		//if (WND_WIDTH < c.right + clearance)
+		ListBox_SetHorizontalExtent(g_hWndMessage, c.right + clearance);
 
 		ListBox_ResetContent(g_hWndMessage);
 		int currentTop = top;
 		displayMessage_currentLine(left, currentTop, std::move(rubikCubeSize));
 
 		currentTop += lineHeight;
-		displayMessage_currentLine(left, currentTop, std::move(scrambleSteps));
+		displayMessage_currentLine(left, currentTop, std::move(scramblingStepsStr));
 
 		currentTop += lineHeight;
 		displayMessage_currentLine(left, currentTop, std::move(scrambleMsg));
 
 		currentTop += lineHeight;
-		displayMessage_currentLine(left, currentTop, std::move(solutionSteps));
+		displayMessage_currentLine(left, currentTop, std::move(solutionStepsStr));
 
 		currentTop += lineHeight;
 		displayMessage_currentLine(left, currentTop, std::move(solutionMsg));
+
+		currentTop += lineHeight;
+		displayMessage_currentLine(left, currentTop, std::move(timeToSolveMsg));
 
 		//SendMessage(g_hWndMessage, WM_SETREDRAW, TRUE, 0);
 		BOOL result = UpdateWindow(g_hWndMessage);
@@ -1078,37 +1099,19 @@ namespace mm {
 	string RubiksCubeSolverUI::SolveOnCopy(unsigned int& solutionSteps, unsigned long long& duration, bool askForAnimation)
 	{
 		string solution1 = scene_.SolveOnCopy(solutionSteps, duration);
-		
+		redrawWindow();
+
 		if(!askForAnimation)
 			return solution1;
 
-		wstring wDuration = to_wstring(duration % 1000);
-		duration /= 1000;
-		while (duration > 0)
-		{
-			wDuration = L"," + wDuration;
-			wDuration = to_wstring(duration % 1000) + wDuration;
-			duration /= 1000;
-		}
-
-		string solution2;
-
-		wstring wSolution(solution1.begin(), solution1.end());
-		wstring wMessage = 
-			L"Solution: " + wSolution
-			+ L"\nNumber of steps: " + to_wstring(solutionSteps)
-			+ L"\nTime required: " + wDuration + L" ns" 
-			+ L"\nDo you want to see animation of solution?";
+		wstring wMessage = L"\nDo you want to see the animation of the solution?";
 		if (MessageBox(g_hWnd, wMessage.c_str(),
 			g_szTitle, MB_YESNO | MB_ICONQUESTION | MB_APPLMODAL) == IDYES)
 		{
-			//scene_.scramble(solution, true);
-			solution2 = scene_.Solve(solutionSteps, duration, true);
-		}
+			string solution2 = scene_.Solve(solutionSteps, duration, true);
 
-		if (solution1 != solution2)
-		{
-			CreateOkDialog("Both the solutions are not same!");
+			if (solution1 != solution2)
+				CreateOkDialog("Both the solutions are not same!");
 		}
 
 		return solution1;

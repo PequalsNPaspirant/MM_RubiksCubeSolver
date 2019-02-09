@@ -62,11 +62,11 @@ BEGIN
     END
     POPUP "Animation Speed"
     BEGIN
-        MENUITEM "Very Slow",                   ID_ANIMATIONSPEED_VERYSLOW, CHECKED
-        MENUITEM "Slow",                        ID_ANIMATIONSPEED_SLOW, CHECKED
-        MENUITEM "Moderate",                    ID_ANIMATIONSPEED_MODERATE, CHECKED
-        MENUITEM "Fast",                        ID_ANIMATIONSPEED_FAST, CHECKED
         MENUITEM "Very Fast",                   ID_ANIMATIONSPEED_VERYFAST, CHECKED
+        MENUITEM "Fast",                        ID_ANIMATIONSPEED_FAST, CHECKED
+        MENUITEM "Moderate",                    ID_ANIMATIONSPEED_MODERATE, CHECKED
+        MENUITEM "Slow",                        ID_ANIMATIONSPEED_SLOW, CHECKED
+        MENUITEM "Very Slow",                   ID_ANIMATIONSPEED_VERYSLOW, CHECKED
     END
     POPUP "&Help"
     BEGIN

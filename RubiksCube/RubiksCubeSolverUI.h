@@ -65,7 +65,7 @@ namespace mm {
 		int getFramesPerRotation() { return framesPerRotation_; }
 		int getSleepTimeMilliSec() { return sleepTimeMilliSec_; }
 		void displayMessage(const string& message = "");
-		void displayMessage(int scramblingSteps_, const string& scramblingAlgo_, int solutionSteps_, const string& solution_);
+		void displayMessage(int scramblingSteps, const string& scramblingAlgo, int solutionSteps, const string& solution, unsigned long long duration);
 		void displayMessage_currentLine(int left, int top, const string& line);
 
 		//Menu Handlers
@@ -140,6 +140,7 @@ namespace mm {
 		int selMenuRubiksCubeSize;
 
 		string currentModelName_;
+
 		RubiksCubeSolverScene scene_;
 		RubiksCubeSolverTest tester_;
 	};

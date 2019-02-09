@@ -397,7 +397,7 @@ namespace mm {
 		if (animate)
 		{
 			ui->redrawWindow();
-			ui->displayMessage(scramblingSteps_, scramblingAlgo_, solutionSteps_, solution_);
+			//ui->displayMessage(scramblingSteps_, scramblingAlgo_, solutionSteps_, solution_);
 		}
 	}
 
@@ -435,16 +435,19 @@ namespace mm {
 		HRClock::time_point end_time = HRClock::now();
 		std::chrono::nanoseconds time_span = std::chrono::duration_cast<std::chrono::nanoseconds>(end_time - start_time);
 		duration = time_span.count();
+		duration_ = duration;
 
 		return solution;
 	}
 
-	void RubiksCubeModel_v5::getDisplayParameters(int& scramblingSteps, string& scramblingAlgo, int& solutionSteps, string& solution)
+	void RubiksCubeModel_v5::getDisplayParameters(int& scramblingSteps, string& scramblingAlgo, 
+		int& solutionSteps, string& solution, unsigned long long& duration)
 	{
 		scramblingSteps = scramblingSteps_;
 		scramblingAlgo = scramblingAlgo_;
 		solutionSteps = solutionSteps_;
 		solution = solution_;
+		duration = duration_;
 	}
 
 	void RubiksCubeModel_v5::render()

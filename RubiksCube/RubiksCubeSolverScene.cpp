@@ -299,6 +299,14 @@ namespace mm {
 		unique_ptr<RubiksCubeModel> copy = rubicCubeModel_->copy();
 		string solution = copy->solve(solutionSteps, duration, animate, refUI_);
 		RubiksCubeSolverUtils::RunTimeAssert(copy->isSolved());
+
+		int scramblingSteps;
+		string scramblingAlgo;
+		int steps;
+		string sol;
+		unsigned long long dur;
+		copy->getDisplayParameters(scramblingSteps, scramblingAlgo, steps, sol, dur);
+		rubicCubeModel_->setDisplayParameters(scramblingSteps, scramblingAlgo, steps, sol, dur);
 		return solution;
 	}
 
@@ -320,9 +328,10 @@ namespace mm {
 		//2		04		- 17			13
 	}
 
-	void RubiksCubeSolverScene::getDisplayParameters(int& scramblingSteps, string& scramblingAlgo, int& solutionSteps, string& solution)
+	void RubiksCubeSolverScene::getDisplayParameters(int& scramblingSteps, string& scramblingAlgo, 
+		int& solutionSteps, string& solution, unsigned long long& duration)
 	{
-		rubicCubeModel_->getDisplayParameters(scramblingSteps, scramblingAlgo, solutionSteps, solution);
+		rubicCubeModel_->getDisplayParameters(scramblingSteps, scramblingAlgo, solutionSteps, solution, duration);
 	}
 }
 

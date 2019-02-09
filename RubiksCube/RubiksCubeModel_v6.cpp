@@ -285,7 +285,8 @@ namespace mm {
 		scramblingAlgo_(""),
 		isScrambling_(false),
 		solutionSteps_(0),
-		solution_("")
+		solution_(""),
+		duration_(0)
 	{
 		ResetCube(false, nullptr);
 
@@ -331,7 +332,8 @@ namespace mm {
 		scramblingAlgo_(copy.scramblingAlgo_),
 		isScrambling_(copy.isScrambling_),
 		solutionSteps_(copy.solutionSteps_),
-		solution_(copy.solution_)
+		solution_(copy.solution_),
+		duration_(copy.duration_)
 	{
 		for (auto& obj : copy.cubes_)
 		{
@@ -358,6 +360,7 @@ namespace mm {
 		isScrambling_ = false;
 		solutionSteps_ = 0;
 		solution_ = "";
+		duration_ = 0;
 
 		double x = -extend_;
 		for (int i = 0; i < size_; i++, x += cubeSize_)
@@ -397,7 +400,7 @@ namespace mm {
 		if (animate)
 		{
 			ui->redrawWindow();
-			ui->displayMessage(scramblingSteps_, scramblingAlgo_, solutionSteps_, solution_);
+			//ui->displayMessage(scramblingSteps_, scramblingAlgo_, solutionSteps_, solution_, duration_);
 		}
 	}
 
@@ -427,6 +430,7 @@ namespace mm {
 
 		solutionSteps_ = 0;
 		solution_ = "";
+		duration_ = 0;
 
 		RubiksCubeSolver_NxNxN solver(*this, animate, ui);
 		using HRClock = std::chrono::high_resolution_clock;
@@ -435,16 +439,28 @@ namespace mm {
 		HRClock::time_point end_time = HRClock::now();
 		std::chrono::nanoseconds time_span = std::chrono::duration_cast<std::chrono::nanoseconds>(end_time - start_time);
 		duration = time_span.count();
+		duration_ = duration;
 
 		return solution;
 	}
 
-	void RubiksCubeModel_v6::getDisplayParameters(int& scramblingSteps, string& scramblingAlgo, int& solutionSteps, string& solution)
+	void RubiksCubeModel_v6::getDisplayParameters(int& scramblingSteps, string& scramblingAlgo, 
+		int& solutionSteps, string& solution, unsigned long long& duration)
 	{
 		scramblingSteps = scramblingSteps_;
 		scramblingAlgo = scramblingAlgo_;
 		solutionSteps = solutionSteps_;
 		solution = solution_;
+		duration = duration_;
+	}
+
+	void RubiksCubeModel_v6::setDisplayParameters(int scramblingSteps, const string& scramblingAlgo, int solutionSteps, const string& solution, unsigned long long duration)
+	{
+		scramblingSteps_ = scramblingSteps;
+		scramblingAlgo_ = scramblingAlgo;
+		solutionSteps_ = solutionSteps;
+		solution_ = solution;
+		duration_ = duration;
 	}
 
 	void RubiksCubeModel_v6::render()
@@ -1005,6 +1021,10 @@ namespace mm {
 
 	void RubiksCubeModel_v6::scramble(const string& algorithm, bool animate, RubiksCubeSolverUI& ui)
 	{
+		//solutionSteps_ = 0;
+		//solution_ = "";
+		//duration_ = 0;
+
 		scramblingSteps_ = 0;
 		scramblingAlgo_ = "";
 		isScrambling_ = true;
@@ -1016,6 +1036,15 @@ namespace mm {
 	{
 		int solutionSteps = solutionSteps_;
 		g_bFlipRotation = false;
+
+		//TODO: avoid the time required for string operations while solving without animation
+		if (!animate)
+		{
+			if (isScrambling_)
+				scramblingAlgo_ += algorithm;
+			else
+				solution_ += algorithm;
+		}
 
 		for (int i = 0; i < algorithm.length();)
 		{
@@ -1070,14 +1099,16 @@ namespace mm {
 
 			string step{ algorithm.begin() + start, i < algorithm.size() ? algorithm.begin() + i : algorithm.end() };
 			if (isScrambling_)
-			{
 				++scramblingSteps_;
-				scramblingAlgo_ += step;
-			}
 			else
-			{
 				++solutionSteps_;
-				solution_ += step;
+
+			if (animate)
+			{
+				if (isScrambling_)
+					scramblingAlgo_ += step;
+				else
+					solution_ += step;
 			}
 			applyStep(face, layerIndexFrom, layerIndexTo, isPrime, numRotations, animate, ui);
 		}

@@ -79,7 +79,8 @@ namespace mm {
 		virtual string getModelName() = 0;
 		virtual int getDimension() = 0;
 
-		virtual void getDisplayParameters(int& scramblingSteps, string& scramblingAlgo, int& solutionSteps, string& solution) {}
+		virtual void getDisplayParameters(int& scramblingSteps, string& scramblingAlgo, int& solutionSteps, string& solution, unsigned long long& duration) {}
+		virtual void setDisplayParameters(int scramblingSteps, const string& scramblingAlgo, int solutionSteps, const string& solution, unsigned long long duration) {}
 
 		virtual ~RubiksCubeModel() = 0
 		{
