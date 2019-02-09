@@ -1154,61 +1154,61 @@ namespace mm {
 		*/
 
 		//int angle = 90;
-
+		double targetAngle;
 		switch (face)
 		{
 		case 'F':
 			g_vRotationAxis = CVector3(0, 0, 1);
 			g_nRotatingSection = Front;
-			g_nRotationAngle = -90;
+			targetAngle = -90;
 			break;
 
 		case 'Z':
 			g_vRotationAxis = CVector3(0, 0, 1);
 			g_nRotatingSection = All;
-			g_nRotationAngle = 90;
+			targetAngle = 90;
 			break;
 
 		case 'B':
 			g_vRotationAxis = CVector3(0, 0, 1);
 			g_nRotatingSection = Back;
-			g_nRotationAngle = 90;
+			targetAngle = 90;
 			break;
 
 		case 'L':
 			g_vRotationAxis = CVector3(1, 0, 0);
 			g_nRotatingSection = Left;
-			g_nRotationAngle = 90;
+			targetAngle = 90;
 			break;
 
 		case 'X':
 			g_vRotationAxis = CVector3(1, 0, 0);
 			g_nRotatingSection = All;
-			g_nRotationAngle = 90;
+			targetAngle = 90;
 			break;
 
 		case 'R':
 			g_vRotationAxis = CVector3(1, 0, 0);
 			g_nRotatingSection = Right;
-			g_nRotationAngle = -90;
+			targetAngle = -90;
 			break;
 
 		case 'U':
 			g_vRotationAxis = CVector3(0, 1, 0);
 			g_nRotatingSection = Up;
-			g_nRotationAngle = -90;
+			targetAngle = -90;
 			break;
 
 		case 'Y':
 			g_vRotationAxis = CVector3(0, 1, 0);
 			g_nRotatingSection = All;
-			g_nRotationAngle = 90;
+			targetAngle = 90;
 			break;
 
 		case 'D':
 			g_vRotationAxis = CVector3(0, 1, 0);
 			g_nRotatingSection = Down;
-			g_nRotationAngle = 90;
+			targetAngle = 90;
 			break;
 
 		default:
@@ -1216,35 +1216,37 @@ namespace mm {
 			break;
 		}
 
-		g_nRotationAngle = g_nRotationAngle * numRotations;
+		targetAngle = targetAngle * numRotations;
+		if (isPrime)
+			targetAngle = -targetAngle;
+
 		g_nLayerIndexFrom = layerIndexFrom;
 		g_nLayerIndexTo = layerIndexTo;
-		if (isPrime)
-			g_nRotationAngle = -g_nRotationAngle;
 
 		if (animate)
 		{
 			g_bRotating = true;
-			int targetAngle = g_nRotationAngle;
-			g_nRotationAngle = 0;
-			int step = targetAngle / ui.getFramesPerRotation();
-			step /= numRotations;
-			//for (int i = 0; i < ui.getFramesPerRotation(); ++i)
-			for(int angle = g_nRotationAngle + step; angle <= targetAngle; angle += step)
+			int numTotalFrames = ui.getFramesPerRotation() * numRotations;
+			double stepAngle = targetAngle / numTotalFrames;
+			//Run the loop for (numTotalFrames - 1) times, to avoid division errors. 
+			//The last step should achive perfect angle exactly equal to targetAngle
+			g_nRotationAngle = 0.0;
+			int numStepsForSnappingEffect = numTotalFrames * 0.4; //last 40% rotation is accelerating
+			for(int step = numTotalFrames; step > 1; --step)
 			{
-				g_nRotationAngle = angle;
+				g_nRotationAngle += stepAngle;
 				ui.redrawWindow();
 				//ui.displayMessage(scramblingSteps_, scramblingAlgo_, solutionSteps_, solution_);
-				Sleep(ui.getSleepTimeMilliSec());
+				if(step > numStepsForSnappingEffect)
+					Sleep(ui.getSleepTimeMilliSec());
+				else
+					Sleep(step * ui.getSleepTimeMilliSec() / numStepsForSnappingEffect); //Sleep time will be reduced as step -> 1
 			}
 
-			//If after above loop, the target angle is not achieved
-			if (g_nRotationAngle != targetAngle)
-			{
-				g_nRotationAngle = targetAngle;
-				ui.redrawWindow();
-				//ui.displayMessage(scramblingSteps_, scramblingAlgo_, solutionSteps_, solution_);
-			}
+			//After above loop, the target angle is not achieved, so set it now as a last step
+			g_nRotationAngle = targetAngle;
+			ui.redrawWindow();
+
 			g_bRotating = false;
 		}
 
@@ -1254,6 +1256,8 @@ namespace mm {
 		{
 			ui.redrawWindow();
 			//ui.displayMessage(scramblingSteps_, scramblingAlgo_, solutionSteps_, solution_);
+			//Sleep for some time before going for next step
+			Sleep(5 * ui.getSleepTimeMilliSec());
 		}
 		g_vRotationAxis = CVector3{0.0, 0.0, 0.0};
 		g_nRotationAngle = 0;

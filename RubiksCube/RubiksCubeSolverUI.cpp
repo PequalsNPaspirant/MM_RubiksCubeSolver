@@ -77,8 +77,8 @@ namespace mm {
 		//scene_(*this, "RubiksCubeModel_v5", 7),
 		//scene_(*this, "RubiksCubeModel_v5", 8),
 		scene_(*this, "RubiksCubeModel_v6", 5),
-		framesPerRotation_(10), //ideal value: slow=25, moderate=10, fast=5
-		sleepTimeMilliSec_(10), //ideal value: slow=25, moderate=10, fast=2
+		framesPerRotation_(20), //moderate
+		sleepTimeMilliSec_(20), //moderate
 		tester_(*this)
 	{
 	}
@@ -948,7 +948,7 @@ namespace mm {
 		}
 		else if (id == ID_ANIMATIONSPEED_VERYSLOW)
 		{
-			framesPerRotation_ = 40; //ideal value: slow=25, moderate=10, fast=5
+			framesPerRotation_ = 40;
 			sleepTimeMilliSec_ = 40;
 		}
 		else if (id == ID_ANIMATIONSPEED_SLOW)
