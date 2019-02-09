@@ -133,6 +133,8 @@ namespace mm {
 		HINSTANCE g_hInstance; // current instance
 		int framesPerRotation_;
 		int sleepTimeMilliSec_;
+		int charHeight;
+		int charWidth;
 
 		string currentModelName_;
 		RubiksCubeSolverScene scene_;

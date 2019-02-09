@@ -76,7 +76,8 @@ namespace mm {
 		//scene_(*this, "RubiksCubeModel_v5", 6),
 		//scene_(*this, "RubiksCubeModel_v5", 7),
 		//scene_(*this, "RubiksCubeModel_v5", 8),
-		scene_(*this, "RubiksCubeModel_v6", 5),
+		scene_(*this, "RubiksCubeModel_v6", 3),
+		//scene_(*this, "RubiksCubeModel_v6", 5),
 		framesPerRotation_(20), //moderate
 		sleepTimeMilliSec_(20), //moderate
 		tester_(*this)
@@ -120,13 +121,14 @@ namespace mm {
 			NULL);
 		//ListBox_AddString(g_hWndMessage, L"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
 		ListBox_Enable(g_hWndMessage, TRUE);
-		ListBox_SetHorizontalExtent(g_hWndMessage, width + 100);
+		ListBox_SetHorizontalExtent(g_hWndMessage, width);
 		g_hDCMessage = GetDC(g_hWndMessage);
 
 		//https://docs.microsoft.com/en-us/windows/desktop/api/wingdi/nf-wingdi-createfonta
 		//HFONT hFont = CreateFont(15, 0, 0, 0, /*FW_BOLD*/FW_LIGHT, 0, 0, 0, 0, 0, 0, 2, FF_SCRIPT, L"SYSTEM_FIXED_FONT");
+		charHeight = 15;
 		HFONT hFont = CreateFont(
-			15, //cHeight
+			charHeight, //cHeight
 			0, //cWidth
 			0, //cEscapement
 			0, //cOrientation
@@ -141,6 +143,7 @@ namespace mm {
 			DEFAULT_PITCH, //iPitchAndFamily
 			L"Arial" //pszFaceName
 		);
+		charWidth = 20;
 		HFONT hTmp = (HFONT)SelectObject(g_hDCMessage, hFont);
 		SendMessage(g_hWndMessage, WM_SETFONT, (WPARAM)hFont, 0);
 
@@ -377,23 +380,48 @@ namespace mm {
 		int top = 4;
 		int lineHeight = 18;
 
-		ListBox_ResetContent(g_hWndMessage);
-
-		int currentTop = top;
 		string size = to_string(scene_.getRubiksCubeSize());
-		displayMessage_currentLine(left, currentTop, "Rubik's Cube Size: " + size + "x" + size + "x" + size);
+		string rubikCubeSize("Rubik's Cube Size: " + size + "x" + size + "x" + size);
+		string scrambleSteps("Scrambling Steps: " + to_string(scramblingSteps_));
+		string scrambleMsg("Scramblng Algorithm: " + scramblingAlgo_);
+		string solutionSteps("Solution Steps: " + to_string(solutionSteps_));
+		string solutionMsg("Solution Algorithm: " + solution_);
+
+		//int horizontalExtent = ListBox_GetHorizontalExtent(g_hWndMessage);
+		string* pStr = &rubikCubeSize;
+		if (pStr->length() < scrambleSteps.length())
+			pStr = &scrambleSteps;
+		if (pStr->length() < scrambleMsg.length())
+			pStr = &scrambleMsg;
+		if (pStr->length() < solutionSteps.length())
+			pStr = &solutionSteps;
+		if (pStr->length() < solutionMsg.length())
+			pStr = &solutionMsg;
+
+		wstring wStrMsg(pStr->begin(), pStr->end());
+
+		RECT c = { 0, 0, 0, 0 };
+		DrawText(g_hDCMessage, wStrMsg.c_str(), wStrMsg.length(), &c, DT_CALCRECT);
+
+		int clearance = 20;
+		if (WND_WIDTH < c.right + clearance)
+			ListBox_SetHorizontalExtent(g_hWndMessage, c.right + clearance);
+
+		ListBox_ResetContent(g_hWndMessage);
+		int currentTop = top;
+		displayMessage_currentLine(left, currentTop, std::move(rubikCubeSize));
 
 		currentTop += lineHeight;
-		displayMessage_currentLine(left, currentTop, "Scrambling Steps: " + to_string(scramblingSteps_));
+		displayMessage_currentLine(left, currentTop, std::move(scrambleSteps));
 
 		currentTop += lineHeight;
-		displayMessage_currentLine(left, currentTop, "Scramblng Algorithm: " + scramblingAlgo_);
+		displayMessage_currentLine(left, currentTop, std::move(scrambleMsg));
 
 		currentTop += lineHeight;
-		displayMessage_currentLine(left, currentTop, "Solution Steps: " + to_string(solutionSteps_));
+		displayMessage_currentLine(left, currentTop, std::move(solutionSteps));
 
 		currentTop += lineHeight;
-		displayMessage_currentLine(left, currentTop, "Solution Algorithm: " + solution_);
+		displayMessage_currentLine(left, currentTop, std::move(solutionMsg));
 
 		//SendMessage(g_hWndMessage, WM_SETREDRAW, TRUE, 0);
 		BOOL result = UpdateWindow(g_hWndMessage);
@@ -836,6 +864,7 @@ namespace mm {
 			WND_WIDTH = cx;
 			WND_HEIGHT = cy;
 			scene_.sizeOpenGlScreen(cx, cy - messageWndHeight);
+			MoveWindow(g_hWndMessage, 0, 0, cx, messageWndHeight, false);
 			GetClientRect(hWnd, &g_rWnd);
 		}
 		redrawWindow();
