@@ -40,8 +40,6 @@ BEGIN
         MENUITEM "Scramble (Show Animation)",   IDM_RUBIKSCUBE_SCRAMBLE_ANIM
         MENUITEM "Solve",                       IDM_RUBIKSCUBE_SOLVE
         MENUITEM "Solve (Show Animation)",      IDM_RUBIKSCUBE_SOLVE_ANIM
-        MENUITEM "Test",                        ID_RUBIKSCUBE_TEST
-        MENUITEM "Test (Show Animation)",       ID_RUBIKSCUBE_TEST_ANIM
         MENUITEM "Fit to Window",               ID_RUBIKSCUBE_FITTOSCREEN
     END
     POPUP "Rubik's Cube Size"
@@ -67,6 +65,11 @@ BEGIN
         MENUITEM "Moderate",                    ID_ANIMATIONSPEED_MODERATE, CHECKED
         MENUITEM "Slow",                        ID_ANIMATIONSPEED_SLOW, CHECKED
         MENUITEM "Very Slow",                   ID_ANIMATIONSPEED_VERYSLOW, CHECKED
+    END
+    POPUP "Developer"
+    BEGIN
+        MENUITEM "Test",                        ID_RUBIKSCUBE_TEST
+        MENUITEM "Test (Show Animation)",       ID_RUBIKSCUBE_TEST_ANIM
     END
     POPUP "&Help"
     BEGIN

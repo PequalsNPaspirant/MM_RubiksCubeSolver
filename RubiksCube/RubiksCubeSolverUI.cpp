@@ -383,7 +383,18 @@ namespace mm {
 		}
 		else
 		{
+			wstring wStrMsg(message.begin(), message.end());
+
+			RECT c = { 0, 0, 0, 0 };
+			DrawText(g_hDCMessage, wStrMsg.c_str(), wStrMsg.length(), &c, DT_CALCRECT);
+
+			int clearance = 20;
+			//if (WND_WIDTH < c.right + clearance)
+			ListBox_SetHorizontalExtent(g_hWndMessage, c.right + clearance);
+
+			ListBox_ResetContent(g_hWndMessage);
 			displayMessage_currentLine(6, 4, message);
+			BOOL result = UpdateWindow(g_hWndMessage);
 			//wstring wText(message.begin(), message.end());
 			//RECT textRect;
 			//textRect.left = 6;

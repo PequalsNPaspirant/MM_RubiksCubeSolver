@@ -72,7 +72,7 @@ namespace mm {
 		generateTestCases(scrambleAlgos, testInfoAggregateSet);
 		vector<testInfo> testInfoSet;
 		executeAllTests(scrambleAlgos, testInfoAggregateSet, testInfoSet, animate);
-		refUI_.CreateOkDialog("All " + to_string(testInfoSet.size()) + " tests are successfully completed!");
+		//refUI_.CreateOkDialog("All " + to_string(testInfoSet.size()) + " tests are successfully completed!");
 
 		ofstream testResultsFile;
 		testResultsFile.open("../test/RubiksCubeTestResults_" + getCurrentLocalTimeInNanoSeconds2() + ".csv");
