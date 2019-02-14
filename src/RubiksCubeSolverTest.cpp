@@ -52,8 +52,9 @@ namespace mm {
 	//const int RubiksCubeSolverTest::numAlgoOfEachLength = 100;
 	const int RubiksCubeSolverTest::numAlgoOfEachLength = 1;
 	vector<string> RubiksCubeSolverTest::genericModels{
-		"RubiksCubeModel_v5",
-		"RubiksCubeModel_v6"
+		//"RubiksCubeModel_v5",
+		"RubiksCubeModel_v6",
+		"RubiksCubeModel_v7"
 	};
 
 	bool RubiksCubeSolverTest::testRubiksCube(bool animate)
@@ -116,62 +117,62 @@ namespace mm {
 	{
 		//50 hardcoded scrambling algos
 		vector<AlgoPairs> scrambleAlgos_size2{
-			//{ "U", "U'" },
-			//{ "D", "D'" },
-			//{ "L", "L'" },
-			//{ "R", "R'" },
-			//{ "F", "F'" },
-			//{ "B", "B'" },
-			//{ "X", "X'" },
-			//{ "Y", "Y'" },
-			//{ "Z", "Z'" },
+			{ "U", "U'" },
+			{ "D", "D'" },
+			{ "L", "L'" },
+			{ "R", "R'" },
+			{ "F", "F'" },
+			{ "B", "B'" },
+			{ "X", "X'" },
+			{ "Y", "Y'" },
+			{ "Z", "Z'" },
 
-			//{ "U'", "U" },
-			//{ "D'", "D" },
-			//{ "L'", "L" },
-			//{ "R'", "R" },
-			//{ "F'", "F" },
-			//{ "B'", "B" },
-			//{ "X'", "X" },
-			//{ "Y'", "Y" },
-			//{ "Z'", "Z" },
+			{ "U'", "U" },
+			{ "D'", "D" },
+			{ "L'", "L" },
+			{ "R'", "R" },
+			{ "F'", "F" },
+			{ "B'", "B" },
+			{ "X'", "X" },
+			{ "Y'", "Y" },
+			{ "Z'", "Z" },
 
-			//{ "U2", "U'2" },
-			//{ "D2", "D'2" },
-			//{ "L2", "L'2" },
-			//{ "R2", "R'2" },
-			//{ "F2", "F'2" },
-			//{ "B2", "B'2" },
-			//{ "X2", "X'2" },
-			//{ "Y2", "Y'2" },
-			//{ "Z2", "Z'2" },
+			{ "U2", "U'2" },
+			{ "D2", "D'2" },
+			{ "L2", "L'2" },
+			{ "R2", "R'2" },
+			{ "F2", "F'2" },
+			{ "B2", "B'2" },
+			{ "X2", "X'2" },
+			{ "Y2", "Y'2" },
+			{ "Z2", "Z'2" },
 
-			//{ "U'2",  "U2" },
-			//{ "D'2",  "D2" },
-			//{ "L'2",  "L2" },
-			//{ "R'2",  "R2" },
-			//{ "F'2",  "F2" },
-			//{ "B'2",  "B2" },
-			//{ "X'2",  "X2" },
-			//{ "Y'2",  "Y2" },
-			//{ "Z'2",  "Z2" },
+			{ "U'2",  "U2" },
+			{ "D'2",  "D2" },
+			{ "L'2",  "L2" },
+			{ "R'2",  "R2" },
+			{ "F'2",  "F2" },
+			{ "B'2",  "B2" },
+			{ "X'2",  "X2" },
+			{ "Y'2",  "Y2" },
+			{ "Z'2",  "Z2" },
 
-			//{ "FB", "B'F'" },
-			//{ "LR", "R'L'" },
-			//{ "UD", "D'U'" },
-			//{ "F'B'", "BF" },
-			//{ "L'R'", "RL" },
-			//{ "U'D'", "DU" },
+			{ "FB", "B'F'" },
+			{ "LR", "R'L'" },
+			{ "UD", "D'U'" },
+			{ "F'B'", "BF" },
+			{ "L'R'", "RL" },
+			{ "U'D'", "DU" },
 
-			//{ "F2B2", "B'2F'2" },
-			//{ "L2R2", "R'2L'2" },
-			//{ "U2D2", "D'2U'2" },
+			{ "F2B2", "B'2F'2" },
+			{ "L2R2", "R'2L'2" },
+			{ "U2D2", "D'2U'2" },
 
-			//{ "FLU", "U'L'F'" },
-			//{ "F'L'U'", "ULF" },
-			//{ "BRD", "D'R'B'" },
-			//{ "B'R'D'", "DRB" },
-			//{ "FLUBRD", "D'R'B'U'L'F'" },
+			{ "FLU", "U'L'F'" },
+			{ "F'L'U'", "ULF" },
+			{ "BRD", "D'R'B'" },
+			{ "B'R'D'", "DRB" },
+			{ "FLUBRD", "D'R'B'U'L'F'" },
 		};
 
 		//scrambleAlgos.resize(maxSize - 2);
@@ -212,7 +213,7 @@ namespace mm {
 
 		if (minSize <= 4)
 		{
-			for (unsigned int size = 4; size <= maxSize; ++size)
+			for (unsigned int size = 4; size <= maxSize; size += incrementSize)
 				for (int i = 0; i < genericModels.size(); ++i)
 					testInfoAggregateSet.push_back({ genericModels[i], size });
 		}
