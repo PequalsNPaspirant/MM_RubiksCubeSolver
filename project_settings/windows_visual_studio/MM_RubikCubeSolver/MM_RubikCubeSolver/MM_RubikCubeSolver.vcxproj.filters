@@ -15,147 +15,126 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Camera.cpp">
+    <ClCompile Include="../../../../src/Camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="stdafx.cpp">
+    <ClCompile Include="../../../../src/stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Vector3.cpp">
+    <ClCompile Include="../../../../src/Vector3.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="RubiksCubeSolverUI.cpp">
+    <ClCompile Include="../../../../src/RubiksCubeSolverUI.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="RubiksCubeSolverTest.cpp">
+    <ClCompile Include="../../../../src/RubiksCubeSolverTest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="RubiksCubeSolverScene.cpp">
+    <ClCompile Include="../../../../src/RubiksCubeSolverScene.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="RubiksCubeModel.cpp">
+    <ClCompile Include="../../../../src/RubiksCubeModel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="RubiksCubeModel_v1.cpp">
+    <ClCompile Include="../../../../src/RubiksCubeModel_v1.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="RubiksCubeModel_v2.cpp">
+    <ClCompile Include="../../../../src/RubiksCubeModel_v2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="RubiksCubeModel_v3.cpp">
+    <ClCompile Include="../../../../src/RubiksCubeModel_v3.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="RubiksCubeModel_v4.cpp">
+    <ClCompile Include="../../../../src/RubiksCubeModel_v4.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="RubiksCubeModel_v5.cpp">
+    <ClCompile Include="../../../../src/RubiksCubeModel_v5.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="RubiksCubeModel_v6.cpp">
+    <ClCompile Include="../../../../src/RubiksCubeModel_v6.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Camera.h">
+    <ClInclude Include="../../../../src/Camera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Resource.h">
+    <ClInclude Include="../../../../src/Resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="stdafx.h">
+    <ClInclude Include="../../../../src/stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Vector3.h">
+    <ClInclude Include="../../../../src/Vector3.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="RubiksCubeSolverUI.h">
+    <ClInclude Include="../../../../src/RubiksCubeSolverUI.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="RubiksCubeSolverTest.h">
+    <ClInclude Include="../../../../src/RubiksCubeSolverTest.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="RubiksCubeSolverScene.h">
+    <ClInclude Include="../../../../src/RubiksCubeSolverScene.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="RubiksCubeModel.h">
+    <ClInclude Include="../../../../src/RubiksCubeModel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="RubiksCubeModel_v1.h">
+    <ClInclude Include="../../../../src/RubiksCubeModel_v1.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="RubiksCubeModel_v2.h">
+    <ClInclude Include="../../../../src/RubiksCubeModel_v2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="RubiksCubeSolverUtils.h">
+    <ClInclude Include="../../../../src/RubiksCubeSolverUtils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="RubiksCubeModel_v3.h">
+    <ClInclude Include="../../../../src/RubiksCubeModel_v3.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="RubiksCubeModel_v4.h">
+    <ClInclude Include="../../../../src/RubiksCubeModel_v4.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="RubiksCubeModel_v5.h">
+    <ClInclude Include="../../../../src/RubiksCubeModel_v5.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="RubiksCubeModel_v6.h">
+    <ClInclude Include="../../../../src/RubiksCubeModel_v6.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\black.bmp">
+    <Image Include="../../../../res/blue.bmp">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="..\..\black.bmp">
+    <Image Include="../../../../res/green.bmp">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="..\blue.bmp">
+    <Image Include="../../../../res/orange.bmp">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="..\..\blue.bmp">
+    <Image Include="../../../../res/red.bmp">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="..\..\green.bmp">
+    <Image Include="../../../../res/white.bmp">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="..\green.bmp">
+    <Image Include="../../../../res/yellow.bmp">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="..\Icon.ico">
+    <Image Include="..\..\..\..\res\grey.bmp">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="..\..\orange.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="..\orange.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="..\red.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="..\..\red.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="..\..\white.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="..\white.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="..\..\yellow.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="..\yellow.bmp">
+    <Image Include="..\..\..\..\..\..\..\%40_Programming\Everything\MM_RubikCubeSolver\res\black.bmp">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\cursor1.cur">
+    <None Include="../../../../res/cursor1.cur">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="RubiksCube.rc">
+    <ResourceCompile Include="../../../../res/RubiksCube.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>

@@ -93,6 +93,9 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <AdditionalIncludeDirectories>$(ProjectDir)/../../../../src</AdditionalIncludeDirectories>
+      <ObjectFileName>$(ProjectDir)\..\..\..\..\obj\windows_visual_studio\$(Configuration)_$(Platform)\</ObjectFileName>
+      <ProgramDataBaseFileName>$(ProjectDir)\..\..\..\..\obj\windows_visual_studio\$(Configuration)_$(Platform)\vc$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
     </ClCompile>
     <Link>
       <AdditionalDependencies>glu32.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -101,6 +104,7 @@
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention />
       <TargetMachine>MachineX86</TargetMachine>
+      <OutputFile>$(ProjectDir)..\..\..\..\bin\windows_visual_studio\$(Configuration)_$(Platform)\$(TargetName)$(TargetExt)</OutputFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -112,6 +116,9 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <AdditionalIncludeDirectories>$(ProjectDir)/../../../../src</AdditionalIncludeDirectories>
+      <ObjectFileName>$(ProjectDir)\..\..\..\..\obj\windows_visual_studio\$(Configuration)_$(Platform)\</ObjectFileName>
+      <ProgramDataBaseFileName>$(ProjectDir)\..\..\..\..\obj\windows_visual_studio\$(Configuration)_$(Platform)\vc$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
     </ClCompile>
     <Link>
       <AdditionalDependencies>glu32.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -120,6 +127,7 @@
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention>
       </DataExecutionPrevention>
+      <OutputFile>$(ProjectDir)..\..\..\..\bin\windows_visual_studio\$(Configuration)_$(Platform)\$(TargetName)$(TargetExt)</OutputFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -129,6 +137,9 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <AdditionalIncludeDirectories>$(ProjectDir)/../../../../src</AdditionalIncludeDirectories>
+      <ObjectFileName>$(ProjectDir)\..\..\..\..\obj\windows_visual_studio\$(Configuration)_$(Platform)\</ObjectFileName>
+      <ProgramDataBaseFileName>$(ProjectDir)\..\..\..\..\obj\windows_visual_studio\$(Configuration)_$(Platform)\vc$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
     </ClCompile>
     <Link>
       <AdditionalDependencies>glu32.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -139,6 +150,7 @@
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention />
       <TargetMachine>MachineX86</TargetMachine>
+      <OutputFile>$(ProjectDir)..\..\..\..\bin\windows_visual_studio\$(Configuration)_$(Platform)\$(TargetName)$(TargetExt)</OutputFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -148,6 +160,9 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <AdditionalIncludeDirectories>$(ProjectDir)/../../../../src</AdditionalIncludeDirectories>
+      <ObjectFileName>$(ProjectDir)\..\..\..\..\obj\windows_visual_studio\$(Configuration)_$(Platform)\</ObjectFileName>
+      <ProgramDataBaseFileName>$(ProjectDir)\..\..\..\..\obj\windows_visual_studio\$(Configuration)_$(Platform)\vc$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
     </ClCompile>
     <Link>
       <AdditionalDependencies>glu32.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -158,67 +173,61 @@
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention>
       </DataExecutionPrevention>
+      <OutputFile>$(ProjectDir)..\..\..\..\bin\windows_visual_studio\$(Configuration)_$(Platform)\$(TargetName)$(TargetExt)</OutputFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="RubiksCubeModel_v6.cpp" />
-    <ClCompile Include="RubiksCubeModel_v5.cpp" />
-    <ClCompile Include="RubiksCubeModel_v4.cpp" />
-    <ClCompile Include="RubiksCubeModel_v3.cpp" />
-    <ClCompile Include="RubiksCubeModel.cpp" />
-    <ClCompile Include="RubiksCubeModel_v2.cpp" />
-    <ClCompile Include="RubiksCubeSolverScene.cpp" />
-    <ClCompile Include="RubiksCubeSolverTest.cpp" />
-    <ClCompile Include="Camera.cpp" />
-    <ClCompile Include="RubiksCubeSolverUI.cpp" />
-    <ClCompile Include="RubiksCubeModel_v1.cpp" />
-    <ClCompile Include="stdafx.cpp">
+    <ClCompile Include="../../../../src/RubiksCubeModel_v6.cpp" />
+    <ClCompile Include="../../../../src/RubiksCubeModel_v5.cpp" />
+    <ClCompile Include="../../../../src/RubiksCubeModel_v4.cpp" />
+    <ClCompile Include="../../../../src/RubiksCubeModel_v3.cpp" />
+    <ClCompile Include="../../../../src/RubiksCubeModel.cpp" />
+    <ClCompile Include="../../../../src/RubiksCubeModel_v2.cpp" />
+    <ClCompile Include="../../../../src/RubiksCubeSolverScene.cpp" />
+    <ClCompile Include="../../../../src/RubiksCubeSolverTest.cpp" />
+    <ClCompile Include="../../../../src/Camera.cpp" />
+    <ClCompile Include="../../../../src/RubiksCubeSolverUI.cpp" />
+    <ClCompile Include="../../../../src/RubiksCubeModel_v1.cpp" />
+    <ClCompile Include="../../../../src/stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Vector3.cpp" />
+    <ClCompile Include="../../../../src/Vector3.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="RubiksCubeModel_v6.h" />
-    <ClInclude Include="RubiksCubeModel_v5.h" />
-    <ClInclude Include="RubiksCubeModel_v4.h" />
-    <ClInclude Include="RubiksCubeModel_v3.h" />
-    <ClInclude Include="RubiksCubeSolverUtils.h" />
-    <ClInclude Include="RubiksCubeModel.h" />
-    <ClInclude Include="RubiksCubeModel_v2.h" />
-    <ClInclude Include="RubiksCubeSolverScene.h" />
-    <ClInclude Include="RubiksCubeSolverTest.h" />
-    <ClInclude Include="RubiksCubeSolverUI.h" />
-    <ClInclude Include="Camera.h" />
-    <ClInclude Include="Resource.h" />
-    <ClInclude Include="RubiksCubeModel_v1.h" />
-    <ClInclude Include="stdafx.h" />
-    <ClInclude Include="Vector3.h" />
+    <ClInclude Include="../../../../src/RubiksCubeModel_v6.h" />
+    <ClInclude Include="../../../../src/RubiksCubeModel_v5.h" />
+    <ClInclude Include="../../../../src/RubiksCubeModel_v4.h" />
+    <ClInclude Include="../../../../src/RubiksCubeModel_v3.h" />
+    <ClInclude Include="../../../../src/RubiksCubeSolverUtils.h" />
+    <ClInclude Include="../../../../src/RubiksCubeModel.h" />
+    <ClInclude Include="../../../../src/RubiksCubeModel_v2.h" />
+    <ClInclude Include="../../../../src/RubiksCubeSolverScene.h" />
+    <ClInclude Include="../../../../src/RubiksCubeSolverTest.h" />
+    <ClInclude Include="../../../../src/RubiksCubeSolverUI.h" />
+    <ClInclude Include="../../../../src/Camera.h" />
+    <ClInclude Include="../../../../src/Resource.h" />
+    <ClInclude Include="../../../../src/RubiksCubeModel_v1.h" />
+    <ClInclude Include="../../../../src/stdafx.h" />
+    <ClInclude Include="../../../../src/Vector3.h" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\..\black.bmp" />
-    <Image Include="..\..\blue.bmp" />
-    <Image Include="..\..\green.bmp" />
-    <Image Include="..\..\orange.bmp" />
-    <Image Include="..\..\red.bmp" />
-    <Image Include="..\..\white.bmp" />
-    <Image Include="..\..\yellow.bmp" />
-    <Image Include="..\black.bmp" />
-    <Image Include="..\blue.bmp" />
-    <Image Include="..\green.bmp" />
-    <Image Include="..\Icon.ico" />
-    <Image Include="..\orange.bmp" />
-    <Image Include="..\red.bmp" />
-    <Image Include="..\white.bmp" />
-    <Image Include="..\yellow.bmp" />
+    <Image Include="..\..\..\..\..\..\..\%40_Programming\Everything\MM_RubikCubeSolver\res\black.bmp" />
+    <Image Include="..\..\..\..\res\grey.bmp" />
+    <Image Include="../../../../res/blue.bmp" />
+    <Image Include="../../../../res/green.bmp" />
+    <Image Include="../../../../res/orange.bmp" />
+    <Image Include="../../../../res/red.bmp" />
+    <Image Include="../../../../res/white.bmp" />
+    <Image Include="../../../../res/yellow.bmp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\cursor1.cur" />
+    <None Include="../../../../res/cursor1.cur" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="RubiksCube.rc" />
+    <ResourceCompile Include="../../../../res/RubiksCube.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

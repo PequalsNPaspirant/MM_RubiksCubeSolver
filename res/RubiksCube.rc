@@ -1,6 +1,6 @@
 // Microsoft Visual C++ generated resource script.
 //
-#include "resource.h"
+#include "../src/resource.h"
 
 #define APSTUDIO_READONLY_SYMBOLS
 /////////////////////////////////////////////////////////////////////////////
@@ -185,19 +185,19 @@ END
 // Bitmap
 //
 
-IDB_WHITE               BITMAP                  "..\\white.bmp"
+IDB_WHITE               BITMAP                  "./white.bmp"
 
-IDB_BLUE                BITMAP                  "..\\blue.bmp"
+IDB_BLUE                BITMAP                  "./blue.bmp"
 
-IDB_ORANGE              BITMAP                  "..\\orange.bmp"
+IDB_ORANGE              BITMAP                  "./orange.bmp"
 
-IDB_RED                 BITMAP                  "..\\red.bmp"
+IDB_RED                 BITMAP                  "./red.bmp"
 
-IDB_GREEN               BITMAP                  "..\\green.bmp"
+IDB_GREEN               BITMAP                  "./green.bmp"
 
-IDB_YELLOW              BITMAP                  "..\\yellow.bmp"
+IDB_YELLOW              BITMAP                  "./yellow.bmp"
 
-IDB_BLACK               BITMAP                  "..\\black.bmp"
+IDB_BLACK               BITMAP                  "./black.bmp"
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -207,7 +207,7 @@ IDB_BLACK               BITMAP                  "..\\black.bmp"
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDI_RUBIKSCUBE          ICON                    "..\\Icon.ico"
+IDI_RUBIKSCUBE          ICON                    "./Icon.ico"
 
 
 /////////////////////////////////////////////////////////////////////////////
