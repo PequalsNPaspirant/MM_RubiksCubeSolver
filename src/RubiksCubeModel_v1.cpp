@@ -46,7 +46,7 @@ namespace mm {
 	}
 
 	//Create a global object, so that its constructor is called before main and the factory map is initialized before main
-	static RubiksCubeModelFactory object("RubiksCubeModel_v1", createRubiksCubeModel_v1);
+	static RegisterRubiksCubeFactoryFunction object("RubiksCubeModel_v1", createRubiksCubeModel_v1);
 
 	//==================== RubiksCubeModel_v1::Cube =========================
 

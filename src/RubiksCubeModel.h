@@ -94,8 +94,32 @@ namespace mm {
 	public:
 		static unique_ptr<RubiksCubeModel> getRubiksCubeModel(const string& modelName, int size);
 
-		RubiksCubeModelFactory(const string& modelName, fptrRubiksCubeModelCreator fptr);
-		static unordered_map<string, fptrRubiksCubeModelCreator>& getRubiksCubeFactoryMap();
+	};
 
+	//a singlton class
+	class RubiksCubeFactoryMap
+	{
+	public:
+		static RubiksCubeFactoryMap& getRubiksCubeFactoryMap();
+		void addEntry(const string& modelName, fptrRubiksCubeModelCreator fptr);
+		void removeEntry(const string& modelName);
+		fptrRubiksCubeModelCreator getEntry(const string& modelName);
+
+		~RubiksCubeFactoryMap();
+		RubiksCubeFactoryMap(const RubiksCubeFactoryMap&) = delete;
+		RubiksCubeFactoryMap(RubiksCubeFactoryMap&&) = delete;
+		RubiksCubeFactoryMap& operator=(const RubiksCubeFactoryMap&) = delete;		
+		RubiksCubeFactoryMap& operator=(RubiksCubeFactoryMap&&) = delete;
+
+	private:
+		unordered_map<string, fptrRubiksCubeModelCreator> rubiksCubeFactoryMap_;
+
+		RubiksCubeFactoryMap();
+	};
+
+	class RegisterRubiksCubeFactoryFunction
+	{
+	public:
+		RegisterRubiksCubeFactoryFunction(const string& modelName, fptrRubiksCubeModelCreator fptr);
 	};
 }

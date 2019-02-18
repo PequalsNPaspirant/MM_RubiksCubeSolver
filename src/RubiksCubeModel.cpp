@@ -139,27 +139,45 @@ namespace mm {
 
 	unique_ptr<RubiksCubeModel> RubiksCubeModelFactory::getRubiksCubeModel(const string& modelName, int size)
 	{
-		unordered_map<string, fptrRubiksCubeModelCreator>& rubiksCubeFactoryMap = RubiksCubeModelFactory::getRubiksCubeFactoryMap();
-		fptrRubiksCubeModelCreator fPtr = rubiksCubeFactoryMap[modelName];
+		RubiksCubeFactoryMap& rubiksCubeFactoryMap = RubiksCubeFactoryMap::getRubiksCubeFactoryMap();
+		fptrRubiksCubeModelCreator fPtr = rubiksCubeFactoryMap.getEntry(modelName);
 		return (*fPtr)(size);
 	}
 
-	RubiksCubeModelFactory::RubiksCubeModelFactory(const string& modelName, fptrRubiksCubeModelCreator fptr)
+	RubiksCubeFactoryMap& RubiksCubeFactoryMap::getRubiksCubeFactoryMap()
 	{
-		//RubiksCubeModelFactory::addModelCreatorToFactory(modelName, fptr);
-		unordered_map<string, fptrRubiksCubeModelCreator>& rubiksCubeFactoryMap = RubiksCubeModelFactory::getRubiksCubeFactoryMap();
-		rubiksCubeFactoryMap[modelName] = fptr;
+		static RubiksCubeFactoryMap rubiksCubeFactoryMapSingleObject;
+		return rubiksCubeFactoryMapSingleObject;
 	}
 
-	unordered_map<string, fptrRubiksCubeModelCreator>& RubiksCubeModelFactory::getRubiksCubeFactoryMap()
+	void RubiksCubeFactoryMap::addEntry(const string& modelName, fptrRubiksCubeModelCreator fptr)
 	{
-		static unordered_map<string, fptrRubiksCubeModelCreator> rubiksCubeFactoryMap_;
-		return rubiksCubeFactoryMap_;
+		rubiksCubeFactoryMap_[modelName] = fptr;
 	}
 
-	//void RubiksCubeModelFactory::addModelCreatorToFactory(const string& modelName, fptrRubiksCubeModelCreator fptr)
-	//{
-	//	unordered_map<string, fptrRubiksCubeModelCreator>& rubiksCubeFactoryMap = RubiksCubeModelFactory::getRubiksCubeFactoryMap();
-	//	rubiksCubeFactoryMap[modelName] = fptr;
-	//}
+	void RubiksCubeFactoryMap::removeEntry(const string& modelName)
+	{
+		//auto it = rubiksCubeFactoryMap_.find(modelName);
+		//if(it != rubiksCubeFactoryMap_.end())
+		//	auto iteratorToNextElement = rubiksCubeFactoryMap_.erase(it);
+
+		size_t numElementsRemoved = rubiksCubeFactoryMap_.erase(modelName);
+	}
+
+	fptrRubiksCubeModelCreator RubiksCubeFactoryMap::getEntry(const string& modelName)
+	{
+		return rubiksCubeFactoryMap_[modelName];
+	}
+
+	RubiksCubeFactoryMap::RubiksCubeFactoryMap()
+	{}
+
+	RubiksCubeFactoryMap::~RubiksCubeFactoryMap()
+	{}
+
+	RegisterRubiksCubeFactoryFunction::RegisterRubiksCubeFactoryFunction(const string& modelName, fptrRubiksCubeModelCreator fptr)
+	{
+		RubiksCubeFactoryMap& rubiksCubeFactoryMap = RubiksCubeFactoryMap::getRubiksCubeFactoryMap();
+		rubiksCubeFactoryMap.addEntry(modelName, fptr);
+	}
 }
