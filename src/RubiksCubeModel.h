@@ -93,9 +93,9 @@ namespace mm {
 	{
 	public:
 		static unique_ptr<RubiksCubeModel> getRubiksCubeModel(const string& modelName, int size);
-		static void addModelCreatorToFactory(const string& modelName, fptrRubiksCubeModelCreator fptr);
 
-	private:
-		static unordered_map<string, fptrRubiksCubeModelCreator> rubiksCubeFactoryMap_;
+		RubiksCubeModelFactory(const string& modelName, fptrRubiksCubeModelCreator fptr);
+		static unordered_map<string, fptrRubiksCubeModelCreator>& getRubiksCubeFactoryMap();
+
 	};
 }

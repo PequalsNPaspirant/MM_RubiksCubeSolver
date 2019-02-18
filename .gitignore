@@ -31,3 +31,12 @@
 /project_settings/windows_visual_studio/MM_RubikCubeSolver/MM_RubikCubeSolver/x64/Release/MM_Rubik.840C9D90.tlog/*.lastbuildstate
 /project_settings/windows_visual_studio/MM_RubikCubeSolver/MM_RubikCubeSolver/x64/Release/*.pch
 /project_settings/windows_visual_studio/MM_RubikCubeSolver/MM_RubikCubeSolver/x64/Release/*.res
+/obj/windows_visual_studio/Debug_x64/*.obj
+/project_settings/windows_visual_studio/MM_RubikCubeSolver/MM_RubikCubeSolver/x64/Debug/MM_Rubik.840C9D90.tlog/*.tlog
+/bin/windows_visual_studio/Debug_x64/*.exe
+/bin/windows_visual_studio/Debug_x64/*.ilk
+/bin/windows_visual_studio/Debug_x64/*.pdb
+/obj/windows_visual_studio/Debug_x64/*.pdb
+/project_settings/windows_visual_studio/MM_RubikCubeSolver/MM_RubikCubeSolver/x64/Debug/MM_Rubik.840C9D90.tlog/*.lastbuildstate
+/project_settings/windows_visual_studio/MM_RubikCubeSolver/MM_RubikCubeSolver/x64/Debug/*.log
+/project_settings/windows_visual_studio/MM_RubikCubeSolver/MM_RubikCubeSolver/x64/Debug/*.pch

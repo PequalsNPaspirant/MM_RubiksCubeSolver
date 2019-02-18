@@ -45,6 +45,9 @@ namespace mm {
 		return make_unique<RubiksCubeModel_v5>(size);
 	}
 
+	//Create a global object, so that its constructor is called before main and the factory map is initialized before main
+	static RubiksCubeModelFactory object("RubiksCubeModel_v5", createRubiksCubeModel_v5);
+
 	//==================== RubiksCubeModel_v5::Cube =========================
 
 	const int RubiksCubeModel_v5::Cube::FACE_COUNT /* = 6*/;
