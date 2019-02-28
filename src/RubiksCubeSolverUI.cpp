@@ -443,7 +443,7 @@ namespace mm {
 		string size = to_string(scene_.getRubiksCubeSize());
 		string rubikCubeSize("Rubik's Cube Size: " + size + "x" + size + "x" + size);
 		string scramblingStepsStr("Scrambling Steps: " + (scramblingSteps > 0 ? to_string(scramblingSteps) : ""));
-		string scrambleMsg("Scramblng Algorithm: " + scramblingAlgo);
+		string scrambleMsg("Scrambling Algorithm: " + scramblingAlgo);
 		string solutionStepsStr("Solution Steps: " + (solutionSteps > 0 ? to_string(solutionSteps) : ""));
 		string solutionMsg("Solution Algorithm: " + solution);
 		string durationStr;
