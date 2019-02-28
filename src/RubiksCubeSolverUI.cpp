@@ -413,6 +413,26 @@ namespace mm {
 		}
 	}
 
+	string getCommaSeparatedTimeDuration(unsigned long long duration)
+	{
+		string durationStr = "000,000.000,000,000";
+		int pos = durationStr.length() - 1;
+		for (; pos > 0 && duration > 0; --pos)
+		{
+			if (durationStr[pos] == '0')
+			{
+				durationStr[pos] = '0' + duration % 10;
+				duration /= 10;
+			}
+		}
+		if (pos > 6)
+			pos = 6;
+		durationStr = durationStr.substr(pos);
+		durationStr += " sec";
+
+		return durationStr;
+	}
+
 	void RubiksCubeSolverUI::displayMessage(int scramblingSteps, const string& scramblingAlgo, 
 		int solutionSteps, const string& solution, unsigned long long duration)
 	{
@@ -429,15 +449,7 @@ namespace mm {
 		string durationStr;
 		if(duration > 0)
 		{
-			durationStr = to_string(duration % 1000);
-			duration /= 1000;
-			while (duration > 0)
-			{
-				durationStr = "," + durationStr;
-				durationStr = to_string(duration % 1000) + durationStr;
-				duration /= 1000;
-			}
-			durationStr += " nano-seconds";
+			durationStr = getCommaSeparatedTimeDuration(duration);
 		}
 		string timeToSolveMsg("Time required to solve: " + durationStr);
 
