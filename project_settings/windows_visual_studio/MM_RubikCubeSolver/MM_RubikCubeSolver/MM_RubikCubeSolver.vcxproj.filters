@@ -54,7 +54,7 @@
     <ClCompile Include="../../../../src/RubiksCubeModel_v6.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\..\..\..\%40_Programming\Everything\MM_RubikCubeSolver\src\RubiksCubeModel_v7.cpp">
+    <ClCompile Include="..\..\..\..\src\RubiksCubeModel_v7.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -104,7 +104,7 @@
     <ClInclude Include="../../../../src/RubiksCubeModel_v6.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\..\..\..\%40_Programming\Everything\MM_RubikCubeSolver\src\RubiksCubeModel_v7.h">
+    <ClInclude Include="..\..\..\..\src\RubiksCubeModel_v7.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -130,7 +130,7 @@
     <Image Include="..\..\..\..\res\grey.bmp">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="..\..\..\..\..\..\..\%40_Programming\Everything\MM_RubikCubeSolver\res\black.bmp">
+    <Image Include="..\..\..\..\res\black.bmp">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
