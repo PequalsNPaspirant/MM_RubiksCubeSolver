@@ -31,6 +31,8 @@
 #include "Resource.h"
 #include <windows.h>
 #include <windowsx.h>
+#include <thread>
+using namespace std;
 
 #include "RubiksCubeSolverUI.h"
 #include "RubiksCubeSolverTest.h"
@@ -44,7 +46,9 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 	UNREFERENCED_PARAMETER(lpCmdLine);
 
 	mm::RubiksCubeSolverUI& mainWindow = mm::RubiksCubeSolverUI::getInstance();
-	mainWindow.createWindow(hInstance);
+	mainWindow.createMainWindow(hInstance);
+	mainWindow.createGraphicsArea();
+	mainWindow.createMessageWindow();
 	WPARAM w = mainWindow.enterMainLoop();
 	return int(w);
 }
@@ -87,17 +91,178 @@ namespace mm {
 	{
 	}
 
-	void RubiksCubeSolverUI::createWindow(HINSTANCE hInstance)
+	void RubiksCubeSolverUI::createMainWindow(HINSTANCE hInstance)
 	{
 		LoadString(NULL, IDS_APP_TITLE, g_szTitle, MAX_LOADSTRING);
 		LoadString(NULL, IDC_RUBIKSCUBE, g_szWindowClass, MAX_LOADSTRING);
 		g_hAccelTable = LoadAccelerators(g_hInstance, MAKEINTRESOURCE(IDC_RUBIKSCUBE));
 		g_hInstance = hInstance;
-		createWindow(g_szTitle, WND_WIDTH, WND_HEIGHT, 0, g_bFullScreen, g_hInstance);
 
+		WNDCLASSEX wndClass;
+
+		g_hArrow = LoadCursor(NULL, IDC_ARROW);
+		g_hHand = LoadCursor(NULL, IDC_HAND);
+
+		ZeroMemory(&wndClass, sizeof(WNDCLASSEX));
+		wndClass.cbSize = sizeof(WNDCLASSEX);
+		wndClass.style = CS_HREDRAW | CS_VREDRAW;
+		wndClass.lpfnWndProc = RubiksCubeSolverUI::WndProcCallback;
+		wndClass.hInstance = hInstance;
+		wndClass.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_RUBIKSCUBE));
+		wndClass.hCursor = g_hArrow;
+		wndClass.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+		wndClass.lpszClassName = g_szWindowClass;
+		wndClass.cbClsExtra = 0;
+		wndClass.lpszMenuName = MAKEINTRESOURCE(IDC_RUBIKSCUBE);
+		wndClass.hIconSm = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_RUBIKSCUBE));
+
+		RegisterClassEx(&wndClass);
+
+		DWORD dwStyle = 0;
+
+		if (g_bFullScreen)
+		{
+			dwStyle = WS_POPUP | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
+			changeToFullScreen();
+		}
+		else
+		{
+			//dwStyle = WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_MAXIMIZE;
+			dwStyle = WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
+		}
+
+		RECT rWnd;
+		rWnd.left = 0;
+		rWnd.right = WND_WIDTH;
+		rWnd.top = 0;
+		rWnd.bottom = WND_HEIGHT;
+
+		AdjustWindowRectEx(&rWnd, dwStyle, true, 0);
+
+		//Create menu beore creating main window
+		createMenu();
+
+		g_hWnd = CreateWindowEx(0,
+			g_szWindowClass,
+			g_szTitle,
+			dwStyle,
+			CW_USEDEFAULT, CW_USEDEFAULT,
+			WND_WIDTH,
+			WND_HEIGHT, // - messageWndHeight,
+			NULL, hMenu, g_hInstance, NULL);
+
+		if (!g_hWnd) return;
+
+		ShowWindow(g_hWnd, SW_SHOWNORMAL);
+		//ShowWindow(hWnd, SW_MAXIMIZE);
+		UpdateWindow(g_hWnd);
+
+		SetFocus(g_hWnd);
+	}
+
+	bool RubiksCubeSolverUI::changeToFullScreen()
+	{
+		DEVMODE dmSettings;	// Device Mode variable
+
+		memset(&dmSettings, 0, sizeof(dmSettings)); // Makes Sure Memory's Cleared
+
+													// Get current settings -- This function fills our the settings
+													// This makes sure NT and Win98 machines change correctly
+		if (!EnumDisplaySettings(NULL, ENUM_CURRENT_SETTINGS, &dmSettings))
+			return false;
+
+		// selected screen width and height
+		dmSettings.dmPelsWidth = WND_WIDTH;
+		dmSettings.dmPelsHeight = WND_HEIGHT;
+
+		// This function actually changes the screen to full screen
+		// CDS_FULLSCREEN Gets Rid Of Start Bar.
+		// We always want to get a result from this function to check if we failed
+		int result = ChangeDisplaySettings(&dmSettings, CDS_FULLSCREEN);
+
+		// Check if we didn't recieved a good return message From the function
+		if (result != DISP_CHANGE_SUCCESSFUL)
+			return false;
+
+		return true;
+	}
+
+	void RubiksCubeSolverUI::createMenu()
+	{
+		hMenu = LoadMenu(g_hInstance, MAKEINTRESOURCE(IDC_RUBIKSCUBE));
+
+		//Uncheck all menu items
+		//HMENU hmenu = GetMenu(g_hWnd);
+		CheckMenuItem(hMenu, ID_ANIMATIONSPEED_VERYSLOW, MF_UNCHECKED | MF_ENABLED);
+		CheckMenuItem(hMenu, ID_ANIMATIONSPEED_SLOW, MF_UNCHECKED | MF_ENABLED);
+		CheckMenuItem(hMenu, ID_ANIMATIONSPEED_MODERATE, MF_UNCHECKED | MF_ENABLED);
+		CheckMenuItem(hMenu, ID_ANIMATIONSPEED_FAST, MF_UNCHECKED | MF_ENABLED);
+		CheckMenuItem(hMenu, ID_ANIMATIONSPEED_VERYFAST, MF_UNCHECKED | MF_ENABLED);
+
+		CheckMenuItem(hMenu, ID_RUBIK_1X1X1, MF_UNCHECKED | MF_ENABLED);
+		CheckMenuItem(hMenu, ID_RUBIK_2X2X2, MF_UNCHECKED | MF_ENABLED);
+		CheckMenuItem(hMenu, ID_RUBIK_3X3X3, MF_UNCHECKED | MF_ENABLED);
+		CheckMenuItem(hMenu, ID_RUBIK_4X4X4, MF_UNCHECKED | MF_ENABLED);
+		CheckMenuItem(hMenu, ID_RUBIK_5X5X5, MF_UNCHECKED | MF_ENABLED);
+		CheckMenuItem(hMenu, ID_RUBIK_6X6X6, MF_UNCHECKED | MF_ENABLED);
+		CheckMenuItem(hMenu, ID_RUBIK_7X7X7, MF_UNCHECKED | MF_ENABLED);
+		CheckMenuItem(hMenu, ID_RUBIK_8X8X8, MF_UNCHECKED | MF_ENABLED);
+		CheckMenuItem(hMenu, ID_RUBIK_9X9X9, MF_UNCHECKED | MF_ENABLED);
+		CheckMenuItem(hMenu, ID_RUBIK_10X10X10, MF_UNCHECKED | MF_ENABLED);
+
+		//Check defalt menu selection on start
+		CheckMenuItem(hMenu, selMenuAnimationSpeed, MF_CHECKED | MF_UNHILITE);
+		//CheckMenuRadioItem(hMenu, ID_ANIMATIONSPEED_VERYSLOW, ID_ANIMATIONSPEED_VERYFAST, selMenuAnimationSpeed, MF_BYCOMMAND);
+		CheckMenuItem(hMenu, selMenuRubiksCubeSize, MF_CHECKED | MF_UNHILITE);
+	}
+
+	void RubiksCubeSolverUI::createGraphicsArea()
+	{
 		GetClientRect(g_hWnd, &g_rWnd);
 		g_hDC = GetDC(g_hWnd);
 
+		if (!setupPixelFormat(g_hDC))
+			PostQuitMessage(-1);
+
+		g_hRC = wglCreateContext(g_hDC);
+		wglMakeCurrent(g_hDC, g_hRC);
+
+		scene_.initOpenGl(g_rWnd.right, g_rWnd.bottom - messageWndHeight);
+		scene_.initScene();
+
+		Reset(true); //there is some bug in initial display: the Rubiks cube is displayed scattered. Reset() is a workaround.
+		redrawWindow();
+	}
+
+	bool RubiksCubeSolverUI::setupPixelFormat(HDC hdc)
+	{
+		PIXELFORMATDESCRIPTOR pfd = { 0 };
+		int pixelformat;
+
+		pfd.nSize = sizeof(PIXELFORMATDESCRIPTOR); // Set the size of the structure
+		pfd.nVersion = 1; // Always set this to 1
+
+		pfd.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER; // Pass in the appropriate OpenGL flags
+		pfd.dwLayerMask = PFD_MAIN_PLANE;					// We want the standard mask (this is ignored anyway)
+		pfd.iPixelType = PFD_TYPE_RGBA;						// We want RGB and Alpha pixel type
+		pfd.cColorBits = SCREEN_DEPTH;						// Here we use our #define for the color bits
+		pfd.cDepthBits = SCREEN_DEPTH;						// Depthbits is ignored for RGBA, but we do it anyway
+		pfd.cAccumBits = 0;									// No special bitplanes needed
+		pfd.cStencilBits = 0;								// We desire no stencil bits
+
+															// This gets us a pixel format that best matches the one passed in from the device
+		if ((pixelformat = ChoosePixelFormat(hdc, &pfd)) == false)
+			return false;
+
+		// This sets the pixel format that we extracted from above
+		if (SetPixelFormat(hdc, pixelformat, &pfd) == false)
+			return false;
+
+		return true;
+	}
+
+	void RubiksCubeSolverUI::createMessageWindow()
+	{
 		//g_hWndList = GetDlgItem(g_hWnd, IDC_LIST2);
 		//
 		//ScrollBar_Show(g_hWndList, TRUE);
@@ -111,16 +276,16 @@ namespace mm {
 		int height = messageWndHeight + gapUnderScrollBar;
 		g_hWndMessage = CreateWindowEx(
 			NULL,
-			L"LISTBOX", 
-			NULL, 
+			L"LISTBOX",
+			NULL,
 			WS_CHILD | WS_VISIBLE | WS_HSCROLL | WS_VSCROLL,
 			left,
 			top,
 			width,
 			height,
-			g_hWnd, 
-			NULL, 
-			GetModuleHandle(NULL), 
+			g_hWnd,
+			NULL,
+			GetModuleHandle(NULL),
 			NULL);
 		//ListBox_AddString(g_hWndMessage, L"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
 		ListBox_Enable(g_hWndMessage, TRUE);
@@ -155,115 +320,13 @@ namespace mm {
 		//SetTextColor(g_hDCMessage, RGB(50, 50, 50));
 		SetTextColor(g_hDCMessage, RGB(0, 0, 255));
 
-		g_hRC = wglCreateContext(g_hDC);
-		wglMakeCurrent(g_hDC, g_hRC);
-
-		scene_.initOpenGl(g_rWnd.right, g_rWnd.bottom - messageWndHeight);
-		scene_.initScene();
-
-		Reset(true); //there is some bug in initial display: the Rubiks cube is displayed scattered. Reset() is a workaround.
-		redrawWindow();
-	}
-
-	void RubiksCubeSolverUI::createWindow(LPTSTR strTitle, int nWidth, int nHeight, DWORD dwStyle,
-		BOOL bFullScreen, HINSTANCE hInstance)
-	{
-		WNDCLASSEX wndClass;
-
-		g_hArrow = LoadCursor(NULL, IDC_ARROW);
-		g_hHand = LoadCursor(NULL, IDC_HAND);
-
-		ZeroMemory(&wndClass, sizeof(WNDCLASSEX));
-		wndClass.cbSize = sizeof(WNDCLASSEX);
-		wndClass.style = CS_HREDRAW | CS_VREDRAW;
-		wndClass.lpfnWndProc = RubiksCubeSolverUI::WndProcCallback;
-		wndClass.hInstance = hInstance;
-		wndClass.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_RUBIKSCUBE));
-		wndClass.hCursor = g_hArrow;
-		wndClass.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
-		wndClass.lpszClassName = g_szWindowClass;
-		wndClass.cbClsExtra = 0;
-		wndClass.lpszMenuName = MAKEINTRESOURCE(IDC_RUBIKSCUBE);
-		wndClass.hIconSm = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_RUBIKSCUBE));
-
-		RegisterClassEx(&wndClass);
-
-		if (bFullScreen && !dwStyle)
-		{
-			dwStyle = WS_POPUP | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
-			changeToFullScreen();
-		}
-		else if (!dwStyle)
-		{
-			//dwStyle = WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_MAXIMIZE;
-			dwStyle = WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
-		}
-
-		g_hInstance = hInstance;
-
-		RECT rWnd;
-		rWnd.left = 0;
-		rWnd.right = nWidth;
-		rWnd.top = 0;
-		rWnd.bottom = nHeight;
-
-		AdjustWindowRectEx(&rWnd, dwStyle, true, 0);
-
-		HMENU hMenu = LoadMenu(hInstance, MAKEINTRESOURCE(IDC_RUBIKSCUBE));
-
-		//Uncheck all menu items
-		//HMENU hmenu = GetMenu(g_hWnd);
-		CheckMenuItem(hMenu, ID_ANIMATIONSPEED_VERYSLOW, MF_UNCHECKED | MF_ENABLED);
-		CheckMenuItem(hMenu, ID_ANIMATIONSPEED_SLOW, MF_UNCHECKED | MF_ENABLED);
-		CheckMenuItem(hMenu, ID_ANIMATIONSPEED_MODERATE, MF_UNCHECKED | MF_ENABLED);
-		CheckMenuItem(hMenu, ID_ANIMATIONSPEED_FAST, MF_UNCHECKED | MF_ENABLED);
-		CheckMenuItem(hMenu, ID_ANIMATIONSPEED_VERYFAST, MF_UNCHECKED | MF_ENABLED);
-
-		CheckMenuItem(hMenu, ID_RUBIK_1X1X1, MF_UNCHECKED | MF_ENABLED);
-		CheckMenuItem(hMenu, ID_RUBIK_2X2X2, MF_UNCHECKED | MF_ENABLED);
-		CheckMenuItem(hMenu, ID_RUBIK_3X3X3, MF_UNCHECKED | MF_ENABLED);
-		CheckMenuItem(hMenu, ID_RUBIK_4X4X4, MF_UNCHECKED | MF_ENABLED);
-		CheckMenuItem(hMenu, ID_RUBIK_5X5X5, MF_UNCHECKED | MF_ENABLED);
-		CheckMenuItem(hMenu, ID_RUBIK_6X6X6, MF_UNCHECKED | MF_ENABLED);
-		CheckMenuItem(hMenu, ID_RUBIK_7X7X7, MF_UNCHECKED | MF_ENABLED);
-		CheckMenuItem(hMenu, ID_RUBIK_8X8X8, MF_UNCHECKED | MF_ENABLED);
-		CheckMenuItem(hMenu, ID_RUBIK_9X9X9, MF_UNCHECKED | MF_ENABLED);
-		CheckMenuItem(hMenu, ID_RUBIK_10X10X10, MF_UNCHECKED | MF_ENABLED);
-
-		//Check defalt menu selection on start
-		CheckMenuItem(hMenu, selMenuAnimationSpeed, MF_CHECKED | MF_UNHILITE);
-		//CheckMenuRadioItem(hMenu, ID_ANIMATIONSPEED_VERYSLOW, ID_ANIMATIONSPEED_VERYFAST, selMenuAnimationSpeed, MF_BYCOMMAND);
-		CheckMenuItem(hMenu, selMenuRubiksCubeSize, MF_CHECKED | MF_UNHILITE);
-
-		g_hWnd = CreateWindowEx(0,
-			g_szWindowClass,
-			g_szTitle,
-			dwStyle,
-			CW_USEDEFAULT, CW_USEDEFAULT,
-			rWnd.right - rWnd.left,
-			rWnd.bottom - rWnd.top - messageWndHeight,
-			NULL, hMenu, hInstance, NULL);
-
-		if (!g_hWnd) return;
-
-		ShowWindow(g_hWnd, SW_SHOWNORMAL);
-		//ShowWindow(hWnd, SW_MAXIMIZE);
-		UpdateWindow(g_hWnd);
-
-		SetFocus(g_hWnd);
-
-		GetClientRect(g_hWnd, &g_rWnd);
-		g_hDC = GetDC(g_hWnd);
-
-		if (!setupPixelFormat(g_hDC))
-			PostQuitMessage(-1);
+		displayMessage();
 	}
 
 	void RubiksCubeSolverUI::redrawWindow()
 	{
 		scene_.renderScene();
 		bool result = SwapBuffers(g_hDC);
-		displayMessage();
 	}
 
 	bool RubiksCubeSolverUI::CreateYesNoDialog(const string& message)
@@ -305,60 +368,6 @@ namespace mm {
 	bool RubiksCubeSolverUI::isSolved()
 	{
 		return scene_.isSolved();
-	}
-
-	bool RubiksCubeSolverUI::changeToFullScreen()
-	{
-		DEVMODE dmSettings;	// Device Mode variable
-
-		memset(&dmSettings, 0, sizeof(dmSettings)); // Makes Sure Memory's Cleared
-
-		// Get current settings -- This function fills our the settings
-		// This makes sure NT and Win98 machines change correctly
-		if (!EnumDisplaySettings(NULL, ENUM_CURRENT_SETTINGS, &dmSettings))
-			return false;
-
-		// selected screen width and height
-		dmSettings.dmPelsWidth = WND_WIDTH;
-		dmSettings.dmPelsHeight = WND_HEIGHT;
-
-		// This function actually changes the screen to full screen
-		// CDS_FULLSCREEN Gets Rid Of Start Bar.
-		// We always want to get a result from this function to check if we failed
-		int result = ChangeDisplaySettings(&dmSettings, CDS_FULLSCREEN);
-
-		// Check if we didn't recieved a good return message From the function
-		if (result != DISP_CHANGE_SUCCESSFUL)
-			return false;
-
-		return true;
-	}
-
-	bool RubiksCubeSolverUI::setupPixelFormat(HDC hdc)
-	{
-		PIXELFORMATDESCRIPTOR pfd = { 0 };
-		int pixelformat;
-
-		pfd.nSize = sizeof(PIXELFORMATDESCRIPTOR); // Set the size of the structure
-		pfd.nVersion = 1; // Always set this to 1
-															
-		pfd.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER; // Pass in the appropriate OpenGL flags
-		pfd.dwLayerMask = PFD_MAIN_PLANE;					// We want the standard mask (this is ignored anyway)
-		pfd.iPixelType = PFD_TYPE_RGBA;						// We want RGB and Alpha pixel type
-		pfd.cColorBits = SCREEN_DEPTH;						// Here we use our #define for the color bits
-		pfd.cDepthBits = SCREEN_DEPTH;						// Depthbits is ignored for RGBA, but we do it anyway
-		pfd.cAccumBits = 0;									// No special bitplanes needed
-		pfd.cStencilBits = 0;								// We desire no stencil bits
-
-		// This gets us a pixel format that best matches the one passed in from the device
-		if ((pixelformat = ChoosePixelFormat(hdc, &pfd)) == false)
-			return false;
-
-		// This sets the pixel format that we extracted from above
-		if (SetPixelFormat(hdc, pixelformat, &pfd) == false)
-			return false;
-
-		return true;
 	}
 
 	void RubiksCubeSolverUI::displayMessage(const string& message /*= ""*/)

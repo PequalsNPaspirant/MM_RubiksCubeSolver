@@ -50,7 +50,12 @@ namespace mm {
 	{
 	public:
 		static RubiksCubeSolverUI& getInstance();
-		void createWindow(HINSTANCE hInstance);
+		void createMainWindow(HINSTANCE hInstance);
+		/**/bool changeToFullScreen();
+		void createMenu();
+		void createGraphicsArea();
+		/**/bool setupPixelFormat(HDC hdc);
+		void createMessageWindow();
 		WPARAM enterMainLoop();
 		void redrawWindow();
 		bool CreateYesNoDialog(const string& message);
@@ -59,9 +64,6 @@ namespace mm {
 		unique_ptr<RubiksCubeModel> replaceModelBy(const string& modelName, int size, bool animate);
 		unique_ptr<RubiksCubeModel> replaceModelBy(unique_ptr<RubiksCubeModel>&& newModel, bool animate);
 		bool isSolved();
-		/**/void createWindow(LPTSTR strTitle, int nWidth, int nHeight, DWORD dwStyle, BOOL bFullScreen, HINSTANCE hInstance);
-		/**//**/bool changeToFullScreen();
-		/**//**/bool setupPixelFormat(HDC hdc);
 		int getFramesPerRotation() { return framesPerRotation_; }
 		int getSleepTimeMilliSec() { return sleepTimeMilliSec_; }
 		void displayMessage(const string& message = "");
@@ -127,6 +129,7 @@ namespace mm {
 		HCURSOR g_hHand;
 		TCHAR g_szTitle[MAX_LOADSTRING]; // The title bar text
 		HWND g_hWnd;
+		HMENU hMenu;
 		HDC g_hDC;
 		HWND g_hWndMessage;
 		HDC g_hDCMessage;

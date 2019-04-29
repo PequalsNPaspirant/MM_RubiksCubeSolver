@@ -1290,6 +1290,7 @@ namespace mm {
 		if (animate)
 		{
 			ui.redrawWindow();
+			ui.displayMessage();
 			//ui.displayMessage(scramblingSteps_, scramblingAlgo_, solutionSteps_, solution_);
 			//Sleep for some time before going for next step
 			Sleep(5 * ui.getSleepTimeMilliSec());
