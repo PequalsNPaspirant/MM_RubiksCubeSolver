@@ -47,9 +47,13 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 
 	mm::RubiksCubeSolverUI& mainWindow = mm::RubiksCubeSolverUI::getInstance();
 	mainWindow.createMainWindow(hInstance);
-	mainWindow.createGraphicsArea();
+	//mainWindow.createGraphicsArea();
+	std::thread t1(&mm::RubiksCubeSolverUI::render, &mainWindow);
+	//t1.detach();
+
 	mainWindow.createMessageWindow();
 	WPARAM w = mainWindow.enterMainLoop();
+	t1.join();
 	return int(w);
 }
 
@@ -216,6 +220,43 @@ namespace mm {
 		CheckMenuItem(hMenu, selMenuRubiksCubeSize, MF_CHECKED | MF_UNHILITE);
 	}
 
+	void RubiksCubeSolverUI::render()
+	{
+		createGraphicsArea();
+
+		while (true)
+		{
+			//bool expected = true;
+			//bool desired = false;
+			//if (renderNow_.compare_exchange_weak(expected, desired, std::memory_order_release, std::memory_order_relaxed))
+			if(renderNow_.load(std::memory_order_acquire))
+			{
+				try 
+				{
+					commandHandler();
+				}
+				catch (bool flag)
+				{
+					//The previous command is broken/interrupted, reset the rubik cube.
+					//If we need to perform different actions on the type of interrupt, we can include that information in the exception object
+					bool animate = true;
+					Reset(animate);
+					setResetRubiksCube(false); //reset the flag
+				}
+				renderNow_.store(false, std::memory_order_release);
+
+				//GdiFlush();
+				//redrawWindow();
+
+				//bool animate = true;
+				//Scramble(animate);
+
+				//std::thread t1(&RubiksCubeSolverUI::Scramble, this, animate);
+				//t1.detach();
+			}
+		}
+	}
+
 	void RubiksCubeSolverUI::createGraphicsArea()
 	{
 		GetClientRect(g_hWnd, &g_rWnd);
@@ -353,7 +394,8 @@ namespace mm {
 	{
 		unique_ptr<RubiksCubeModel> originalModel = scene_.replaceModelBy(modelName, size);
 		if(animate)
-			redrawWindow();
+			activateRenderingThread();
+			//redrawWindow();
 		return std::move(originalModel);
 	}
 
@@ -361,7 +403,8 @@ namespace mm {
 	{
 		unique_ptr<RubiksCubeModel> originalModel = scene_.replaceModelBy(std::move(newModel));
 		if (animate)
-			redrawWindow();
+			activateRenderingThread();
+			//redrawWindow();
 		return std::move(originalModel);
 	}
 
@@ -695,7 +738,7 @@ namespace mm {
 		g_nPrevX = x;
 		g_nPrevY = y;
 
-		redrawWindow();
+		//redrawWindow();
 	}
 
 	//  Process WM_LBUTTONUP message for window/dialog: 
@@ -733,7 +776,7 @@ namespace mm {
 		}
 		*/
 
-		redrawWindow();
+		//redrawWindow();
 	}
 
 	//  Process WM_DESTROY message for window/dialog: 
@@ -768,7 +811,8 @@ namespace mm {
 			else if (y > g_nPrevY)
 				scene_.g_cCamera.Tilt(-5);
 
-			redrawWindow();
+			activateRenderingThread();
+			//redrawWindow();
 		}
 		/*
 		// rotating section
@@ -933,7 +977,8 @@ namespace mm {
 
 		scene_.g_cCamera.Move(distance);
 
-		redrawWindow();
+		activateRenderingThread();
+		//redrawWindow();
 	}
 
 	//  Process WM_SIZE message for window/dialog: 
@@ -947,7 +992,8 @@ namespace mm {
 			MoveWindow(g_hWndMessage, 0, 0, cx, messageWndHeight, false);
 			GetClientRect(hWnd, &g_rWnd);
 		}
-		redrawWindow();
+		activateRenderingThread();
+		//redrawWindow();
 	}
 
 	void RubiksCubeSolverUI::OnMouseLeave(HWND hWnd)
@@ -959,151 +1005,207 @@ namespace mm {
 	//  Process WM_COMMAND message for window/dialog: 
 	void RubiksCubeSolverUI::OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 	{
+		commandId_ = id;
+		commandGeneration_ = 1;
 		//Uncheck last selected menu items
 		HMENU hMenu = GetMenu(hwnd);
-		if(id >= ID_ANIMATIONSPEED_VERYSLOW && id <= ID_ANIMATIONSPEED_VERYFAST && id != selMenuAnimationSpeed)
+		if (commandId_ >= ID_RUBIK_1X1X1 && commandId_ <= ID_RUBIK_10X10X10 && commandId_ != selMenuRubiksCubeSize)
 		{
-			CheckMenuItem(hMenu, selMenuAnimationSpeed, MF_UNCHECKED | MF_ENABLED);
-			selMenuAnimationSpeed = id;
-			CheckMenuItem(hMenu, selMenuAnimationSpeed, MF_CHECKED | MFS_GRAYED);
-		}
-		if (id >= ID_RUBIK_1X1X1 && id <= ID_RUBIK_10X10X10 && id != selMenuRubiksCubeSize)
-		{
+			commandGeneration_ = 1;
 			CheckMenuItem(hMenu, selMenuRubiksCubeSize, MF_UNCHECKED | MF_ENABLED);
-			selMenuRubiksCubeSize = id;
+			selMenuRubiksCubeSize = commandId_;
 			CheckMenuItem(hMenu, selMenuRubiksCubeSize, MF_CHECKED | MFS_GRAYED);
 		}
-
-		// menu
-		if (id == IDM_RUBIKSCUBE_RESET)
+		else if (commandId_ >= ID_ANIMATIONSPEED_VERYSLOW && commandId_ <= ID_ANIMATIONSPEED_VERYFAST && commandId_ != selMenuAnimationSpeed)
 		{
-			bool animate = true;
-			Reset(animate);
+			commandGeneration_ = 2;
+			CheckMenuItem(hMenu, selMenuAnimationSpeed, MF_UNCHECKED | MF_ENABLED);
+			selMenuAnimationSpeed = commandId_;
+			CheckMenuItem(hMenu, selMenuAnimationSpeed, MF_CHECKED | MFS_GRAYED);
+			switch (commandId_)
+			{
+			case ID_ANIMATIONSPEED_VERYSLOW: 
+				framesPerRotation_ = 40;
+				sleepTimeMilliSec_ = 40;
+				break;
+			case ID_ANIMATIONSPEED_SLOW:
+				framesPerRotation_ = 30;
+				sleepTimeMilliSec_ = 30;
+				break;
+			case ID_ANIMATIONSPEED_MODERATE:
+				framesPerRotation_ = 20;
+				sleepTimeMilliSec_ = 20;
+				break;
+			case ID_ANIMATIONSPEED_FAST:
+				framesPerRotation_ = 10;
+				sleepTimeMilliSec_ = 10;
+				break;
+			case ID_ANIMATIONSPEED_VERYFAST:
+				framesPerRotation_ = 3;
+				sleepTimeMilliSec_ = 3;
+				break;
+			}
 		}
-		else if (id == IDM_RUBIKSCUBE_SCRAMBLE)
+		else if (commandId_ == IDM_ABOUT)
+		{
+			commandGeneration_ = 2;
+			DialogBox(g_hInstance, MAKEINTRESOURCE(IDD_ABOUTBOX),
+				g_hWnd, reinterpret_cast<DLGPROC>(RubiksCubeSolverUI::AboutProcCallback));
+		}
+		else if (commandId_ == IDM_EXIT)
+		{
+			commandGeneration_ = 2;
+			PostQuitMessage(0);
+		}
+		else if (commandId_ == IDM_RUBIKSCUBE_RESET)
+		{
+			commandGeneration_ = 2;
+			//Reset should force reset the Rubik's cube, even though other operations are in progress
+			setResetRubiksCube(true);
+		}
+
+		activateRenderingThread();
+	}
+
+	void RubiksCubeSolverUI::activateRenderingThread()
+	{
+		//if(onlyIfNotAlreadyActive)
+		//{
+			bool expected = false;
+			bool desired = true;
+			if (!renderNow_.compare_exchange_weak(expected, desired, std::memory_order_release, std::memory_order_relaxed))
+			{
+				//Display a message box
+				if(commandGeneration_ == 1)
+					CreateOkDialog("Another animation is in progress. Please have patience!");
+			}
+		//}
+		//else
+		//{
+			//Activate always
+		//	renderNow_.store(true, std::memory_order_release);
+		//}
+	}
+
+	void RubiksCubeSolverUI::commandHandler()
+	{
+		// menu
+		if (commandId_ == IDM_RUBIKSCUBE_SCRAMBLE)
 		{
 			bool animate = false;
 			Scramble(animate);
 		}
-		else if (id == IDM_RUBIKSCUBE_SCRAMBLE_ANIM)
+		else if (commandId_ == IDM_RUBIKSCUBE_SCRAMBLE_ANIM)
 		{
 			bool animate = true;
 			Scramble(animate);
+
+			//bool expected = false;
+			//bool desired = true;
+			//if (isScrambling.compare_exchange_weak(expected, desired, std::memory_order_release, std::memory_order_relaxed))
+			//{
+			//	//GdiFlush();
+			//	redrawWindow();
+			//	bool animate = true;
+			//	std::thread t1(&RubiksCubeSolverUI::Scramble, this, animate);
+			//	t1.detach();
+
+			//	isScrambling.store(false, std::memory_order_release);
+			//}
+
+			//bool expected = false;
+			//bool desired = true;
+			//isScrambling.compare_exchange_weak(expected, desired, std::memory_order_release, std::memory_order_relaxed);
 		}
-		else if (id == IDM_RUBIKSCUBE_SOLVE)
+		else if (commandId_ == IDM_RUBIKSCUBE_SOLVE)
 		{
 			unsigned int solutionSteps;
 			unsigned long long duration;
 			bool askForAnimation = true;
 			string solution = SolveOnCopy(solutionSteps, duration, askForAnimation);
 		}
-		else if (id == IDM_RUBIKSCUBE_SOLVE_ANIM)
+		else if (commandId_ == IDM_RUBIKSCUBE_SOLVE_ANIM)
 		{
 			unsigned int solutionSteps;
 			unsigned long long duration;
 			bool animate = true;
 			string solution = Solve(solutionSteps, duration, animate);
 		}
-		else if (id == ID_RUBIKSCUBE_TEST)
+		else if (commandId_ == ID_RUBIKSCUBE_TEST)
 		{
 			bool animate = false;
 			testRubiksCube(animate);
 		}
-		else if(id == ID_RUBIKSCUBE_TEST_ANIM)
+		else if(commandId_ == ID_RUBIKSCUBE_TEST_ANIM)
 		{
 			bool animate = true;
 			testRubiksCube(animate);
 		}
-		else if (id == ID_RUBIKSCUBE_FITTOSCREEN)
+		else if (commandId_ == ID_RUBIKSCUBE_FITTOSCREEN)
 		{
 			fitToScreen();
 		}
-		else if (id == ID_RUBIK_1X1X1)
+		else if (commandId_ == ID_RUBIK_1X1X1)
 		{
 			replaceModelBy(currentModelName_, 1, true);
 		}
-		else if (id == ID_RUBIK_2X2X2)
+		else if (commandId_ == ID_RUBIK_2X2X2)
 		{
 			replaceModelBy(currentModelName_, 2, true);
 		}
-		else if (id == ID_RUBIK_3X3X3)
+		else if (commandId_ == ID_RUBIK_3X3X3)
 		{
 			replaceModelBy(currentModelName_, 3, true);
 		}
-		else if (id == ID_RUBIK_4X4X4)
+		else if (commandId_ == ID_RUBIK_4X4X4)
 		{
 			replaceModelBy(currentModelName_, 4, true);
 		}
-		else if (id == ID_RUBIK_5X5X5)
+		else if (commandId_ == ID_RUBIK_5X5X5)
 		{
 			replaceModelBy(currentModelName_, 5, true);
 		}
-		else if (id == ID_RUBIK_6X6X6)
+		else if (commandId_ == ID_RUBIK_6X6X6)
 		{
 			replaceModelBy(currentModelName_, 6, true);
 		}
-		else if (id == ID_RUBIK_7X7X7)
+		else if (commandId_ == ID_RUBIK_7X7X7)
 		{
 			replaceModelBy(currentModelName_, 7, true);
 		}
-		else if (id == ID_RUBIK_8X8X8)
+		else if (commandId_ == ID_RUBIK_8X8X8)
 		{
 			replaceModelBy(currentModelName_, 8, true);
 		}
-		else if (id == ID_RUBIK_9X9X9)
+		else if (commandId_ == ID_RUBIK_9X9X9)
 		{
 			replaceModelBy(currentModelName_, 9, true);
 		}
-		else if (id == ID_RUBIK_10X10X10)
+		else if (commandId_ == ID_RUBIK_10X10X10)
 		{
 			replaceModelBy(currentModelName_, 10, true);
 		}
-		else if (id == ID_RUBIK_INCREASEBYONE)
+		else if (commandId_ == ID_RUBIK_INCREASEBYONE)
 		{
 			replaceModelBy(currentModelName_, scene_.getRubiksCubeSize() + 1, true);
 		}
-		else if (id == ID_RUBIK_INCREASEBYFIVE)
+		else if (commandId_ == ID_RUBIK_INCREASEBYFIVE)
 		{
 			replaceModelBy(currentModelName_, scene_.getRubiksCubeSize() + 5, true);
 		}
-		else if (id == ID_RUBIK_INCREASEBYTEN)
+		else if (commandId_ == ID_RUBIK_INCREASEBYTEN)
 		{
 			replaceModelBy(currentModelName_, scene_.getRubiksCubeSize() + 10, true);
 		}
-		else if (id == ID_ANIMATIONSPEED_VERYSLOW)
+		else if (commandId_ == IDM_RUBIKSCUBE_RESET) //This reset is called when no other command is in progress
 		{
-			framesPerRotation_ = 40;
-			sleepTimeMilliSec_ = 40;
+			bool animate = true;
+			Reset(animate);
 		}
-		else if (id == ID_ANIMATIONSPEED_SLOW)
-		{
-			framesPerRotation_ = 30;
-			sleepTimeMilliSec_ = 30;
-		}
-		else if (id == ID_ANIMATIONSPEED_MODERATE)
-		{
-			framesPerRotation_ = 20;
-			sleepTimeMilliSec_ = 20;
-		}
-		else if (id == ID_ANIMATIONSPEED_FAST)
-		{
-			framesPerRotation_ = 10;
-			sleepTimeMilliSec_ = 10;
-		}
-		else if (id == ID_ANIMATIONSPEED_VERYFAST)
-		{
-			framesPerRotation_ = 3;
-			sleepTimeMilliSec_ = 3;
-		}
-		else if (id == IDM_ABOUT)
-		{
-			DialogBox(g_hInstance, MAKEINTRESOURCE(IDD_ABOUTBOX),
-				g_hWnd, reinterpret_cast<DLGPROC>(RubiksCubeSolverUI::AboutProcCallback));
-		}
-		else if (id == IDM_EXIT)
-		{
-			PostQuitMessage(0);
-		}
+		else //The command may be mouse move, mouse wheel scroll, resize window etc
+			redrawWindow();
+
+		//commandId_ = -1; //Remove this reset of flag...it's bad design
 	}
 
 	void RubiksCubeSolverUI::Reset(bool animate)
@@ -1113,6 +1215,10 @@ namespace mm {
 
 	void RubiksCubeSolverUI::Scramble(bool animate)
 	{
+		//g_hDC = GetDC(g_hWnd);
+		//g_hRC = wglCreateContext(g_hDC);
+		//wglMakeCurrent(g_hDC, g_hRC);
+
 		string algo = scene_.getScramblingAlgo(25);
 		//wstring wAlgo(algo.begin(), algo.end());
 		//wstring wMessage = L"Scramble using following Algorithm?";

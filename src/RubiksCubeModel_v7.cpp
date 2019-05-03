@@ -1268,6 +1268,9 @@ namespace mm {
 			int numStepsForSnappingEffect = numTotalFrames * 0.4; //last 40% rotation is accelerating
 			for(int step = numTotalFrames; step > 1; --step)
 			{
+				if (ui.getResetRubiksCube())
+					throw false;
+
 				g_nRotationAngle += stepAngle;
 				ui.redrawWindow();
 				//ui.displayMessage(scramblingSteps_, scramblingAlgo_, solutionSteps_, solution_);

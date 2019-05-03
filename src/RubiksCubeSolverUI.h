@@ -27,6 +27,8 @@
 #pragma once
 
 #include <string>
+#include <atomic>
+//#include <mutex>
 using namespace std;
 
 #include "RubiksCubeSolverScene.h"
@@ -53,7 +55,10 @@ namespace mm {
 		void createMainWindow(HINSTANCE hInstance);
 		/**/bool changeToFullScreen();
 		void createMenu();
+		void render();
 		void createGraphicsArea();
+		void activateRenderingThread();
+		void commandHandler();
 		/**/bool setupPixelFormat(HDC hdc);
 		void createMessageWindow();
 		WPARAM enterMainLoop();
@@ -66,6 +71,12 @@ namespace mm {
 		bool isSolved();
 		int getFramesPerRotation() { return framesPerRotation_; }
 		int getSleepTimeMilliSec() { return sleepTimeMilliSec_; }
+		bool getResetRubiksCube() { return resetRubiksCube_; }
+		void setResetRubiksCube(bool newValue)
+		{
+			//std::unique_lock<std::mutex> lock(mutex_); //not required to synchronize
+			resetRubiksCube_ = newValue;
+		}
 		void displayMessage(const string& message = "");
 		void displayMessage(int scramblingSteps, const string& scramblingAlgo, int solutionSteps, const string& solution, unsigned long long duration);
 		void displayMessage_currentLine(int left, int top, const string& line);
@@ -146,6 +157,17 @@ namespace mm {
 
 		RubiksCubeSolverScene scene_;
 		RubiksCubeSolverTest tester_;
+
+		std::atomic<bool> renderNow_{ false };
+		//No need to have it atomic variable. No need to have a lock.
+		//The reading thread may read stale value which is OK. It will just have delayed responce.
+		//std::atomic<bool> breakOperation_{ false };
+		//std::mutex mutex_;
+		bool resetRubiksCube_{ false }; 
+		int commandId_{ -1 };
+		//first generation commands should be run independently. 
+		//Second generation commands can be run while other first or second geenration commands are running.
+		int commandGeneration_;
 	};
 
 }
