@@ -69,7 +69,7 @@ namespace mm {
 	public:
 		virtual void ResetCube(bool animate, RubiksCubeSolverGUI* ui) = 0;
 		//virtual int applyAlgorithm(const string& algorithm, bool animate, RubiksCubeSolverGUI& ui) = 0;
-		virtual string getScramblingAlgo(int length, bool includeNonStandardRotations) = 0;
+		virtual string generateScramblingAlgo(int length, bool includeNonStandardRotations) = 0;
 		virtual void scramble(const string& algorithm, bool animate, RubiksCubeSolverGUI& ui) = 0;
 		virtual string solve(unsigned int& solutionSteps, unsigned long long& duration, bool animate, RubiksCubeSolverGUI& ui) = 0;
 		virtual void render() = 0;
@@ -79,8 +79,8 @@ namespace mm {
 		virtual string getModelName() = 0;
 		virtual int getDimension() = 0;
 
-		virtual void getDisplayParameters(int& scramblingSteps, string& scramblingAlgo, int& solutionSteps, string& solution, unsigned long long& duration) {}
-		virtual void setDisplayParameters(int scramblingSteps, const string& scramblingAlgo, int solutionSteps, const string& solution, unsigned long long duration) {}
+		virtual void getUpdatedStats(unsigned int& size, unsigned int& scramblingSteps, string& scramblingAlgo, unsigned int& solutionSteps, string& solution, unsigned long long& duration) {}
+		//virtual void setDisplayParameters(int scramblingSteps, const string& scramblingAlgo, int solutionSteps, const string& solution, unsigned long long duration) {}
 
 		virtual ~RubiksCubeModel() = 0
 		{

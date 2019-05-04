@@ -1279,7 +1279,7 @@ namespace mm {
 		}
 	}
 
-	string RubiksCubeModel_v3::getScramblingAlgo(int length, bool includeNonStandardRotations)
+	string RubiksCubeModel_v3::generateScramblingAlgo(int length, bool includeNonStandardRotations)
 	{
 		char charSet[9] = { 
 			'F', //Front

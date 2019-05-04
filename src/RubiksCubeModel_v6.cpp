@@ -447,9 +447,10 @@ namespace mm {
 		return solution;
 	}
 
-	void RubiksCubeModel_v6::getDisplayParameters(int& scramblingSteps, string& scramblingAlgo, 
-		int& solutionSteps, string& solution, unsigned long long& duration)
+	void RubiksCubeModel_v6::getUpdatedStats(unsigned int& size, unsigned int& scramblingSteps, string& scramblingAlgo,
+		unsigned int& solutionSteps, string& solution, unsigned long long& duration)
 	{
+		size = size_;
 		scramblingSteps = scramblingSteps_;
 		scramblingAlgo = scramblingAlgo_;
 		solutionSteps = solutionSteps_;
@@ -457,14 +458,14 @@ namespace mm {
 		duration = duration_;
 	}
 
-	void RubiksCubeModel_v6::setDisplayParameters(int scramblingSteps, const string& scramblingAlgo, int solutionSteps, const string& solution, unsigned long long duration)
-	{
-		scramblingSteps_ = scramblingSteps;
-		scramblingAlgo_ = scramblingAlgo;
-		solutionSteps_ = solutionSteps;
-		solution_ = solution;
-		duration_ = duration;
-	}
+	//void RubiksCubeModel_v6::setDisplayParameters(int scramblingSteps, const string& scramblingAlgo, int solutionSteps, const string& solution, unsigned long long duration)
+	//{
+	//	scramblingSteps_ = scramblingSteps;
+	//	scramblingAlgo_ = scramblingAlgo;
+	//	solutionSteps_ = solutionSteps;
+	//	solution_ = solution;
+	//	duration_ = duration;
+	//}
 
 	void RubiksCubeModel_v6::render()
 	{
@@ -1418,7 +1419,7 @@ namespace mm {
 		}
 	}
 
-	string RubiksCubeModel_v6::getScramblingAlgo(int length, bool includeNonStandardRotations)
+	string RubiksCubeModel_v6::generateScramblingAlgo(int length, bool includeNonStandardRotations)
 	{
 		vector<char> charSet{
 			//Standard rotations

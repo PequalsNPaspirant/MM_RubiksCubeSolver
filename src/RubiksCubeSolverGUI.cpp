@@ -31,6 +31,7 @@
 #include "Resource.h"
 #include <windows.h>
 #include <windowsx.h>
+#include <cassert>
 using namespace std;
 
 #include "RubiksCubeSolverGUI.h"
@@ -254,7 +255,7 @@ namespace mm {
 					//If we need to perform different actions on the type of interrupt, we can include that information in the exception object
 					bool animate = true;
 					Reset(animate);
-					setResetRubiksCube(false); //reset the flag
+					resetRubiksCube_ = false; //reset the flag
 				}
 				renderNow_.store(false, std::memory_order_release);
 
@@ -392,11 +393,11 @@ namespace mm {
 	//		return false;
 	//}
 
-	void RubiksCubeSolverGUI::CreateOkDialog(const string& message)
-	{
-		wstring wMessage(message.begin(), message.end());
-		MessageBox(g_hWnd, wMessage.c_str(), g_szTitle, MB_OK | MB_ICONINFORMATION | MB_APPLMODAL);
-	}
+	//void RubiksCubeSolverGUI::CreateOkDialog(const string& message)
+	//{
+	//	wstring wMessage(message.begin(), message.end());
+	//	MessageBox(g_hWnd, wMessage.c_str(), g_szTitle, MB_OK | MB_ICONINFORMATION | MB_APPLMODAL);
+	//}
 
 	void RubiksCubeSolverGUI::applyAlgorithm(const string& algo, bool animate)
 	{
@@ -426,7 +427,13 @@ namespace mm {
 		return scene_.isSolved();
 	}
 
-	void RubiksCubeSolverGUI::displayMessage(const string& message /*= ""*/)
+	
+	void RubiksCubeSolverGUI::getUpdatedStats(unsigned int& size, unsigned int& scramblingSteps, string& scramblingAlgo, unsigned int& solutionSteps, string& solution, unsigned long long& duration)
+	{
+		scene_.getUpdatedStats(size, scramblingSteps, scramblingAlgo, solutionSteps, solution, duration);
+	}
+
+	void RubiksCubeSolverGUI::displayUpdatedStats()
 	{
 		//Fill up message area with different color
 		//RECT messageWndRect;
@@ -437,19 +444,20 @@ namespace mm {
 		//HBRUSH brush = CreateSolidBrush(RGB(255, 255, 255));
 		//FillRect(g_hDCMessage, &messageWndRect, brush);
 
-		if (message.empty())
-		{
-			int scramblingSteps;
+		//if (message.empty())
+		//{
+		unsigned int size;
+		unsigned int scramblingSteps;
 			string scramblingAlgo;
-			int solutionSteps;
+			unsigned int solutionSteps;
 			string solution;
 			unsigned long long duration;
-			scene_.getDisplayParameters(scramblingSteps, scramblingAlgo, solutionSteps, solution, duration);
+			scene_.getUpdatedStats(size, scramblingSteps, scramblingAlgo, solutionSteps, solution, duration);
 			RubiksCubeSolverMainWindow::getInstance().displayMessage(scene_.getRubiksCubeSize(), scramblingSteps, scramblingAlgo, solutionSteps, solution, duration);
-		}
-		else
-		{
-			RubiksCubeSolverMainWindow::getInstance().displayMessage();
+		//}
+		//else
+		//{
+		//	RubiksCubeSolverMainWindow::getInstance().displayMessage();
 
 			//wstring wStrMsg(message.begin(), message.end());
 
@@ -477,7 +485,7 @@ namespace mm {
 			//The following lines refreshes the screen and the message is displayed on screen (dont know the reason)
 			//HDC wdc = GetWindowDC(g_hWnd);
 			//DeleteDC(wdc);
-		}
+		//}
 	}
 
 	//string getCommaSeparatedTimeDuration(unsigned long long duration)
@@ -833,7 +841,8 @@ namespace mm {
 			scene_.g_cCamera.Rotate(rotate);
 		if(tilt != 0)
 			scene_.g_cCamera.Tilt(tilt);
-			activateRenderingThread();
+		firstGenCommand_ = firstGenerationCommands::eNoCommand;
+		activateRenderingThread();
 			//redrawWindow();
 		//}
 		/*
@@ -998,7 +1007,7 @@ namespace mm {
 		//float distance = rotations * 1.0f;
 
 		scene_.g_cCamera.Move(distance);
-
+		firstGenCommand_ = firstGenerationCommands::eNoCommand;
 		activateRenderingThread();
 		//redrawWindow();
 	}
@@ -1014,6 +1023,7 @@ namespace mm {
 		//	MoveWindow(g_hWndMessage, 0, 0, cx, messageWndHeight, false);
 		//	GetClientRect(hWnd, &g_rWnd);
 		//}
+		firstGenCommand_ = firstGenerationCommands::eNoCommand;
 		activateRenderingThread();
 		//redrawWindow();
 	}
@@ -1101,7 +1111,10 @@ namespace mm {
 				//if (commandGeneration_ == 1)
 					//CreateOkDialog("Another animation is in progress. Please have patience!");
 				if(firstGenCommand_ != firstGenerationCommands::eNoCommand)
+				{
+					RubiksCubeSolverMainWindow::getInstance().CreateOkDialog("Another animation is in progress. Please have patience!");
 					return false;
+				}
 			}
 		//}
 		//else
@@ -1123,13 +1136,7 @@ namespace mm {
 		case firstGenerationCommands::eSolve:
 			unsigned int solutionSteps;
 			unsigned long long duration;
-			if(animate_)
-				string solution = Solve(solutionSteps, duration, animate_);
-			else
-			{
-				bool askForAnimation = true;
-				string solution = SolveOnCopy(solutionSteps, duration, askForAnimation);
-			}
+			Solve(solutionSteps, duration);
 			break;
 		case firstGenerationCommands::eRunTests:
 			runRubiksCubeTests();
@@ -1138,7 +1145,7 @@ namespace mm {
 			fitToScreen();
 			break;
 		case firstGenerationCommands::eResizeRubiksCube:
-			replaceModelBy(currentModelName_, 1, true);
+			replaceModelBy(currentModelName_, rubikCubeSize_, true);
 			break;
 		default:
 			switch (secondGenCommand_)
@@ -1281,7 +1288,7 @@ namespace mm {
 		//g_hRC = wglCreateContext(g_hDC);
 		//wglMakeCurrent(g_hDC, g_hRC);
 
-		string algo = scene_.getScramblingAlgo(25);
+		string algo = scene_.generateScramblingAlgo(25);
 		//wstring wAlgo(algo.begin(), algo.end());
 		//wstring wMessage = L"Scramble using following Algorithm?";
 		//wMessage = wMessage
@@ -1297,31 +1304,53 @@ namespace mm {
 			redrawWindow();
 	}
 
-	string RubiksCubeSolverGUI::SolveOnCopy(unsigned int& solutionSteps, unsigned long long& duration, bool askForAnimation)
+	//string RubiksCubeSolverGUI::SolveOnCopy(unsigned int& solutionSteps, unsigned long long& duration, bool askForAnimation)
+	//{
+	//	string solution1 = scene_.SolveOnCopy(solutionSteps, duration);
+	//	//redrawWindow();
+	//	//TODO: Display updated stats and solution on screen here
+
+	//	if(!askForAnimation)
+	//		return solution1;
+
+	//	wstring wMessage = L"\nDo you want to see the animation of the solution?";
+	//	//if (MessageBox(g_hWnd, wMessage.c_str(),
+	//		g_szTitle, MB_YESNO | MB_ICONQUESTION | MB_APPLMODAL) == IDYES)
+	//	{
+	//		string solution2 = scene_.Solve(solutionSteps, duration, true);
+
+	//		if (solution1 != solution2)
+	//			//CreateOkDialog("Both the solutions are not same!");
+	//			return "";
+	//	}
+
+	//	return solution1;
+	//}
+
+	string RubiksCubeSolverGUI::Solve(unsigned int& solutionSteps, unsigned long long& duration)
 	{
-		string solution1 = scene_.SolveOnCopy(solutionSteps, duration);
-		redrawWindow();
-
-		if(!askForAnimation)
-			return solution1;
-
-		wstring wMessage = L"\nDo you want to see the animation of the solution?";
-		if (MessageBox(g_hWnd, wMessage.c_str(),
-			g_szTitle, MB_YESNO | MB_ICONQUESTION | MB_APPLMODAL) == IDYES)
+		string solution = scene_.Solve(solutionSteps, duration, animate_);
+		if (!animate_)
 		{
-			string solution2 = scene_.Solve(solutionSteps, duration, true);
+			bool userDecision = RubiksCubeSolverMainWindow::getInstance().CreateYesNoDialog("Do you want to see the animation of the solution?");
+			if (userDecision)
+			{
+				unsigned int size;
+				unsigned int scramblingSteps;
+				string scramblingAlgo;
+				string solution2;
+				unsigned long long duration;
+				scene_.getUpdatedStats(size, scramblingSteps, scramblingAlgo, solutionSteps, solution, duration);
 
-			if (solution1 != solution2)
-				//CreateOkDialog("Both the solutions are not same!");
-				return "";
+				//Go back to original position
+				bool animate = false;
+				scene_.scramble(scramblingAlgo, animate);
+				animate = true;
+				solution2 = scene_.Solve(solutionSteps, duration, animate);
+				//TODO: Check if both solutions are same or not
+				assert(solution == solution2);
+			}
 		}
-
-		return solution1;
-	}
-
-	string RubiksCubeSolverGUI::Solve(unsigned int& solutionSteps, unsigned long long& duration, bool animate)
-	{
-		string solution = scene_.Solve(solutionSteps, duration, animate);
 		return solution;
 	}
 

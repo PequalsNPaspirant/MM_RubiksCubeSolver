@@ -274,10 +274,10 @@ namespace mm {
 		rubicCubeModel_->ResetCube(animate, &refUI_);
 	}
 
-	string RubiksCubeSolverScene::getScramblingAlgo(int length)
+	string RubiksCubeSolverScene::generateScramblingAlgo(int length)
 	{
 		bool includeNonStandardRotations = true;
-		return rubicCubeModel_->getScramblingAlgo(length, includeNonStandardRotations);
+		return rubicCubeModel_->generateScramblingAlgo(length, includeNonStandardRotations);
 	}
 
 	void RubiksCubeSolverScene::scramble(const string& algo, bool animate)
@@ -293,22 +293,23 @@ namespace mm {
 		return solution;
 	}
 
-	string RubiksCubeSolverScene::SolveOnCopy(unsigned int& solutionSteps, unsigned long long& duration)
-	{
-		bool animate = false;
-		unique_ptr<RubiksCubeModel> copy = rubicCubeModel_->copy();
-		string solution = copy->solve(solutionSteps, duration, animate, refUI_);
-		RubiksCubeSolverUtils::RunTimeAssert(copy->isSolved());
-
-		int scramblingSteps;
-		string scramblingAlgo;
-		int steps;
-		string sol;
-		unsigned long long dur;
-		copy->getDisplayParameters(scramblingSteps, scramblingAlgo, steps, sol, dur);
-		rubicCubeModel_->setDisplayParameters(scramblingSteps, scramblingAlgo, steps, sol, dur);
-		return solution;
-	}
+//	string RubiksCubeSolverScene::SolveOnCopy(unsigned int& solutionSteps, unsigned long long& duration)
+//	{
+//		bool animate = false;
+//		unique_ptr<RubiksCubeModel> copy = rubicCubeModel_->copy();
+//		string solution = copy->solve(solutionSteps, duration, animate, refUI_);
+//		RubiksCubeSolverUtils::RunTimeAssert(copy->isSolved());
+//
+//		int size;
+//		int scramblingSteps;
+//		string scramblingAlgo;
+//		int steps;
+//		string sol;
+//		unsigned long long dur;
+//		copy->getUpdatedStats(size, scramblingSteps, scramblingAlgo, steps, sol, dur);
+////		rubicCubeModel_->setDisplayParameters(scramblingSteps, scramblingAlgo, steps, sol, dur);
+//		return solution;
+//	}
 
 	bool RubiksCubeSolverScene::isSolved()
 	{
@@ -328,10 +329,10 @@ namespace mm {
 		//2		04		- 17			13
 	}
 
-	void RubiksCubeSolverScene::getDisplayParameters(int& scramblingSteps, string& scramblingAlgo, 
-		int& solutionSteps, string& solution, unsigned long long& duration)
+	void RubiksCubeSolverScene::getUpdatedStats(unsigned int& size, unsigned int& scramblingSteps, string& scramblingAlgo,
+		unsigned int& solutionSteps, string& solution, unsigned long long& duration)
 	{
-		rubicCubeModel_->getDisplayParameters(scramblingSteps, scramblingAlgo, solutionSteps, solution, duration);
+		rubicCubeModel_->getUpdatedStats(size, scramblingSteps, scramblingAlgo, solutionSteps, solution, duration);
 	}
 }
 

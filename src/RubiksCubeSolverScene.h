@@ -57,14 +57,14 @@ namespace mm {
 		CVector3 mapCoordinates(int x, int y);
 
 		void Reset(bool animate);
-		string getScramblingAlgo(int length);
+		string generateScramblingAlgo(int length);
 		void scramble(const string& algo, bool animate);
 		string Solve(unsigned int& solutionSteps, unsigned long long& duration, bool animate);
-		string SolveOnCopy(unsigned int& solutionSteps, unsigned long long& duration);
+		//string SolveOnCopy(unsigned int& solutionSteps, unsigned long long& duration);
 		bool isSolved();
 		void fitToScreen();
 		int getRubiksCubeSize() { return rubiksCubeSize_; }
-		void getDisplayParameters(int& scramblingSteps, string& scramblingAlgo, int& solutionSteps, string& solution, unsigned long long& duration);
+		void getUpdatedStats(unsigned int& size, unsigned int& scramblingSteps, string& scramblingAlgo, unsigned int& solutionSteps, string& solution, unsigned long long& duration);
 
 		//deleted functions
 		RubiksCubeSolverScene(const RubiksCubeSolverScene&) = delete;

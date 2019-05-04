@@ -315,14 +315,14 @@ namespace mm {
 		void ResetCube(bool animate, RubiksCubeSolverGUI* ui) override;
 		void scramble(const string& algorithm, bool animate, RubiksCubeSolverGUI& ui) override;
 		int applyAlgorithm(const string& algorithm, bool animate, RubiksCubeSolverGUI& ui);
-		string getScramblingAlgo(int length, bool includeNonStandardRotations) override;
+		string generateScramblingAlgo(int length, bool includeNonStandardRotations) override;
 		string solve(unsigned int& solutionSteps, unsigned long long& duration, bool animate, RubiksCubeSolverGUI& ui) override;
 		void render() override;
 		void renderIndividualCube(const Cube& pCube, const Location& location);
 		bool isSolved() override;
 		bool IsFaceSolved(Face face);
-		void getDisplayParameters(int& scramblingSteps, string& scramblingAlgo, int& solutionSteps, string& solution, unsigned long long& duration) override;
-		void setDisplayParameters(int scramblingSteps, const string& scramblingAlgo, int solutionSteps, const string& solution, unsigned long long duration) override;
+		void getUpdatedStats(unsigned int& size, unsigned int& scramblingSteps, string& scramblingAlgo, unsigned int& solutionSteps, string& solution, unsigned long long& duration) override;
+		//void setDisplayParameters(int scramblingSteps, const string& scramblingAlgo, int solutionSteps, const string& solution, unsigned long long duration) override;
 
 		unique_ptr<RubiksCubeModel> copy() override;
 		string getModelName() override;

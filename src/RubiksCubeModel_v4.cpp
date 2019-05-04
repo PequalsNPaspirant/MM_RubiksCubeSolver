@@ -1290,7 +1290,7 @@ namespace mm {
 		}
 	}
 
-	string RubiksCubeModel_v4::getScramblingAlgo(int length, bool includeNonStandardRotations)
+	string RubiksCubeModel_v4::generateScramblingAlgo(int length, bool includeNonStandardRotations)
 	{
 		vector<char> charSet{
 			//Standard rotations

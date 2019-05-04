@@ -88,7 +88,7 @@ namespace mm {
 		//int numTestCases = testInfoSetBasic.size() + testInfoSetGeneric.size();
 		int numTestCases = testInfoSet.size();
 
-		refUI_.CreateOkDialog("All " + to_string(numTestCases) + " tests are successfully completed and written to .csv file!");
+		RubiksCubeSolverMainWindow::getInstance().CreateOkDialog("All " + to_string(numTestCases) + " tests are successfully completed and written to .csv file!");
 
 		refUI_.replaceModelBy(std::move(originalModel), true);
 
@@ -188,7 +188,7 @@ namespace mm {
 			//Add 10 x 100 = 1000 random srambling algos
 			for (int len : scramblingAlgoLengths)
 				for (int i = 0; i < numAlgoOfEachLength; ++i)
-					scrambleAlgos[size].push_back({ model->getScramblingAlgo(len, includeNonStandardRotations), "" });
+					scrambleAlgos[size].push_back({ model->generateScramblingAlgo(len, includeNonStandardRotations), "" });
 		}
 
 		if(minSize <= 2 && 2 <= maxSize)
@@ -246,7 +246,7 @@ namespace mm {
 								" | Rubik's size: " + to_string(testInfoAggregateSet[j].size_) +
 								" | Executing test number: " + to_string(testNum + 1)							
 							};
-							refUI_.displayMessage(message);
+							RubiksCubeSolverMainWindow::getInstance().displayMessage(message);
 						}
 
 						testInfoSet.emplace_back(testInfoAggregateSet[j].modelName_, testInfoAggregateSet[j].size_, algos[i].scramble, algos[i].solution);
@@ -261,9 +261,10 @@ namespace mm {
 	}
 
 	void RubiksCubeSolverTest::executeTest(testInfo& info, bool animate, unsigned int testNum)
-	{			
+	{
+		refUI_.setAnimate(animate);
 		if (animate)
-			refUI_.CreateOkDialog("Test No.: " + to_string(testNum)
+			RubiksCubeSolverMainWindow::getInstance().CreateOkDialog("Test No.: " + to_string(testNum)
 				+ "\nModel Name: " + info.modelName_
 				+ "\nSize: " + to_string(info.size_));
 		unique_ptr<RubiksCubeModel> oldModel = refUI_.replaceModelBy(info.modelName_, info.size_, animate);
@@ -272,19 +273,19 @@ namespace mm {
 		RubiksCubeSolverUtils::RunTimeAssert(refUI_.isSolved());
 
 		if (animate)
-			refUI_.CreateOkDialog("Applying scrambling algo: " + info.scrambleAlgo_);
+			RubiksCubeSolverMainWindow::getInstance().CreateOkDialog("Applying scrambling algo: " + info.scrambleAlgo_);
 		refUI_.applyAlgorithm(info.scrambleAlgo_, animate);
 		//RubiksCubeSolverUtils::RunTimeAssert(!refUI_.isSolved()); //Rubik Cube may or may not be scrmabled depending upon the scrambling algo
 
 		if (!info.idealSolution_.empty())
 		{
 			if (animate)
-				refUI_.CreateOkDialog("Applying Ideal solution: " + info.idealSolution_);
+				RubiksCubeSolverMainWindow::getInstance().CreateOkDialog("Applying Ideal solution: " + info.idealSolution_);
 			refUI_.applyAlgorithm(info.idealSolution_, animate);
 			RubiksCubeSolverUtils::RunTimeAssert(refUI_.isSolved());
 
 			if (animate)
-				refUI_.CreateOkDialog("Going back to scrambled position: " + info.scrambleAlgo_);
+				RubiksCubeSolverMainWindow::getInstance().CreateOkDialog("Going back to scrambled position: " + info.scrambleAlgo_);
 			//refUI_.replaceModelBy(modelinfo.modelName, modelinfo.size);
 			refUI_.Reset(animate);
 			refUI_.applyAlgorithm(info.scrambleAlgo_, false);
@@ -297,10 +298,10 @@ namespace mm {
 		}
 
 		if (animate)
-			refUI_.CreateOkDialog("Solving again: ");
+			RubiksCubeSolverMainWindow::getInstance().CreateOkDialog("Solving again: ");
 		//int numSteps;
 		//unsigned long long duration;
-		info.actualSolution_ = refUI_.Solve(info.numSteps_, info.nsDuration_, animate);
+		info.actualSolution_ = refUI_.Solve(info.numSteps_, info.nsDuration_);
 		RubiksCubeSolverUtils::RunTimeAssert(refUI_.isSolved());
 	}
 

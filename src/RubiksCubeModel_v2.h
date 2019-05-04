@@ -278,7 +278,7 @@ namespace mm {
 		void ResetCube(bool animate, RubiksCubeSolverGUI* ui) override;
 		void scramble(const string& algorithm, bool animate, RubiksCubeSolverGUI& ui) override;
 		int applyAlgorithm(const string& algorithm, bool animate, RubiksCubeSolverGUI& ui);
-		string getScramblingAlgo(int length, bool includeNonStandardRotations) override;
+		string generateScramblingAlgo(int length, bool includeNonStandardRotations) override;
 		string solve(unsigned int& solutionSteps, unsigned long long& duration, bool animate, RubiksCubeSolverGUI& ui) override;
 		void render() override;
 		void renderIndividualCube(const Cube& pCube, const Location& location);

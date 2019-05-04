@@ -368,7 +368,7 @@ namespace mm {
 		//SetTextColor(g_hDCMessage, RGB(50, 50, 50));
 		SetTextColor(g_hDCMessage, RGB(0, 0, 255));
 
-		rubiksCubeSolverGui_.displayMessage();
+		displayMessage();
 	}
 
 	void RubiksCubeSolverMainWindow::redrawWindow()
@@ -432,18 +432,19 @@ namespace mm {
 		//HBRUSH brush = CreateSolidBrush(RGB(255, 255, 255));
 		//FillRect(g_hDCMessage, &messageWndRect, brush);
 
-		//if (message.empty())
-		//{
-		//	int scramblingSteps;
-		//	string scramblingAlgo;
-		//	int solutionSteps;
-		//	string solution;
-		//	unsigned long long duration;
-		//	scene_.getDisplayParameters(scramblingSteps, scramblingAlgo, solutionSteps, solution, duration);
-		//	displayMessage(scramblingSteps, scramblingAlgo, solutionSteps, solution, duration);
-		//}
-		//else
-		//{
+		if (message.empty())
+		{
+			unsigned int size;
+			unsigned int scramblingSteps;
+			string scramblingAlgo;
+			unsigned int solutionSteps;
+			string solution;
+			unsigned long long duration;
+			rubiksCubeSolverGui_.getUpdatedStats(size, scramblingSteps, scramblingAlgo, solutionSteps, solution, duration);
+			displayMessage(size, scramblingSteps, scramblingAlgo, solutionSteps, solution, duration);
+		}
+		else
+		{
 			wstring wStrMsg(message.begin(), message.end());
 
 			RECT c = { 0, 0, 0, 0 };
@@ -470,7 +471,7 @@ namespace mm {
 			//The following lines refreshes the screen and the message is displayed on screen (dont know the reason)
 			//HDC wdc = GetWindowDC(g_hWnd);
 			//DeleteDC(wdc);
-		//}
+		}
 	}
 
 	string getCommaSeparatedTimeDuration(unsigned long long duration)
@@ -828,9 +829,9 @@ namespace mm {
 
 			int tilt = 0;
 			if (y < g_nPrevY)
-				tilt = (5);
-			else if (y > g_nPrevY)
 				tilt = (-5);
+			else if (y > g_nPrevY)
+				tilt = (5);
 
 			//activateRenderingThread();
 			//redrawWindow();
@@ -1069,7 +1070,7 @@ namespace mm {
 		{
 			rubiksCubeSolverGui_.fitToScreen();
 		}
-		else if (commandId_ >= ID_RUBIK_1X1X1 && commandId_ <= ID_RUBIK_10X10X10 && commandId_ != selMenuRubiksCubeSize)
+		else if (commandId_ >= ID_RUBIK_1X1X1 && commandId_ <= ID_RUBIK_INCREASEBYTEN && commandId_ != selMenuRubiksCubeSize)
 		{
 			//commandGeneration_ = 1;
 			CheckMenuItem(hMenu, selMenuRubiksCubeSize, MF_UNCHECKED | MF_ENABLED);

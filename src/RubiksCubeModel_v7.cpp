@@ -447,9 +447,10 @@ namespace mm {
 		return solution;
 	}
 
-	void RubiksCubeModel_v7::getDisplayParameters(int& scramblingSteps, string& scramblingAlgo, 
-		int& solutionSteps, string& solution, unsigned long long& duration)
+	void RubiksCubeModel_v7::getUpdatedStats(unsigned int& size, unsigned int& scramblingSteps, string& scramblingAlgo,
+		unsigned int& solutionSteps, string& solution, unsigned long long& duration)
 	{
+		size = size_;
 		scramblingSteps = scramblingSteps_;
 		scramblingAlgo = scramblingAlgo_;
 		solutionSteps = solutionSteps_;
@@ -457,14 +458,14 @@ namespace mm {
 		duration = duration_;
 	}
 
-	void RubiksCubeModel_v7::setDisplayParameters(int scramblingSteps, const string& scramblingAlgo, int solutionSteps, const string& solution, unsigned long long duration)
-	{
-		scramblingSteps_ = scramblingSteps;
-		scramblingAlgo_ = scramblingAlgo;
-		solutionSteps_ = solutionSteps;
-		solution_ = solution;
-		duration_ = duration;
-	}
+	//void RubiksCubeModel_v7::setDisplayParameters(int scramblingSteps, const string& scramblingAlgo, int solutionSteps, const string& solution, unsigned long long duration)
+	//{
+	//	scramblingSteps_ = scramblingSteps;
+	//	scramblingAlgo_ = scramblingAlgo;
+	//	solutionSteps_ = solutionSteps;
+	//	solution_ = solution;
+	//	duration_ = duration;
+	//}
 
 	void RubiksCubeModel_v7::render()
 	{
@@ -1028,8 +1029,12 @@ namespace mm {
 		//solution_ = "";
 		//duration_ = 0;
 
-		scramblingSteps_ = 0;
-		scramblingAlgo_ = "";
+		//If the rubik's cube is in solved state, reset srambling algo
+		if(isSolved())
+		{
+			scramblingSteps_ = 0;
+			scramblingAlgo_ = "";
+		}
 		isScrambling_ = true;
 		int steps = applyAlgorithm(algorithm, animate, ui);
 		isScrambling_ = false;
@@ -1259,6 +1264,8 @@ namespace mm {
 
 		if (animate)
 		{
+			//display step before starting animation for that step:
+			ui.displayUpdatedStats();
 			g_bRotating = true;
 			int numTotalFrames = ui.getFramesPerRotation() * numRotations;
 			double stepAngle = targetAngle / numTotalFrames;
@@ -1293,7 +1300,7 @@ namespace mm {
 		if (animate)
 		{
 			ui.redrawWindow();
-			ui.displayMessage();
+			//ui.displayMessage();
 			//ui.displayMessage(scramblingSteps_, scramblingAlgo_, solutionSteps_, solution_);
 			//Sleep for some time before going for next step
 			Sleep(5 * ui.getSleepTimeMilliSec());
@@ -1422,7 +1429,7 @@ namespace mm {
 		}
 	}
 
-	string RubiksCubeModel_v7::getScramblingAlgo(int length, bool includeNonStandardRotations)
+	string RubiksCubeModel_v7::generateScramblingAlgo(int length, bool includeNonStandardRotations)
 	{
 		vector<char> charSet{
 			//Standard rotations
