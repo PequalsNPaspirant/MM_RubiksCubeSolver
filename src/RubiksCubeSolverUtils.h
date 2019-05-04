@@ -29,7 +29,7 @@
 #include <string>
 using namespace std;
 
-#include "RubiksCubeSolverUI.h"
+#include "RubiksCubeSolverMainWindow.h"
 
 namespace mm {
 
@@ -41,8 +41,8 @@ namespace mm {
 			if (!expression)
 			{
 				//cout << msg;
-				RubiksCubeSolverUI::getInstance().redrawWindow();
-				bool bContinue = RubiksCubeSolverUI::getInstance().CreateYesNoDialog("Assertion failure: " + msg + "\nDo you want to continue?");
+				RubiksCubeSolverMainWindow::getInstance().redrawWindow();
+				bool bContinue = RubiksCubeSolverMainWindow::getInstance().CreateYesNoDialog("Assertion failure: " + msg + "\nDo you want to continue?");
 				if (!bContinue)
 				{
 					int* nullPointer = nullptr;

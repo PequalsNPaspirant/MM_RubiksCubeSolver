@@ -36,12 +36,12 @@ using namespace std;
 namespace mm {
 
 	//forward declaration
-	class RubiksCubeSolverUI;
+	class RubiksCubeSolverGUI;
 
 	class RubiksCubeSolverScene
 	{
 	public:
-		RubiksCubeSolverScene(RubiksCubeSolverUI& refUI, const string& modelName, int size);
+		RubiksCubeSolverScene(RubiksCubeSolverGUI& refUI, const string& modelName, int size);
 		~RubiksCubeSolverScene();
 
 		unique_ptr<RubiksCubeModel> replaceModelBy(const string& modelName, int size);
@@ -78,7 +78,7 @@ namespace mm {
 		static const GLsizei SELECT_BUFFER_SIZE = 128;
 		static GLuint g_pSelectBuffer[SELECT_BUFFER_SIZE];
 		unique_ptr<RubiksCubeModel> rubicCubeModel_;
-		RubiksCubeSolverUI& refUI_;
+		RubiksCubeSolverGUI& refUI_;
 		int rubiksCubeSize_;
 
 	public:

@@ -32,7 +32,7 @@ using namespace std;
 
 namespace mm {
 
-	class RubiksCubeSolverUI;
+	class RubiksCubeSolverGUI;
 
 	struct testInfoAggregate
 	{
@@ -88,7 +88,7 @@ namespace mm {
 	class RubiksCubeSolverTest
 	{
 	public:
-		RubiksCubeSolverTest(RubiksCubeSolverUI& refUI)
+		RubiksCubeSolverTest(RubiksCubeSolverGUI& refUI)
 			: refUI_(refUI)
 		{}
 
@@ -101,7 +101,7 @@ namespace mm {
 		void writeResultsToCSVFile(ofstream& testResultsFile, const vector<testInfoAggregate>& testInfoAggregateSet);
 		void writeResultsToCSVFile(ofstream& testResultsFile, const vector<testInfo>& testInfoSet);
 
-		RubiksCubeSolverUI& refUI_;
+		RubiksCubeSolverGUI& refUI_;
 
 		static const int minSize;
 		static const int maxSize;

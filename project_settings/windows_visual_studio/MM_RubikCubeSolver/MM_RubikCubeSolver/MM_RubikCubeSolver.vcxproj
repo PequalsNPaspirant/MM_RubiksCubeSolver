@@ -188,7 +188,8 @@
     <ClCompile Include="../../../../src/RubiksCubeSolverScene.cpp" />
     <ClCompile Include="../../../../src/RubiksCubeSolverTest.cpp" />
     <ClCompile Include="../../../../src/Camera.cpp" />
-    <ClCompile Include="../../../../src/RubiksCubeSolverUI.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\..\%40_Programming\Everything\MM_RubikCubeSolver\src\RubiksCubeSolverMainWindow.cpp" />
+    <ClCompile Include="..\..\..\..\src\RubiksCubeSolverGUI.cpp" />
     <ClCompile Include="../../../../src/RubiksCubeModel_v1.cpp" />
     <ClCompile Include="../../../../src/stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -209,7 +210,8 @@
     <ClInclude Include="../../../../src/RubiksCubeModel_v2.h" />
     <ClInclude Include="../../../../src/RubiksCubeSolverScene.h" />
     <ClInclude Include="../../../../src/RubiksCubeSolverTest.h" />
-    <ClInclude Include="../../../../src/RubiksCubeSolverUI.h" />
+    <ClInclude Include="..\..\..\..\..\..\..\%40_Programming\Everything\MM_RubikCubeSolver\src\RubiksCubeSolverMainWindow.h" />
+    <ClInclude Include="..\..\..\..\src\RubiksCubeSolverGUI.h" />
     <ClInclude Include="../../../../src/Camera.h" />
     <ClInclude Include="../../../../src/Resource.h" />
     <ClInclude Include="../../../../src/RubiksCubeModel_v1.h" />

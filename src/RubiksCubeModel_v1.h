@@ -37,7 +37,7 @@ using namespace std;
 
 namespace mm {
 
-	class RubiksCubeSolverUI;
+	class RubiksCubeSolverGUI;
 
 	class RubiksCubeModel_v1 : public RubiksCubeModel
 	{
@@ -117,11 +117,11 @@ namespace mm {
 		~RubiksCubeModel_v1();
 		RubiksCubeModel_v1(const RubiksCubeModel_v1& copy);
 
-		void ResetCube(bool animate, RubiksCubeSolverUI* ui) override;
-		void scramble(const string& algorithm, bool animate, RubiksCubeSolverUI& ui) override;
-		int applyAlgorithm(const string& algorithm, bool animate, RubiksCubeSolverUI& ui);
+		void ResetCube(bool animate, RubiksCubeSolverGUI* ui) override;
+		void scramble(const string& algorithm, bool animate, RubiksCubeSolverGUI& ui) override;
+		int applyAlgorithm(const string& algorithm, bool animate, RubiksCubeSolverGUI& ui);
 		string getScramblingAlgo(int length, bool includeNonStandardRotations) override;
-		string solve(unsigned int& solutionSteps, unsigned long long& duration, bool animate, RubiksCubeSolverUI& ui) override;
+		string solve(unsigned int& solutionSteps, unsigned long long& duration, bool animate, RubiksCubeSolverGUI& ui) override;
 		void render() override;
 		void renderIndividualCube(const Cube& pCube, int x, int y, int z);
 		bool isSolved() override;
@@ -139,7 +139,7 @@ namespace mm {
 		int getSize() { return size_; }
 
 	private:
-		void applyStep(const char& face, bool isPrime, int numRotations, bool animate, RubiksCubeSolverUI& ui);
+		void applyStep(const char& face, bool isPrime, int numRotations, bool animate, RubiksCubeSolverGUI& ui);
 		void fixRubiksCubeFaces();
 		bool IsValidCube(int x, int y, int z);
 		Cube CreateCube(int x, int y, int z);
@@ -163,7 +163,7 @@ namespace mm {
 		class RubiksCubeSolver
 		{
 		public:
-			RubiksCubeSolver(RubiksCubeModel_v1& rubiksCube, bool animate, RubiksCubeSolverUI& ui);
+			RubiksCubeSolver(RubiksCubeModel_v1& rubiksCube, bool animate, RubiksCubeSolverGUI& ui);
 			string solve(unsigned int& solutionSteps);
 
 		private:
@@ -186,7 +186,7 @@ namespace mm {
 			int solutionSteps_;
 
 			bool animate_;
-			RubiksCubeSolverUI& ui_;
+			RubiksCubeSolverGUI& ui_;
 		};
 	};
 

@@ -39,7 +39,7 @@ using namespace std;
 
 namespace mm {
 
-	class RubiksCubeSolverUI;
+	class RubiksCubeSolverGUI;
 
 	class RubiksCubeModel_v4 : public RubiksCubeModel
 	{
@@ -311,11 +311,11 @@ namespace mm {
 		~RubiksCubeModel_v4();
 		RubiksCubeModel_v4(const RubiksCubeModel_v4& copy);
 
-		void ResetCube(bool animate, RubiksCubeSolverUI* ui) override;
-		void scramble(const string& algorithm, bool animate, RubiksCubeSolverUI& ui) override;
-		int applyAlgorithm(const string& algorithm, bool animate, RubiksCubeSolverUI& ui);
+		void ResetCube(bool animate, RubiksCubeSolverGUI* ui) override;
+		void scramble(const string& algorithm, bool animate, RubiksCubeSolverGUI& ui) override;
+		int applyAlgorithm(const string& algorithm, bool animate, RubiksCubeSolverGUI& ui);
 		string getScramblingAlgo(int length, bool includeNonStandardRotations) override;
-		string solve(unsigned int& solutionSteps, unsigned long long& duration, bool animate, RubiksCubeSolverUI& ui) override;
+		string solve(unsigned int& solutionSteps, unsigned long long& duration, bool animate, RubiksCubeSolverGUI& ui) override;
 		void render() override;
 		void renderIndividualCube(const Cube& pCube, const Location& location);
 		bool isSolved() override;
@@ -363,7 +363,7 @@ namespace mm {
 
 		bool IsValidCube(int x, int y, int z);
 		unique_ptr<Cube> CreateCube(double x, double y, double z, const Location& location);
-		void applyStep(const char& face, bool isPrime, int numRotations, bool animate, RubiksCubeSolverUI& ui);
+		void applyStep(const char& face, bool isPrime, int numRotations, bool animate, RubiksCubeSolverGUI& ui);
 		void fixRubiksCubeFaces();
 
 		//vector< vector< vector<Cube> > > cubes_; // Total elements = size_ * size_ * size_
@@ -395,7 +395,7 @@ namespace mm {
 		class RubiksCubeSolver_NxNxN
 		{
 		public:
-			RubiksCubeSolver_NxNxN(RubiksCubeModel_v4& rubiksCube, bool animate, RubiksCubeSolverUI& ui);
+			RubiksCubeSolver_NxNxN(RubiksCubeModel_v4& rubiksCube, bool animate, RubiksCubeSolverGUI& ui);
 			string solve(unsigned int& solutionSteps);
 
 		private:
@@ -420,13 +420,13 @@ namespace mm {
 			int solutionSteps_;
 
 			bool animate_;
-			RubiksCubeSolverUI& ui_;
+			RubiksCubeSolverGUI& ui_;
 		};
 
 		class RubiksCubeSolver_3x3x3
 		{
 		public:
-			RubiksCubeSolver_3x3x3(RubiksCubeModel_v4& rubiksCube, bool animate, RubiksCubeSolverUI& ui);
+			RubiksCubeSolver_3x3x3(RubiksCubeModel_v4& rubiksCube, bool animate, RubiksCubeSolverGUI& ui);
 			string solve(unsigned int& solutionSteps);
 
 		private:
@@ -449,13 +449,13 @@ namespace mm {
 			int solutionSteps_;
 
 			bool animate_;
-			RubiksCubeSolverUI& ui_;
+			RubiksCubeSolverGUI& ui_;
 		};
 
 		class RubiksCubeSolver_2x2x2
 		{
 		public:
-			RubiksCubeSolver_2x2x2(RubiksCubeModel_v4& rubiksCube, bool animate, RubiksCubeSolverUI& ui);
+			RubiksCubeSolver_2x2x2(RubiksCubeModel_v4& rubiksCube, bool animate, RubiksCubeSolverGUI& ui);
 			string solve(unsigned int& solutionSteps);
 
 		private:
@@ -479,7 +479,7 @@ namespace mm {
 			int solutionSteps_;
 
 			bool animate_;
-			RubiksCubeSolverUI& ui_;
+			RubiksCubeSolverGUI& ui_;
 		};
 	};
 

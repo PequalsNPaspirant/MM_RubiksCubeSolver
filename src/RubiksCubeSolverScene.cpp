@@ -45,7 +45,7 @@ namespace mm {
 	GLuint RubiksCubeSolverScene::g_pSelectBuffer[RubiksCubeSolverScene::SELECT_BUFFER_SIZE];
 	const int RUBIKS_CUBE_SIZE = 3;
 
-	RubiksCubeSolverScene::RubiksCubeSolverScene(RubiksCubeSolverUI& refUI, const string& modelName, int size)
+	RubiksCubeSolverScene::RubiksCubeSolverScene(RubiksCubeSolverGUI& refUI, const string& modelName, int size)
 		: 
 		rubicCubeModel_(RubiksCubeModelFactory::getRubiksCubeModel(modelName, size)),
 		refUI_(refUI),

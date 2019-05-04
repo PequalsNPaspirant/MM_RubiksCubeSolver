@@ -40,7 +40,7 @@ using namespace std;
 
 namespace mm {
 
-	class RubiksCubeSolverUI;
+	class RubiksCubeSolverGUI;
 
 	class RubiksCubeModel_v7 : public RubiksCubeModel
 	{
@@ -312,11 +312,11 @@ namespace mm {
 		~RubiksCubeModel_v7();
 		RubiksCubeModel_v7(const RubiksCubeModel_v7& copy);
 
-		void ResetCube(bool animate, RubiksCubeSolverUI* ui) override;
-		void scramble(const string& algorithm, bool animate, RubiksCubeSolverUI& ui) override;
-		int applyAlgorithm(const string& algorithm, bool animate, RubiksCubeSolverUI& ui);
+		void ResetCube(bool animate, RubiksCubeSolverGUI* ui) override;
+		void scramble(const string& algorithm, bool animate, RubiksCubeSolverGUI& ui) override;
+		int applyAlgorithm(const string& algorithm, bool animate, RubiksCubeSolverGUI& ui);
 		string getScramblingAlgo(int length, bool includeNonStandardRotations) override;
-		string solve(unsigned int& solutionSteps, unsigned long long& duration, bool animate, RubiksCubeSolverUI& ui) override;
+		string solve(unsigned int& solutionSteps, unsigned long long& duration, bool animate, RubiksCubeSolverGUI& ui) override;
 		void render() override;
 		void renderIndividualCube(const Cube& pCube, const Location& location);
 		bool isSolved() override;
@@ -366,7 +366,7 @@ namespace mm {
 
 		bool IsValidCube(int x, int y, int z);
 		unique_ptr<Cube> CreateCube(double x, double y, double z, const Location& location);
-		void applyStep(const char& face, int layerIndexFrom, int layerIndexTo, bool isPrime, int numRotations, bool animate, RubiksCubeSolverUI& ui);
+		void applyStep(const char& face, int layerIndexFrom, int layerIndexTo, bool isPrime, int numRotations, bool animate, RubiksCubeSolverGUI& ui);
 		void fixRubiksCubeFaces();
 
 		//vector< vector< vector<Cube> > > cubes_; // Total elements = size_ * size_ * size_
@@ -411,7 +411,7 @@ namespace mm {
 		class RubiksCubeSolver_NxNxN
 		{
 		public:
-			RubiksCubeSolver_NxNxN(RubiksCubeModel_v7& rubiksCube, bool animate, RubiksCubeSolverUI& ui);
+			RubiksCubeSolver_NxNxN(RubiksCubeModel_v7& rubiksCube, bool animate, RubiksCubeSolverGUI& ui);
 			string solve(unsigned int& solutionSteps);
 
 		private:
@@ -456,7 +456,7 @@ namespace mm {
 			//int solutionSteps_;
 
 			bool animate_;
-			RubiksCubeSolverUI& ui_;
+			RubiksCubeSolverGUI& ui_;
 
 			unordered_set<unsigned int> solvedEdges_;
 		};

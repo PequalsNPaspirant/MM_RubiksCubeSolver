@@ -34,7 +34,7 @@ using namespace std;
 
 #include "Resource.h"
 #include "RubiksCubeModel_v6.h"
-#include "RubiksCubeSolverUI.h"
+#include "RubiksCubeSolverGUI.h"
 #include "RubiksCubeSolverUtils.h"
 
 namespace mm {
@@ -348,7 +348,7 @@ namespace mm {
 	{
 	}
 
-	void RubiksCubeModel_v6::ResetCube(bool animate, RubiksCubeSolverUI* ui)
+	void RubiksCubeModel_v6::ResetCube(bool animate, RubiksCubeSolverGUI* ui)
 	{
 		g_bRotating = false;
 		g_bFlipRotation = false;
@@ -407,7 +407,7 @@ namespace mm {
 		}
 	}
 
-	string RubiksCubeModel_v6::solve(unsigned int& solutionSteps, unsigned long long& duration, bool animate, RubiksCubeSolverUI& ui)
+	string RubiksCubeModel_v6::solve(unsigned int& solutionSteps, unsigned long long& duration, bool animate, RubiksCubeSolverGUI& ui)
 	{
 		//string solution;
 		//if (size_ == 2)
@@ -1022,7 +1022,7 @@ namespace mm {
 		return size_;
 	}
 
-	void RubiksCubeModel_v6::scramble(const string& algorithm, bool animate, RubiksCubeSolverUI& ui)
+	void RubiksCubeModel_v6::scramble(const string& algorithm, bool animate, RubiksCubeSolverGUI& ui)
 	{
 		//solutionSteps_ = 0;
 		//solution_ = "";
@@ -1035,7 +1035,7 @@ namespace mm {
 		isScrambling_ = false;
 	}
 
-	int RubiksCubeModel_v6::applyAlgorithm(const string& algorithm, bool animate, RubiksCubeSolverUI& ui)
+	int RubiksCubeModel_v6::applyAlgorithm(const string& algorithm, bool animate, RubiksCubeSolverGUI& ui)
 	{
 		int solutionSteps = solutionSteps_;
 		g_bFlipRotation = false;
@@ -1165,8 +1165,8 @@ namespace mm {
 	//	}
 	//}
 
-	void RubiksCubeModel_v6::applyStep(const char& face, int layerIndexFrom, int layerIndexTo, bool isPrime, int numRotations, bool animate, RubiksCubeSolverUI& ui)
-	//void RubiksCubeModel_v6::applyStep(const char& face, bool isPrime, int layerIndex, bool animate /*= false*/, int steps /*= 0*/, RubiksCubeSolverUI* ui /*= nullptr*/)
+	void RubiksCubeModel_v6::applyStep(const char& face, int layerIndexFrom, int layerIndexTo, bool isPrime, int numRotations, bool animate, RubiksCubeSolverGUI& ui)
+	//void RubiksCubeModel_v6::applyStep(const char& face, bool isPrime, int layerIndex, bool animate /*= false*/, int steps /*= 0*/, RubiksCubeSolverGUI* ui /*= nullptr*/)
 	{
 		//cout << "\nApplying move: " << face;
 		//if(isPrime)
@@ -1477,7 +1477,7 @@ namespace mm {
 	// Solver NxNxN
 	//=======================================================================================================
 
-	RubiksCubeModel_v6::RubiksCubeSolver_NxNxN::RubiksCubeSolver_NxNxN(RubiksCubeModel_v6& rubiksCube, bool animate, RubiksCubeSolverUI& ui)
+	RubiksCubeModel_v6::RubiksCubeSolver_NxNxN::RubiksCubeSolver_NxNxN(RubiksCubeModel_v6& rubiksCube, bool animate, RubiksCubeSolverGUI& ui)
 		: rubiksCube_(rubiksCube),
 		animate_(animate),
 		ui_(ui),

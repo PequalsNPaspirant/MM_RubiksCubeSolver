@@ -62,16 +62,16 @@ namespace mm {
 		static vector<GLuint> g_pTextures;
 	};
 
-	class RubiksCubeSolverUI;
+	class RubiksCubeSolverGUI;
 
 	class RubiksCubeModel
 	{
 	public:
-		virtual void ResetCube(bool animate, RubiksCubeSolverUI* ui) = 0;
-		//virtual int applyAlgorithm(const string& algorithm, bool animate, RubiksCubeSolverUI& ui) = 0;
+		virtual void ResetCube(bool animate, RubiksCubeSolverGUI* ui) = 0;
+		//virtual int applyAlgorithm(const string& algorithm, bool animate, RubiksCubeSolverGUI& ui) = 0;
 		virtual string getScramblingAlgo(int length, bool includeNonStandardRotations) = 0;
-		virtual void scramble(const string& algorithm, bool animate, RubiksCubeSolverUI& ui) = 0;
-		virtual string solve(unsigned int& solutionSteps, unsigned long long& duration, bool animate, RubiksCubeSolverUI& ui) = 0;
+		virtual void scramble(const string& algorithm, bool animate, RubiksCubeSolverGUI& ui) = 0;
+		virtual string solve(unsigned int& solutionSteps, unsigned long long& duration, bool animate, RubiksCubeSolverGUI& ui) = 0;
 		virtual void render() = 0;
 		virtual bool isSolved() = 0;
 

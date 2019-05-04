@@ -34,7 +34,7 @@ using namespace std;
 
 #include "Resource.h"
 #include "RubiksCubeModel_v1.h"
-#include "RubiksCubeSolverUI.h"
+#include "RubiksCubeSolverGUI.h"
 #include "RubiksCubeSolverUtils.h"
 
 namespace mm {
@@ -189,7 +189,7 @@ namespace mm {
 	{
 	}
 
-	void RubiksCubeModel_v1::ResetCube(bool animate, RubiksCubeSolverUI* ui)
+	void RubiksCubeModel_v1::ResetCube(bool animate, RubiksCubeSolverGUI* ui)
 	{
 		g_bRotating = false;
 		g_bFlipRotation = false;
@@ -214,7 +214,7 @@ namespace mm {
 		}
 	}
 
-	string RubiksCubeModel_v1::solve(unsigned int& solutionSteps, unsigned long long& duration, bool animate, RubiksCubeSolverUI& ui)
+	string RubiksCubeModel_v1::solve(unsigned int& solutionSteps, unsigned long long& duration, bool animate, RubiksCubeSolverGUI& ui)
 	{
 		RubiksCubeSolver solver(*this, animate, ui);
 		using HRClock = std::chrono::high_resolution_clock;
@@ -726,12 +726,12 @@ namespace mm {
 		return size_;
 	}
 
-	void RubiksCubeModel_v1::scramble(const string& algorithm, bool animate, RubiksCubeSolverUI& ui)
+	void RubiksCubeModel_v1::scramble(const string& algorithm, bool animate, RubiksCubeSolverGUI& ui)
 	{
 		applyAlgorithm(algorithm, animate, ui);
 	}
 
-	int RubiksCubeModel_v1::applyAlgorithm(const string& algorithm, bool animate, RubiksCubeSolverUI& ui)
+	int RubiksCubeModel_v1::applyAlgorithm(const string& algorithm, bool animate, RubiksCubeSolverGUI& ui)
 	{
 		int solutionSteps = 0;
 		g_bFlipRotation = false;
@@ -769,7 +769,7 @@ namespace mm {
 		return solutionSteps;
 	}
 
-	void RubiksCubeModel_v1::applyStep(const char& face, bool isPrime, int numRotations, bool animate, RubiksCubeSolverUI& ui)
+	void RubiksCubeModel_v1::applyStep(const char& face, bool isPrime, int numRotations, bool animate, RubiksCubeSolverGUI& ui)
 	{
 		//cout << "\nApplying move: " << face;
 		//if(isPrime)
@@ -939,7 +939,7 @@ namespace mm {
 	// Solver
 	//=======================================================================================================
 
-	RubiksCubeModel_v1::RubiksCubeSolver::RubiksCubeSolver(RubiksCubeModel_v1& rubiksCube, bool animate, RubiksCubeSolverUI& ui)
+	RubiksCubeModel_v1::RubiksCubeSolver::RubiksCubeSolver(RubiksCubeModel_v1& rubiksCube, bool animate, RubiksCubeSolverGUI& ui)
 		: rubiksCube_(rubiksCube),
 		solutionSteps_(0),
 		animate_(animate),

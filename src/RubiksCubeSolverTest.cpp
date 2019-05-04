@@ -40,7 +40,7 @@ using namespace std;
 #include "RubiksCubeModel.h"
 #include "RubiksCubeModel_v1.h"
 #include "RubiksCubeModel_v2.h"
-#include "RubiksCubeSolverUI.h"
+#include "RubiksCubeSolverGUI.h"
 #include "RubiksCubeSolverUtils.h"
 
 namespace mm {

@@ -28,6 +28,7 @@
 
 #include <string>
 #include <atomic>
+#include <thread>
 //#include <mutex>
 using namespace std;
 
@@ -48,29 +49,150 @@ namespace mm {
 	//	veryFast
 	//};
 
-	class RubiksCubeSolverUI
+	class RubiksCubeSolverGUI
 	{
+		//=================== start of approved interface ==============
+
 	public:
-		static RubiksCubeSolverUI& getInstance();
-		void createMainWindow(HINSTANCE hInstance);
-		/**/bool changeToFullScreen();
-		void createMenu();
-		void render();
-		void createGraphicsArea();
-		void activateRenderingThread();
-		void commandHandler();
-		/**/bool setupPixelFormat(HDC hdc);
-		void createMessageWindow();
-		WPARAM enterMainLoop();
-		void redrawWindow();
-		bool CreateYesNoDialog(const string& message);
-		void CreateOkDialog(const string& message);
-		void applyAlgorithm(const string& algo, bool animate);
+		RubiksCubeSolverGUI();
+		RubiksCubeSolverGUI(const RubiksCubeSolverGUI&) = delete;
+		RubiksCubeSolverGUI& operator=(const RubiksCubeSolverGUI&) = delete;
+		RubiksCubeSolverGUI(RubiksCubeSolverGUI&&) = delete;
+		RubiksCubeSolverGUI& operator=(RubiksCubeSolverGUI&&) = delete;
+		~RubiksCubeSolverGUI();
+		void initialize(HWND hWnd);
+		void Scramble(bool animateIn)
+		{
+			animate_ = animateIn;
+			firstGenCommand_ = firstGenerationCommands::eScramble;
+			activateRenderingThread();
+		}
+		void Solve(bool animateIn)
+		{
+			animate_ = animateIn;
+			firstGenCommand_ = firstGenerationCommands::eSolve;
+			activateRenderingThread();
+		}
+		void runTests(bool animateIn)
+		{
+			animate_ = animateIn;
+			firstGenCommand_ = firstGenerationCommands::eRunTests;
+			activateRenderingThread();
+		}
+		void fitToScreen()
+		{
+			firstGenCommand_ = firstGenerationCommands::eFitToScreen;
+			activateRenderingThread();
+		}
+		void setRubiksCubeSize(unsigned int size)
+		{
+			firstGenCommand_ = firstGenerationCommands::eResizeRubiksCube;
+			size_ = size;
+			activateRenderingThread();
+		}
+		void setAnimationSpeed(unsigned int speed)
+		{
+			firstGenCommand_ = firstGenerationCommands::eNoCommand;
+			secondGenCommand_ = secondGenerationCommands::eSetAnimationSpeed;
+			animationSpeed_ = speed;
+			framesPerRotation_ = (106 - animationSpeed_) / 2;
+			sleepTimeMilliSec_ = (106 - animationSpeed_) / 2;
+			/*
+			case ID_ANIMATIONSPEED_VERYSLOW:
+			//framesPerRotation = 40;
+			//sleepTimeMilliSec = 40;
+			rubiksCubeSolverGui_.setAnimationSpeed(10);
+			break;
+			case ID_ANIMATIONSPEED_SLOW:
+			//framesPerRotation = 30;
+			//sleepTimeMilliSec = 30;
+			rubiksCubeSolverGui_.setAnimationSpeed(25);
+			break;
+			case ID_ANIMATIONSPEED_MODERATE:
+			//framesPerRotation = 20;
+			//sleepTimeMilliSec = 20;
+			rubiksCubeSolverGui_.setAnimationSpeed(50);
+			break;
+			case ID_ANIMATIONSPEED_FAST:
+			//framesPerRotation = 10;
+			//sleepTimeMilliSec = 10;
+			rubiksCubeSolverGui_.setAnimationSpeed(75);
+			break;
+			case ID_ANIMATIONSPEED_VERYFAST:
+			//framesPerRotation = 3;
+			//sleepTimeMilliSec = 3;
+			rubiksCubeSolverGui_.setAnimationSpeed(100);
+			break;
+			*/
+			activateRenderingThread();
+		}
+		void resetRubiksCube()
+		{
+			firstGenCommand_ = firstGenerationCommands::eNoCommand;
+			secondGenCommand_ = secondGenerationCommands::eResetRubiksCube;
+			resetRubiksCube_ = true;
+			activateRenderingThread();
+		}
 		unique_ptr<RubiksCubeModel> replaceModelBy(const string& modelName, int size, bool animate);
 		unique_ptr<RubiksCubeModel> replaceModelBy(unique_ptr<RubiksCubeModel>&& newModel, bool animate);
+		string Solve(unsigned int& solutionSteps, unsigned long long& duration, bool animate);
+
+	private:
+		bool activateRenderingThread();
+		void ScrambleImpl();
+		string SolveOnCopy(unsigned int& solutionSteps, unsigned long long& duration, bool askForAnimation);
+		void runRubiksCubeTests();
+		void fitToScreenImpl();
+
+		enum class firstGenerationCommands
+		{
+			eNoCommand = 0,
+			eScramble,
+			eSolve,
+			eRunTests,
+			eFitToScreen,
+			eResizeRubiksCube,
+			eMax
+		};
+		enum class secondGenerationCommands
+		{
+			eNoCommand = 0,
+			eSetAnimationSpeed,
+			eResetRubiksCube,
+			eMax
+		};
+
+		firstGenerationCommands firstGenCommand_{ firstGenerationCommands::eNoCommand };
+		secondGenerationCommands secondGenCommand_{ secondGenerationCommands::eNoCommand };
+		bool animate_{ false };
+		string currentModelName_;
+		unsigned int size_{ 3 };
+		unsigned int animationSpeed_{ 50 }; //Range from 0 (slowest) to 100 (fastest)
+
+		//=================== end of approved interface ==============
+
+	public:
+		//static RubiksCubeSolverGUI& getInstance();
+		//void createMainWindow(HINSTANCE hInstance);
+		///**/bool changeToFullScreen();
+		//void createMenu();
+		
+		void render();
+		void createGraphicsArea();
+		
+		void commandHandler();
+		/**/bool setupPixelFormat(HDC hdc);
+		//void createMessageWindow();
+		//WPARAM enterMainLoop();
+		void redrawWindow();
+		//bool CreateYesNoDialog(const string& message);
+		void CreateOkDialog(const string& message);
+		void applyAlgorithm(const string& algo, bool animate);
 		bool isSolved();
 		int getFramesPerRotation() { return framesPerRotation_; }
+		void setFramesPerRotation(int val) { framesPerRotation_ = val; }
 		int getSleepTimeMilliSec() { return sleepTimeMilliSec_; }
+		void setSleepTimeMilliSec(int val) { sleepTimeMilliSec_ = val; }
 		bool getResetRubiksCube() { return resetRubiksCube_; }
 		void setResetRubiksCube(bool newValue)
 		{
@@ -78,55 +200,44 @@ namespace mm {
 			resetRubiksCube_ = newValue;
 		}
 		void displayMessage(const string& message = "");
-		void displayMessage(int scramblingSteps, const string& scramblingAlgo, int solutionSteps, const string& solution, unsigned long long duration);
-		void displayMessage_currentLine(int left, int top, const string& line);
+		//void displayMessage(int scramblingSteps, const string& scramblingAlgo, int solutionSteps, const string& solution, unsigned long long duration);
+		//void displayMessage_currentLine(int left, int top, const string& line);
 
 		//Menu Handlers
 		void Reset(bool animate);
-		void Scramble(bool animate);
-		string SolveOnCopy(unsigned int& solutionSteps, unsigned long long& duration, bool askForAnimation);
-		string Solve(unsigned int& solutionSteps, unsigned long long& duration, bool animate);
-		void testRubiksCube(bool animate);
-		void fitToScreen();
-
+		
 		//Windows callbacks
-		static LRESULT CALLBACK WndProcCallback(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-		static LRESULT CALLBACK AboutProcCallback(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
-
-		//deleted functions
-		RubiksCubeSolverUI();
-		RubiksCubeSolverUI(const RubiksCubeSolverUI&) = delete;
-		RubiksCubeSolverUI& operator=(const RubiksCubeSolverUI&) = delete;
-		RubiksCubeSolverUI(RubiksCubeSolverUI&&) = delete;
-		RubiksCubeSolverUI& operator=(RubiksCubeSolverUI&&) = delete;
+		//static LRESULT CALLBACK WndProcCallback(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+		//static LRESULT CALLBACK AboutProcCallback(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
+	
 
 		//unused functions
-		void deInit();
+		//void deInit();
 
-	private:
+	//private:
 		/* void Cls_OnMouseLeave(HWND hWnd, int x, int y, UINT keyFlags) */
-#define HANDLE_WM_MOUSELEAVE(hWnd, wParam, lParam, fn) \
-    ((fn)((hWnd)), 0L)
-#define HANDLE_RC_CHANGED(hWnd, wParam, lParam, fn) \
-	((fn)((hWnd)), 0L)
+//#define HANDLE_WM_MOUSELEAVE(hWnd, wParam, lParam, fn) \
+//    ((fn)((hWnd)), 0L)
+//#define HANDLE_RC_CHANGED(hWnd, wParam, lParam, fn) \
+//	((fn)((hWnd)), 0L)
 
 		void OnLButtonDown(HWND hWnd, BOOL fDoubleClick, int x, int y, UINT keyFlags);
 		void OnLButtonUp(HWND hWnd, int x, int y, UINT keyFlags);
 		void OnDestroy(HWND hWnd);
-		void OnMouseMove(HWND hWnd, int x, int y, UINT keyFlags);
-		void OnMouseWheel(HWND hWnd, int xPos, int yPos, int zDelta, UINT fwKeys);
-		void OnSize(HWND hWnd, UINT state, int cx, int cy);
+		void OnMouseMove(int rotate, int tilt);
+		void OnMouseWheel(float distance);
+		void OnSize(int cx, int cy);
 		void OnMouseLeave(HWND hWnd);
 		void OnRubiksCubeChanged(HWND hWnd);
 		void OnPaint(HWND hWnd);
-		void OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify);
+		//void OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify);
 		BOOL OnEraseBackground(HWND hwnd, HDC hdc);
 
 		HGLRC g_hRC;
-		TCHAR g_szWindowClass[MAX_LOADSTRING]; // the main window class name
+		//TCHAR g_szWindowClass[MAX_LOADSTRING]; // the main window class name
 		HACCEL g_hAccelTable;
-		int WND_WIDTH = 800;
-		int WND_HEIGHT = 800;
+		//int WND_WIDTH = 800;
+		//int WND_HEIGHT = 800;
 		int messageWndHeight;
 		const int SCREEN_DEPTH = 16;
 		bool g_bMouseDown;
@@ -147,24 +258,26 @@ namespace mm {
 		HINSTANCE g_hInstance; // current instance
 		int framesPerRotation_;
 		int sleepTimeMilliSec_;
-		int charHeight;
-		int charWidth;
+		//int charHeight;
+		//int charWidth;
+		unsigned int rubiksCubeSize_;
 
-		int selMenuAnimationSpeed;
-		int selMenuRubiksCubeSize;
+		//int selMenuAnimationSpeed;
+		//int selMenuRubiksCubeSize;
 
-		string currentModelName_;
+		
 
 		RubiksCubeSolverScene scene_;
 		RubiksCubeSolverTest tester_;
 
+		std::thread renderingThread_;
 		std::atomic<bool> renderNow_{ false };
 		//No need to have it atomic variable. No need to have a lock.
 		//The reading thread may read stale value which is OK. It will just have delayed responce.
 		//std::atomic<bool> breakOperation_{ false };
 		//std::mutex mutex_;
 		bool resetRubiksCube_{ false }; 
-		int commandId_{ -1 };
+		//int commandId_{ -1 };
 		//first generation commands should be run independently. 
 		//Second generation commands can be run while other first or second geenration commands are running.
 		int commandGeneration_;

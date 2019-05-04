@@ -24,9 +24,6 @@
     <ClCompile Include="../../../../src/Vector3.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="../../../../src/RubiksCubeSolverUI.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="../../../../src/RubiksCubeSolverTest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -57,6 +54,12 @@
     <ClCompile Include="..\..\..\..\src\RubiksCubeModel_v7.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\src\RubiksCubeSolverGUI.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\..\..\%40_Programming\Everything\MM_RubikCubeSolver\src\RubiksCubeSolverMainWindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="../../../../src/Camera.h">
@@ -69,9 +72,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="../../../../src/Vector3.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="../../../../src/RubiksCubeSolverUI.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="../../../../src/RubiksCubeSolverTest.h">
@@ -105,6 +105,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\src\RubiksCubeModel_v7.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\RubiksCubeSolverGUI.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\..\..\%40_Programming\Everything\MM_RubikCubeSolver\src\RubiksCubeSolverMainWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

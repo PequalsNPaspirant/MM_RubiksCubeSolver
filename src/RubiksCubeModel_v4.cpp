@@ -34,7 +34,7 @@ using namespace std;
 
 #include "Resource.h"
 #include "RubiksCubeModel_v4.h"
-#include "RubiksCubeSolverUI.h"
+#include "RubiksCubeSolverGUI.h"
 #include "RubiksCubeSolverUtils.h"
 
 namespace mm {
@@ -327,7 +327,7 @@ namespace mm {
 	{
 	}
 
-	void RubiksCubeModel_v4::ResetCube(bool animate, RubiksCubeSolverUI* ui)
+	void RubiksCubeModel_v4::ResetCube(bool animate, RubiksCubeSolverGUI* ui)
 	{
 		g_bRotating = false;
 		g_bFlipRotation = false;
@@ -377,7 +377,7 @@ namespace mm {
 		}
 	}
 
-	string RubiksCubeModel_v4::solve(unsigned int& solutionSteps, unsigned long long& duration, bool animate, RubiksCubeSolverUI& ui)
+	string RubiksCubeModel_v4::solve(unsigned int& solutionSteps, unsigned long long& duration, bool animate, RubiksCubeSolverGUI& ui)
 	{
 		//string solution;
 		//if (size_ == 2)
@@ -968,12 +968,12 @@ namespace mm {
 		return size_;
 	}
 
-	void RubiksCubeModel_v4::scramble(const string& algorithm, bool animate, RubiksCubeSolverUI& ui)
+	void RubiksCubeModel_v4::scramble(const string& algorithm, bool animate, RubiksCubeSolverGUI& ui)
 	{
 		applyAlgorithm(algorithm, animate, ui);
 	}
 
-	int RubiksCubeModel_v4::applyAlgorithm(const string& algorithm, bool animate, RubiksCubeSolverUI& ui)
+	int RubiksCubeModel_v4::applyAlgorithm(const string& algorithm, bool animate, RubiksCubeSolverGUI& ui)
 	{
 		int solutionSteps = 0;
 		g_bFlipRotation = false;
@@ -1061,8 +1061,8 @@ namespace mm {
 	//	}
 	//}
 
-	void RubiksCubeModel_v4::applyStep(const char& face, bool isPrime, int numRotations, bool animate, RubiksCubeSolverUI& ui)
-	//void RubiksCubeModel_v4::applyStep(const char& face, bool isPrime, int layerIndex, bool animate /*= false*/, int steps /*= 0*/, RubiksCubeSolverUI* ui /*= nullptr*/)
+	void RubiksCubeModel_v4::applyStep(const char& face, bool isPrime, int numRotations, bool animate, RubiksCubeSolverGUI& ui)
+	//void RubiksCubeModel_v4::applyStep(const char& face, bool isPrime, int layerIndex, bool animate /*= false*/, int steps /*= 0*/, RubiksCubeSolverGUI* ui /*= nullptr*/)
 	{
 		//cout << "\nApplying move: " << face;
 		//if(isPrime)
@@ -1342,7 +1342,7 @@ namespace mm {
 	// Solver NxNxN
 	//=======================================================================================================
 
-	RubiksCubeModel_v4::RubiksCubeSolver_NxNxN::RubiksCubeSolver_NxNxN(RubiksCubeModel_v4& rubiksCube, bool animate, RubiksCubeSolverUI& ui)
+	RubiksCubeModel_v4::RubiksCubeSolver_NxNxN::RubiksCubeSolver_NxNxN(RubiksCubeModel_v4& rubiksCube, bool animate, RubiksCubeSolverGUI& ui)
 		: rubiksCube_(rubiksCube),
 		solutionSteps_(0),
 		animate_(animate),
@@ -2548,7 +2548,7 @@ namespace mm {
 	// Solver 3x3x3
 	//=======================================================================================================
 
-	RubiksCubeModel_v4::RubiksCubeSolver_3x3x3::RubiksCubeSolver_3x3x3(RubiksCubeModel_v4& rubiksCube, bool animate, RubiksCubeSolverUI& ui)
+	RubiksCubeModel_v4::RubiksCubeSolver_3x3x3::RubiksCubeSolver_3x3x3(RubiksCubeModel_v4& rubiksCube, bool animate, RubiksCubeSolverGUI& ui)
 		: rubiksCube_(rubiksCube),
 		solutionSteps_(0),
 		animate_(animate),
@@ -3470,7 +3470,7 @@ namespace mm {
 	// Solver 2x2x2
 	//=======================================================================================================
 
-	RubiksCubeModel_v4::RubiksCubeSolver_2x2x2::RubiksCubeSolver_2x2x2(RubiksCubeModel_v4& rubiksCube, bool animate, RubiksCubeSolverUI& ui)
+	RubiksCubeModel_v4::RubiksCubeSolver_2x2x2::RubiksCubeSolver_2x2x2(RubiksCubeModel_v4& rubiksCube, bool animate, RubiksCubeSolverGUI& ui)
 		: rubiksCube_(rubiksCube),
 		solutionSteps_(0),
 		animate_(animate),
