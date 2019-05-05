@@ -52,51 +52,13 @@ namespace mm {
 		RubiksCubeSolverGUI& operator=(RubiksCubeSolverGUI&&) = delete;
 		~RubiksCubeSolverGUI();
 		void initialize(HWND hWnd);
-		void Scramble(bool animateIn)
-		{
-			animate_ = animateIn;
-			firstGenCommand_ = firstGenerationCommands::eScramble;
-			activateRenderingThread();
-		}
-		void Solve(bool animateIn)
-		{
-			animate_ = animateIn;
-			firstGenCommand_ = firstGenerationCommands::eSolve;
-			activateRenderingThread();
-		}
-		void runTests(bool animateIn)
-		{
-			animate_ = animateIn;
-			firstGenCommand_ = firstGenerationCommands::eRunTests;
-			activateRenderingThread();
-		}
-		void fitToScreen()
-		{
-			firstGenCommand_ = firstGenerationCommands::eFitToScreen;
-			activateRenderingThread();
-		}
-		void setRubiksCubeSize(unsigned int size)
-		{
-			firstGenCommand_ = firstGenerationCommands::eResizeRubiksCube;
-			rubikCubeSize_ = size;
-			activateRenderingThread();
-		}
-		void setAnimationSpeed(unsigned int speed)
-		{
-			firstGenCommand_ = firstGenerationCommands::eNoCommand;
-			secondGenCommand_ = secondGenerationCommands::eSetAnimationSpeed;
-			animationSpeed_ = speed;
-			framesPerRotation_ = (106 - animationSpeed_) / 2;
-			sleepTimeMilliSec_ = (106 - animationSpeed_) / 2;
-			activateRenderingThread();
-		}
-		void resetRubiksCube()
-		{
-			firstGenCommand_ = firstGenerationCommands::eNoCommand;
-			secondGenCommand_ = secondGenerationCommands::eResetRubiksCube;
-			resetRubiksCube_ = true;
-			activateRenderingThread();
-		}
+		void Scramble(bool animateIn);
+		void Solve(bool animateIn);
+		void runTests(bool animateIn);
+		void fitToScreen();
+		void setRubiksCubeSize(unsigned int size);
+		void setAnimationSpeed(unsigned int speed);
+		void resetRubiksCube();
 		unique_ptr<RubiksCubeModel> replaceModelBy(const string& modelName, int size, bool animate);
 		unique_ptr<RubiksCubeModel> replaceModelBy(unique_ptr<RubiksCubeModel>&& newModel, bool animate);
 		string Solve(unsigned int& solutionSteps, unsigned long long& duration);

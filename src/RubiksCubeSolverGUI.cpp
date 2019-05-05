@@ -109,6 +109,52 @@ namespace mm {
 		renderingThread_ = std::thread(&mm::RubiksCubeSolverGUI::render, this);
 	}
 
+	void RubiksCubeSolverGUI::Scramble(bool animateIn)
+	{
+		animate_ = animateIn;
+		firstGenCommand_ = firstGenerationCommands::eScramble;
+		activateRenderingThread();
+	}
+	void RubiksCubeSolverGUI::Solve(bool animateIn)
+	{
+		animate_ = animateIn;
+		firstGenCommand_ = firstGenerationCommands::eSolve;
+		activateRenderingThread();
+	}
+	void RubiksCubeSolverGUI::runTests(bool animateIn)
+	{
+		animate_ = animateIn;
+		firstGenCommand_ = firstGenerationCommands::eRunTests;
+		activateRenderingThread();
+	}
+	void RubiksCubeSolverGUI::fitToScreen()
+	{
+		firstGenCommand_ = firstGenerationCommands::eFitToScreen;
+		activateRenderingThread();
+	}
+	void RubiksCubeSolverGUI::setRubiksCubeSize(unsigned int size)
+	{
+		firstGenCommand_ = firstGenerationCommands::eResizeRubiksCube;
+		rubikCubeSize_ = size;
+		activateRenderingThread();
+	}
+	void RubiksCubeSolverGUI::setAnimationSpeed(unsigned int speed)
+	{
+		firstGenCommand_ = firstGenerationCommands::eNoCommand;
+		secondGenCommand_ = secondGenerationCommands::eSetAnimationSpeed;
+		animationSpeed_ = speed;
+		framesPerRotation_ = (106 - animationSpeed_) / 2;
+		sleepTimeMilliSec_ = (106 - animationSpeed_) / 2;
+		activateRenderingThread();
+	}
+	void RubiksCubeSolverGUI::resetRubiksCube()
+	{
+		firstGenCommand_ = firstGenerationCommands::eNoCommand;
+		secondGenCommand_ = secondGenerationCommands::eResetRubiksCube;
+		resetRubiksCube_ = true;
+		activateRenderingThread();
+	}
+
 	//void RubiksCubeSolverGUI::createMainWindow(HINSTANCE hInstance)
 	//{
 	//	LoadString(NULL, IDS_APP_TITLE, g_szTitle, MAX_LOADSTRING);
@@ -1142,7 +1188,7 @@ namespace mm {
 			runRubiksCubeTests();
 			break;
 		case firstGenerationCommands::eFitToScreen:
-			fitToScreen();
+			fitToScreenImpl();
 			break;
 		case firstGenerationCommands::eResizeRubiksCube:
 			replaceModelBy(currentModelName_, rubikCubeSize_, true);
@@ -1300,8 +1346,10 @@ namespace mm {
 			scene_.scramble(algo, animate_);
 		}
 
-		if (!animate_)
-			redrawWindow();
+		//if (!animate_)
+		//	redrawWindow();
+		if(!animate_)
+			displayUpdatedStats();
 	}
 
 	//string RubiksCubeSolverGUI::SolveOnCopy(unsigned int& solutionSteps, unsigned long long& duration, bool askForAnimation)
@@ -1332,6 +1380,7 @@ namespace mm {
 		string solution = scene_.Solve(solutionSteps, duration, animate_);
 		if (!animate_)
 		{
+			displayUpdatedStats();
 			bool userDecision = RubiksCubeSolverMainWindow::getInstance().CreateYesNoDialog("Do you want to see the animation of the solution?");
 			if (userDecision)
 			{
@@ -1362,7 +1411,7 @@ namespace mm {
 	void RubiksCubeSolverGUI::fitToScreenImpl()
 	{
 		scene_.fitToScreen();
-		redrawWindow();
+		//redrawWindow();
 	}
 }
 
