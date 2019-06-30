@@ -31,11 +31,9 @@
 #include "Resource.h"
 #include <windows.h>
 #include <windowsx.h>
-#include <thread>
 using namespace std;
 
 #include "RubiksCubeSolverMainWindow.h"
-#include "RubiksCubeSolverTest.h"
 
 int APIENTRY _tWinMain(HINSTANCE hInstance,
                      HINSTANCE hPrevInstance,

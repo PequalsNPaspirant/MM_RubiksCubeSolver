@@ -27,12 +27,8 @@
 #pragma once
 
 #include <string>
-#include <atomic>
-//#include <mutex>
 using namespace std;
 
-//#include "RubiksCubeSolverScene.h"
-//#include "RubiksCubeSolverTest.h"
 #include "RubiksCubeSolverGUI.h"
 
 namespace mm {

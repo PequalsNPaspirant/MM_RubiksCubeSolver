@@ -82,6 +82,7 @@ namespace mm {
 		//glClearColor(0.1f, 0.1f, 0.1f, 0.0f);
 
 		//glFrontFace(GL_CCW);
+		//glCullFace(GL_BACK);
 		glEnable(GL_CULL_FACE); //This hides the mirror images of visible faces as those mirror images have face normal pointing into screen
 
 		//glEnable(GL_COLOR_MATERIAL);
@@ -108,6 +109,10 @@ namespace mm {
 		//glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 		setFrustum(nWidth, nHeight);
+
+		// Set our current view perspective
+		//gluPerspective(35.0f, (float)nWidth / (float)nHeight, 0.01f, 2000.0f);
+
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 	}
