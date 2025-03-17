@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3D Rubik's Cube</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/110/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.110/examples/js/controls/OrbitControls.js"></script>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+    canvas {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+<script>
+  // Set up scene, camera, and renderer
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  document.body.appendChild(renderer.domElement);
+
+  // Add lighting
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.4); // Soft white light
+  scene.add(ambientLight);
+
+  const pointLight = new THREE.PointLight(0xffffff, 0.8);
+  pointLight.position.set(5, 5, 5);
+  scene.add(pointLight);
+
+  // Create a single cube
+  function createCube(x, y, z) {
+    const geometry = new THREE.BoxGeometry(1, 1, 1);
+    const materials = [
+      new THREE.MeshStandardMaterial({ color: 0xff0000 }), // Red
+      new THREE.MeshStandardMaterial({ color: 0x00ff00 }), // Green
+      new THREE.MeshStandardMaterial({ color: 0x0000ff }), // Blue
+      new THREE.MeshStandardMaterial({ color: 0xffff00 }), // Yellow
+      new THREE.MeshStandardMaterial({ color: 0xffa500 }), // Orange
+      new THREE.MeshStandardMaterial({ color: 0xffffff })  // White
+    ];
+    const cube = new THREE.Mesh(geometry, materials);
+    cube.position.set(x, y, z);
+    return cube;
+  }
+
+  // Build a 3x3x3 Rubik's Cube
+  for (let x = -1; x <= 1; x++) {
+    for (let y = -1; y <= 1; y++) {
+      for (let z = -1; z <= 1; z++) {
+        if (x === 0 && y === 0 && z === 0) continue; // Skip the core cube
+        const cube = createCube(x, y, z);
+        scene.add(cube);
+      }
+    }
+  }
+
+  // Set up camera position
+  camera.position.z = 10;
+
+  // Add orbit controls for rotation, panning, and zooming
+  const controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true; // Smooth motion
+  controls.dampingFactor = 0.05;
+  controls.screenSpacePanning = false;
+  controls.minDistance = 5; // Limit zoom-in
+  controls.maxDistance = 20; // Limit zoom-out
+
+  // Render loop
+  function animate() {
+    requestAnimationFrame(animate);
+    controls.update();
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  // Adjust canvas on window resize
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+</script>
+</body>
+</html>
