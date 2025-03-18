@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>3D Rubik's Cube</title>
+  <title>3x3x3 Rubik's Cube</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/110/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.110/examples/js/controls/OrbitControls.js"></script>
   <style>
@@ -26,50 +26,68 @@
   document.body.appendChild(renderer.domElement);
 
   // Add lighting
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.4); // Soft white light
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.4); // Soft light
   scene.add(ambientLight);
 
   const pointLight = new THREE.PointLight(0xffffff, 0.8);
   pointLight.position.set(5, 5, 5);
   scene.add(pointLight);
 
-  // Create a single cube
-  function createCube(x, y, z) {
+  // Function to create a single cube (cubie) with gaps and inner white surfaces
+  function createCubie(x, y, z) {
     const geometry = new THREE.BoxGeometry(1, 1, 1);
+
+    // Materials: Outer surfaces are colored; inner surfaces are white
     const materials = [
-      new THREE.MeshStandardMaterial({ color: 0xff0000 }), // Red
-      new THREE.MeshStandardMaterial({ color: 0x00ff00 }), // Green
-      new THREE.MeshStandardMaterial({ color: 0x0000ff }), // Blue
-      new THREE.MeshStandardMaterial({ color: 0xffff00 }), // Yellow
-      new THREE.MeshStandardMaterial({ color: 0xffa500 }), // Orange
-      new THREE.MeshStandardMaterial({ color: 0xffffff })  // White
+      new THREE.MeshStandardMaterial({ color: 0xff0000 }), // Red (front)
+      new THREE.MeshStandardMaterial({ color: 0x00ff00 }), // Green (back)
+      new THREE.MeshStandardMaterial({ color: 0x0000ff }), // Blue (top)
+      new THREE.MeshStandardMaterial({ color: 0xffff00 }), // Yellow (bottom)
+      new THREE.MeshStandardMaterial({ color: 0xffa500 }), // Orange (right)
+      new THREE.MeshStandardMaterial({ color: 0xffffff })  // White (left)
     ];
-    const cube = new THREE.Mesh(geometry, materials);
-    cube.position.set(x, y, z);
-    return cube;
+
+    // Ensure inner faces are white
+    for (let i = 0; i < 6; i++) {
+      const isInnerFace =
+        (x === -1 && i === 0) || (x === 1 && i === 1) || // Front/Back inner faces
+        (y === -1 && i === 3) || (y === 1 && i === 2) || // Bottom/Top inner faces
+        (z === -1 && i === 4) || (z === 1 && i === 5);   // Right/Left inner faces
+      if (isInnerFace) materials[i] = new THREE.MeshStandardMaterial({ color: 0xffffff });
+    }
+
+    const cubie = new THREE.Mesh(geometry, materials);
+
+    // Set position and add a small gap (0.1) between cubes
+    cubie.position.set(x * 1.1, y * 1.1, z * 1.1);
+    return cubie;
   }
 
-  // Build a 3x3x3 Rubik's Cube
+  // Build 3x3x3 Rubik's Cube with 27 smaller cubes
+  const rubiksGroup = new THREE.Group();
   for (let x = -1; x <= 1; x++) {
     for (let y = -1; y <= 1; y++) {
       for (let z = -1; z <= 1; z++) {
-        if (x === 0 && y === 0 && z === 0) continue; // Skip the core cube
-        const cube = createCube(x, y, z);
-        scene.add(cube);
+        const cubie = createCubie(x, y, z); // Create each cubie
+        rubiksGroup.add(cubie); // Add cubie to group
       }
     }
   }
+  scene.add(rubiksGroup);
+
+  // Position the Rubik's Cube group
+  rubiksGroup.position.set(0, 0, 0);
 
   // Set up camera position
-  camera.position.z = 10;
+  camera.position.set(6, 6, 6);
+  camera.lookAt(0, 0, 0);
 
-  // Add orbit controls for rotation, panning, and zooming
+  // Add orbit controls for interaction
   const controls = new THREE.OrbitControls(camera, renderer.domElement);
-  controls.enableDamping = true; // Smooth motion
-  controls.dampingFactor = 0.05;
-  controls.screenSpacePanning = false;
-  controls.minDistance = 5; // Limit zoom-in
-  controls.maxDistance = 20; // Limit zoom-out
+  controls.enableDamping = true; // Smooth interaction
+  controls.dampingFactor = 0.1;
+  controls.target.set(0, 0, 0); // Rotate and pan around the cube center
+  controls.update();
 
   // Render loop
   function animate() {
