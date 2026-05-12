@@ -265,8 +265,8 @@
 
     function createRotateGroup(layer) {
       const group = new THREE.Group();
-      scene.add(group);
-      scene.updateMatrixWorld(true);
+      cubeGroup.add(group);
+      cubeGroup.updateMatrixWorld(true);
       layerCubelets(layer).forEach(cubelet => {
         group.attach(cubelet);
       });
@@ -279,11 +279,11 @@
       const angle = group.rotation[axis];
       const snapped = Math.round(angle / (Math.PI / 2)) * (Math.PI / 2);
       group.rotation[axis] = snapped;
-      scene.updateMatrixWorld(true);
+      cubeGroup.updateMatrixWorld(true);
       while (group.children.length) {
         cubeGroup.attach(group.children[0]);
       }
-      scene.remove(group);
+      cubeGroup.remove(group);
     }
 
     function onPointerDown(event) {
