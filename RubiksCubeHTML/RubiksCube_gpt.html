@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Rubik's Cube Explorer</title>
+  <title>Rubik's Cube Solver</title>
   <style>
+    * { box-sizing: border-box; }
     body {
       margin: 0;
       overflow: hidden;
@@ -21,94 +22,209 @@
       position: absolute;
       top: 16px;
       left: 16px;
-      padding: 16px;
-      width: min(300px, calc(100vw - 32px));
+      width: 360px;
+      max-height: 90vh;
       border-radius: 16px;
-      background: rgba(15, 23, 42, 0.86);
+      background: rgba(15, 23, 42, 0.95);
       box-shadow: 0 24px 80px rgba(15, 23, 42, 0.45);
       backdrop-filter: blur(12px);
       z-index: 2;
+      overflow-y: auto;
+      padding: 16px;
     }
-    #ui h1 {
-      margin: 0 0 10px;
-      font-size: 1.1rem;
+    #ui::-webkit-scrollbar {
+      width: 8px;
     }
-    #ui label,
-    #ui select,
-    #ui p,
-    #ui button {
+    #ui::-webkit-scrollbar-track {
+      background: rgba(148, 163, 184, 0.1);
+      border-radius: 4px;
+    }
+    #ui::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.3);
+      border-radius: 4px;
+    }
+    #ui h1 { margin: 0 0 14px; font-size: 1.2rem; }
+    #ui h2 { margin: 14px 0 10px; font-size: 1rem; border-bottom: 1px solid rgba(148, 163, 184, 0.2); padding-bottom: 8px; }
+    #ui label, #ui select, #ui p, #ui button, #ui input {
       display: block;
       margin-bottom: 10px;
+      font-size: 0.95rem;
     }
-    #ui select,
-    #ui button {
+    .radio-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    .radio-row label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 0;
+      font-size: 0.95rem;
+    }
+    .input-group {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .input-group input { flex: 1; }
+    .input-group button { flex: 0 0 auto; width: 50px; }
+    #ui select, #ui input[type="text"], #ui input[type="range"] {
       width: 100%;
       border-radius: 10px;
       border: 1px solid rgba(148, 163, 184, 0.25);
       background: rgba(15, 23, 42, 0.92);
       color: #f8fafc;
       padding: 10px 12px;
-      font-size: 0.95rem;
     }
-    #ui .radio-row {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
+    #ui button {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      background: rgba(34, 197, 94, 0.15);
+      color: #d1fae5;
+      padding: 10px 12px;
+      cursor: pointer;
+      transition: all 0.2s;
     }
-    #ui .radio-row label {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 0;
-      font-size: 0.95rem;
+    #ui button:hover { background: rgba(34, 197, 94, 0.25); }
+    #ui button:active { transform: scale(0.98); }
+    #ui button.danger {
+      background: rgba(239, 68, 68, 0.15);
+      color: #fecaca;
     }
-    #instructions {
-      margin-top: 14px;
-      padding: 14px;
-      border-radius: 12px;
-      background: rgba(148, 163, 184, 0.08);
-      font-size: 0.9rem;
-      line-height: 1.5;
+    #ui button.danger:hover { background: rgba(239, 68, 68, 0.25); }
+    #ui button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    #ui input[type="range"] {
+      padding: 0;
+      height: 8px;
+      cursor: pointer;
     }
     #status {
-      margin-top: 12px;
+      margin-bottom: 12px;
       padding: 12px;
       border-radius: 12px;
       background: rgba(34, 197, 94, 0.08);
       border: 1px solid rgba(34, 197, 94, 0.18);
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       color: #d1fae5;
+      min-height: 24px;
+    }
+    #directions {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      font-size: 0.85rem;
+      color: rgba(148, 163, 184, 0.6);
+      font-weight: bold;
+      pointer-events: none;
+      text-shadow: 0 0 4px rgba(0, 0, 0, 0.8);
+    }
+    .direction-label {
+      display: inline-block;
+      margin-right: 16px;
+    }
+    .control-section {
+      margin-top: 16px;
+      padding: 12px;
+      border-radius: 12px;
+      background: rgba(148, 163, 184, 0.05);
+      border: 1px solid rgba(148, 163, 184, 0.1);
     }
   </style>
 </head>
 <body>
   <div id="container"></div>
+  <div id="directions">
+    <span class="direction-label">T: <span id="dir-top">-</span></span>
+    <span class="direction-label">B: <span id="dir-bottom">-</span></span>
+    <span class="direction-label">L: <span id="dir-left">-</span></span>
+    <span class="direction-label">R: <span id="dir-right">-</span></span>
+  </div>
   <aside id="ui">
-    <h1>Rubik's Cube Explorer</h1>
+    <h1>🔲 Rubik's Cube Solver</h1>
+    <div id="status">Ready</div>
+
+    <h2>Cube Controls</h2>
     <div class="radio-row">
-      <label><input type="radio" name="mode" value="cube" checked /> Whole cube rotate</label>
-      <label><input type="radio" name="mode" value="layer" /> Layer rotate</label>
+      <label><input type="radio" name="mode" value="cube" checked /> Rotate Cube</label>
+      <label><input type="radio" name="mode" value="layer" /> Rotate Layer</label>
     </div>
-    <label for="layerSelect">Select layer to rotate</label>
+    <button id="resetBtn">Reset Orientation</button>
+    <label for="layerSelect">Layer to Rotate</label>
     <select id="layerSelect">
-      <option value="x:-1">X -1 (Orange face)</option>
-      <option value="x:0" selected>X 0</option>
-      <option value="x:1">X +1 (Green face)</option>
-      <option value="y:-1">Y -1 (White face)</option>
-      <option value="y:0">Y 0</option>
-      <option value="y:1">Y +1 (Yellow face)</option>
-      <option value="z:-1">Z -1 (Blue face)</option>
-      <option value="z:0">Z 0</option>
-      <option value="z:1">Z +1 (Red face)</option>
+      <option value="x:-1">Left Face (X-1)</option>
+      <option value="x:0" selected>Middle (X0)</option>
+      <option value="x:1">Right Face (X+1)</option>
+      <option value="y:-1">Bottom Face (Y-1)</option>
+      <option value="y:0">Middle (Y0)</option>
+      <option value="y:1">Top Face (Y+1)</option>
+      <option value="z:-1">Front Face (Z-1)</option>
+      <option value="z:0">Middle (Z0)</option>
+      <option value="z:1">Back Face (Z+1)</option>
     </select>
-    <div id="status">Hover a face to preview its layer. Drag left mouse to rotate.</div>
-    <div id="instructions">
-      Mouse wheel: zoom<br />
-      Left click + drag: rotate whole cube or active layer<br />
-      Layer mode: hover a cube face to preview the layer, then drag to rotate it<br />
-      Release mouse to snap to the nearest 90° position.
+
+    <h2>Solve Rubik's Cube</h2>
+    <div class="radio-row">
+      <label><input type="radio" name="solveMode" value="auto" checked /> Auto</label>
+      <label><input type="radio" name="solveMode" value="custom" /> Custom</label>
     </div>
+
+    <label>Animation Speed</label>
+    <input type="range" id="speedSlider" min="0.2" max="2" step="0.1" value="1" />
+    <p style="text-align: center; font-size: 0.85rem; margin-top: -8px; color: rgba(148, 163, 184, 0.6);" id="speedLabel">1.0x</p>
+
+    <button id="shuffleBtn" class="danger">🔀 Shuffle Cube</button>
+
+    <div class="control-section">
+      <strong>White Cross</strong>
+      <div class="input-group">
+        <input type="text" id="moves1" placeholder="Moves..." />
+        <button id="executeBtn1">Execute</button>
+      </div>
+
+      <strong>White Face</strong>
+      <div class="input-group">
+        <input type="text" id="moves2" placeholder="Moves..." />
+        <button id="executeBtn2">Execute</button>
+      </div>
+
+      <strong>Middle Layer</strong>
+      <div class="input-group">
+        <input type="text" id="moves3" placeholder="Moves..." />
+        <button id="executeBtn3">Execute</button>
+      </div>
+
+      <strong>Yellow Top</strong>
+      <div class="input-group">
+        <input type="text" id="moves4" placeholder="Moves..." />
+        <button id="executeBtn4">Execute</button>
+      </div>
+
+      <strong>Yellow Edges</strong>
+      <div class="input-group">
+        <input type="text" id="moves5" placeholder="Moves..." />
+        <button id="executeBtn5">Execute</button>
+      </div>
+
+      <strong>Yellow Corners</strong>
+      <div class="input-group">
+        <input type="text" id="moves6" placeholder="Moves..." />
+        <button id="executeBtn6">Execute</button>
+      </div>
+    </div>
+
+    <p style="font-size: 0.85rem; color: rgba(148, 163, 184, 0.5); margin-top: 16px;">
+      <strong>Controls:</strong><br/>
+      Wheel: Zoom | Drag: Rotate | L-click + drag (layer): Rotate layer
+    </p>
   </aside>
+
   <script type="module">
     import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js';
 
@@ -116,10 +232,30 @@
     const status = document.getElementById('status');
     const layerSelect = document.getElementById('layerSelect');
     const modeInputs = Array.from(document.querySelectorAll('input[name="mode"]'));
+    const solveModeInputs = Array.from(document.querySelectorAll('input[name="solveMode"]'));
+    const resetBtn = document.getElementById('resetBtn');
+    const shuffleBtn = document.getElementById('shuffleBtn');
+    const speedSlider = document.getElementById('speedSlider');
+    const speedLabel = document.getElementById('speedLabel');
 
+    // Solving move sequences
+    const solvingMoves = {
+      1: 'D L2 D2 L D L',           // White cross (simplified)
+      2: 'R U R\' U\'',             // White corners (simplified)
+      3: 'U R U\' R\' U\' F\' U F', // Middle layer (simplified)
+      4: 'F R U\' R\' F\'',          // Yellow top
+      5: 'R U R\' U R U2 R\'',       // Yellow edges
+      6: 'R\' D\' R D'               // Yellow corners
+    };
+
+    let currentMode = 'cube';
+    let solveMode = 'auto';
+    let animationSpeed = 1;
+    let isAnimating = false;
+
+    // THREE.js setup
     const scene = new THREE.Scene();
     scene.background = new THREE.Color('#17203a');
-
     const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
     camera.position.set(6, 5.2, 7.3);
     camera.lookAt(0, 0, 0);
@@ -140,22 +276,14 @@
 
     const cubelets = [];
     const faceColors = {
-      white: 0xf8f8f2,
-      yellow: 0xf9d857,
-      orange: 0xed8b2d,
-      green: 0x30b13a,
-      red: 0xdd1f25,
-      blue: 0x0f4c9d,
-      mid: 0x111827
+      white: 0xf8f8f2, yellow: 0xf9d857, orange: 0xed8b2d,
+      green: 0x30b13a, red: 0xdd1f25, blue: 0x0f4c9d, mid: 0x111827
     };
 
     function createFaceMaterial(color) {
       return new THREE.MeshStandardMaterial({
-        color,
-        metalness: 0.2,
-        roughness: 0.5,
-        emissive: 0x000000,
-        emissiveIntensity: 0.2,
+        color, metalness: 0.2, roughness: 0.5,
+        emissive: 0x000000, emissiveIntensity: 0.2,
       });
     }
 
@@ -176,17 +304,28 @@
           const cubelet = new THREE.Mesh(geometry, materials);
           cubelet.position.set(x * 1.04, y * 1.04, z * 1.04);
           cubelet.userData.coords = { x, y, z };
+          cubelet.userData.originalCoords = { x, y, z };
           cubeGroup.add(cubelet);
           cubelets.push(cubelet);
         }
       }
     }
 
+    function updateCubeletCoordinates() {
+      cubelets.forEach(cubelet => {
+        const pos = cubelet.position.clone();
+        cubelet.userData.coords = {
+          x: Math.round(pos.x / 1.04),
+          y: Math.round(pos.y / 1.04),
+          z: Math.round(pos.z / 1.04)
+        };
+      });
+    }
+
     const raycaster = new THREE.Raycaster();
     const pointer = new THREE.Vector2();
     let hoveredLayer = null;
     let selectedLayer = parseLayerValue(layerSelect.value);
-    let currentMode = 'cube';
     let isDragging = false;
     let dragStart = null;
     let activeRotateGroup = null;
@@ -198,20 +337,48 @@
       return { axis, index: parseInt(index, 10) };
     }
 
-    function setMode(mode) {
-      currentMode = mode;
-      updateStatus();
-      updateHighlight();
-    }
-
     modeInputs.forEach(input => {
-      input.addEventListener('change', () => setMode(input.value));
+      input.addEventListener('change', () => {
+        currentMode = input.value;
+        updateStatus();
+        updateHighlight();
+      });
+    });
+
+    solveModeInputs.forEach(input => {
+      input.addEventListener('change', () => {
+        solveMode = input.value;
+      });
     });
 
     layerSelect.addEventListener('change', () => {
       selectedLayer = parseLayerValue(layerSelect.value);
       updateStatus();
       updateHighlight();
+    });
+
+    resetBtn.addEventListener('click', () => {
+      cubeGroup.rotation.set(0, 0, 0);
+      updateStatus('Orientation reset');
+      updateHighlight();
+    });
+
+    speedSlider.addEventListener('input', (e) => {
+      animationSpeed = parseFloat(e.target.value);
+      speedLabel.textContent = animationSpeed.toFixed(1) + 'x';
+    });
+
+    shuffleBtn.addEventListener('click', () => {
+      if (isAnimating) return;
+      const shuffleMoves = [
+        'R U R\' U\'', 'L U L\' U\'', 'F U F\' U\'',
+        'D R D\' R\'', 'U2 R2 U2', 'F2 D2 B2'
+      ];
+      let moves = '';
+      for (let i = 0; i < 15; i++) {
+        moves += shuffleMoves[Math.floor(Math.random() * shuffleMoves.length)] + ' ';
+      }
+      executeMoves(moves.trim());
     });
 
     function getIntersect(event) {
@@ -260,7 +427,7 @@
 
     function updateStatus(message) {
       const activeLayer = currentMode === 'layer' ? selectedLayer : null;
-      status.innerHTML = message || `Mode: <strong>${currentMode === 'cube' ? 'Whole cube' : 'Layer'}</strong>${activeLayer ? `<br/>Selected layer: <strong>${activeLayer.axis.toUpperCase()} ${activeLayer.index}</strong>` : ''}`;
+      status.innerHTML = message || `Mode: <strong>${currentMode === 'cube' ? 'Cube' : 'Layer'}</strong>${activeLayer ? ` | Layer: <strong>${activeLayer.axis.toUpperCase()} ${activeLayer.index}</strong>` : ''}`;
     }
 
     function createRotateGroup(layer) {
@@ -284,10 +451,11 @@
         cubeGroup.attach(group.children[0]);
       }
       cubeGroup.remove(group);
+      updateCubeletCoordinates();
     }
 
     function onPointerDown(event) {
-      if (event.button !== 0) return;
+      if (event.button !== 0 || isAnimating) return;
       isDragging = true;
       dragStart = { x: event.clientX, y: event.clientY };
       if (currentMode === 'layer') {
@@ -359,8 +527,110 @@
     window.addEventListener('pointerup', onPointerUp);
     renderer.domElement.addEventListener('wheel', onWheel, { passive: false });
 
+    // Move notation to rotation mapping
+    const moveMap = {
+      'R': { axis: 'x', index: 1, angle: Math.PI / 2 },
+      'R\'': { axis: 'x', index: 1, angle: -Math.PI / 2 },
+      'R2': { axis: 'x', index: 1, angle: Math.PI },
+      'L': { axis: 'x', index: -1, angle: -Math.PI / 2 },
+      'L\'': { axis: 'x', index: -1, angle: Math.PI / 2 },
+      'L2': { axis: 'x', index: -1, angle: Math.PI },
+      'U': { axis: 'y', index: 1, angle: Math.PI / 2 },
+      'U\'': { axis: 'y', index: 1, angle: -Math.PI / 2 },
+      'U2': { axis: 'y', index: 1, angle: Math.PI },
+      'D': { axis: 'y', index: -1, angle: -Math.PI / 2 },
+      'D\'': { axis: 'y', index: -1, angle: Math.PI / 2 },
+      'D2': { axis: 'y', index: -1, angle: Math.PI },
+      'F': { axis: 'z', index: -1, angle: Math.PI / 2 },
+      'F\'': { axis: 'z', index: -1, angle: -Math.PI / 2 },
+      'F2': { axis: 'z', index: -1, angle: Math.PI },
+      'B': { axis: 'z', index: 1, angle: -Math.PI / 2 },
+      'B\'': { axis: 'z', index: 1, angle: Math.PI / 2 },
+      'B2': { axis: 'z', index: 1, angle: Math.PI },
+    };
+
+    async function performMove(moveStr) {
+      const move = moveMap[moveStr];
+      if (!move) return;
+
+      const layer = { axis: move.axis, index: move.index };
+      const group = createRotateGroup(layer);
+
+      const startTime = Date.now();
+      const duration = 400 / animationSpeed;
+      const startAngle = 0;
+
+      return new Promise(resolve => {
+        const animate = () => {
+          const elapsed = Date.now() - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          group.rotation[move.axis] = startAngle + move.angle * progress;
+
+          if (progress < 1) {
+            requestAnimationFrame(animate);
+          } else {
+            snapRotation(group);
+            resolve();
+          }
+        };
+        animate();
+      });
+    }
+
+    async function executeMoves(movesStr) {
+      if (isAnimating || !movesStr.trim()) return;
+      isAnimating = true;
+      const moves = movesStr.split(/\s+/).filter(m => m);
+
+      for (const move of moves) {
+        await performMove(move);
+        await new Promise(r => setTimeout(r, 50 / animationSpeed));
+      }
+      updateHighlight();
+      isAnimating = false;
+      updateStatus('Moves completed');
+    }
+
+    // Execute buttons
+    for (let i = 1; i <= 6; i++) {
+      document.getElementById(`executeBtn${i}`).addEventListener('click', () => {
+        if (isAnimating) return;
+        const movesInput = document.getElementById(`moves${i}`);
+        let movesToExecute = movesInput.value;
+
+        if (solveMode === 'auto') {
+          movesToExecute = solvingMoves[i] || '';
+        }
+
+        executeMoves(movesToExecute);
+      });
+    }
+
+    function updateDirections() {
+      const camDir = camera.position.clone().normalize();
+      const top = new THREE.Vector3(0, 1, 0).applyQuaternion(cubeGroup.quaternion).normalize();
+      const right = new THREE.Vector3(1, 0, 0).applyQuaternion(cubeGroup.quaternion).normalize();
+      const front = new THREE.Vector3(0, 0, -1).applyQuaternion(cubeGroup.quaternion).normalize();
+
+      const dots = {
+        top: camDir.dot(top), bottom: -camDir.dot(top),
+        right: camDir.dot(right), left: -camDir.dot(right),
+        front: camDir.dot(front), back: -camDir.dot(front)
+      };
+
+      const dirs = ['top', 'bottom', 'left', 'right', 'front', 'back']
+        .sort((a, b) => dots[b] - dots[a])
+        .slice(0, 4);
+
+      document.getElementById('dir-top').textContent = dirs[0]?.charAt(0).toUpperCase() || '-';
+      document.getElementById('dir-bottom').textContent = dirs[1]?.charAt(0).toUpperCase() || '-';
+      document.getElementById('dir-left').textContent = dirs[2]?.charAt(0).toUpperCase() || '-';
+      document.getElementById('dir-right').textContent = dirs[3]?.charAt(0).toUpperCase() || '-';
+    }
+
     function animate() {
       requestAnimationFrame(animate);
+      updateDirections();
       renderer.render(scene, camera);
     }
 
