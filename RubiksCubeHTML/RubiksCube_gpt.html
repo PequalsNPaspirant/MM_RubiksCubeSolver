@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rubik's Cube Explorer</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0f172a;
+      color: #f8fafc;
+    }
+    #container {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+    }
+    #ui {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      padding: 16px;
+      width: min(300px, calc(100vw - 32px));
+      border-radius: 16px;
+      background: rgba(15, 23, 42, 0.86);
+      box-shadow: 0 24px 80px rgba(15, 23, 42, 0.45);
+      backdrop-filter: blur(12px);
+      z-index: 2;
+    }
+    #ui h1 {
+      margin: 0 0 10px;
+      font-size: 1.1rem;
+    }
+    #ui label,
+    #ui select,
+    #ui p,
+    #ui button {
+      display: block;
+      margin-bottom: 10px;
+    }
+    #ui select,
+    #ui button {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      background: rgba(15, 23, 42, 0.92);
+      color: #f8fafc;
+      padding: 10px 12px;
+      font-size: 0.95rem;
+    }
+    #ui .radio-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    #ui .radio-row label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 0;
+      font-size: 0.95rem;
+    }
+    #instructions {
+      margin-top: 14px;
+      padding: 14px;
+      border-radius: 12px;
+      background: rgba(148, 163, 184, 0.08);
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+    #status {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 12px;
+      background: rgba(34, 197, 94, 0.08);
+      border: 1px solid rgba(34, 197, 94, 0.18);
+      font-size: 0.95rem;
+      color: #d1fae5;
+    }
+  </style>
+</head>
+<body>
+  <div id="container"></div>
+  <aside id="ui">
+    <h1>Rubik's Cube Explorer</h1>
+    <div class="radio-row">
+      <label><input type="radio" name="mode" value="cube" checked /> Whole cube rotate</label>
+      <label><input type="radio" name="mode" value="layer" /> Layer rotate</label>
+    </div>
+    <label for="layerSelect">Select layer to rotate</label>
+    <select id="layerSelect">
+      <option value="x:-1">X -1 (Orange face)</option>
+      <option value="x:0" selected>X 0</option>
+      <option value="x:1">X +1 (Green face)</option>
+      <option value="y:-1">Y -1 (White face)</option>
+      <option value="y:0">Y 0</option>
+      <option value="y:1">Y +1 (Yellow face)</option>
+      <option value="z:-1">Z -1 (Blue face)</option>
+      <option value="z:0">Z 0</option>
+      <option value="z:1">Z +1 (Red face)</option>
+    </select>
+    <div id="status">Hover a face to preview its layer. Drag left mouse to rotate.</div>
+    <div id="instructions">
+      Mouse wheel: zoom<br />
+      Left click + drag: rotate whole cube or active layer<br />
+      Layer mode: hover a cube face to preview the layer, then drag to rotate it<br />
+      Release mouse to snap to the nearest 90° position.
+    </div>
+  </aside>
+  <script type="module">
+    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js';
+
+    const container = document.getElementById('container');
+    const status = document.getElementById('status');
+    const layerSelect = document.getElementById('layerSelect');
+    const modeInputs = Array.from(document.querySelectorAll('input[name="mode"]'));
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color('#17203a');
+
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(6, 5.2, 7.3);
+    camera.lookAt(0, 0, 0);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    container.appendChild(renderer.domElement);
+
+    const ambient = new THREE.AmbientLight(0xffffff, 0.45);
+    const directional = new THREE.DirectionalLight(0xffffff, 0.95);
+    directional.position.set(5, 8, 5);
+    scene.add(ambient, directional);
+
+    const cubeGroup = new THREE.Group();
+    scene.add(cubeGroup);
+
+    const cubelets = [];
+    const faceColors = {
+      white: 0xf8f8f2,
+      yellow: 0xf9d857,
+      orange: 0xed8b2d,
+      green: 0x30b13a,
+      red: 0xdd1f25,
+      blue: 0x0f4c9d,
+      mid: 0x111827
+    };
+
+    function createFaceMaterial(color) {
+      return new THREE.MeshStandardMaterial({
+        color,
+        metalness: 0.2,
+        roughness: 0.5,
+        emissive: 0x000000,
+        emissiveIntensity: 0.2,
+      });
+    }
+
+    const greyMaterial = createFaceMaterial(faceColors.mid);
+    const geometry = new THREE.BoxGeometry(0.92, 0.92, 0.92);
+
+    for (let x = -1; x <= 1; x += 1) {
+      for (let y = -1; y <= 1; y += 1) {
+        for (let z = -1; z <= 1; z += 1) {
+          const materials = [greyMaterial.clone(), greyMaterial.clone(), greyMaterial.clone(), greyMaterial.clone(), greyMaterial.clone(), greyMaterial.clone()];
+          if (x === 1) materials[0] = createFaceMaterial(faceColors.green);
+          if (x === -1) materials[1] = createFaceMaterial(faceColors.orange);
+          if (y === 1) materials[2] = createFaceMaterial(faceColors.yellow);
+          if (y === -1) materials[3] = createFaceMaterial(faceColors.white);
+          if (z === 1) materials[4] = createFaceMaterial(faceColors.red);
+          if (z === -1) materials[5] = createFaceMaterial(faceColors.blue);
+
+          const cubelet = new THREE.Mesh(geometry, materials);
+          cubelet.position.set(x * 1.04, y * 1.04, z * 1.04);
+          cubelet.userData.coords = { x, y, z };
+          cubeGroup.add(cubelet);
+          cubelets.push(cubelet);
+        }
+      }
+    }
+
+    const raycaster = new THREE.Raycaster();
+    const pointer = new THREE.Vector2();
+    let hoveredLayer = null;
+    let selectedLayer = parseLayerValue(layerSelect.value);
+    let currentMode = 'cube';
+    let isDragging = false;
+    let dragStart = null;
+    let activeRotateGroup = null;
+    let rotationAxis = null;
+    let initialGroupRotation = 0;
+
+    function parseLayerValue(value) {
+      const [axis, index] = value.split(':');
+      return { axis, index: parseInt(index, 10) };
+    }
+
+    function setMode(mode) {
+      currentMode = mode;
+      updateStatus();
+      updateHighlight();
+    }
+
+    modeInputs.forEach(input => {
+      input.addEventListener('change', () => setMode(input.value));
+    });
+
+    layerSelect.addEventListener('change', () => {
+      selectedLayer = parseLayerValue(layerSelect.value);
+      updateStatus();
+      updateHighlight();
+    });
+
+    function getIntersect(event) {
+      if (!event) return null;
+      pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
+      pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
+      raycaster.setFromCamera(pointer, camera);
+      const hits = raycaster.intersectObjects(cubelets, false);
+      return hits.length ? hits[0] : null;
+    }
+
+    function axisFromNormal(normal) {
+      const abs = new THREE.Vector3(Math.abs(normal.x), Math.abs(normal.y), Math.abs(normal.z));
+      if (abs.x > abs.y && abs.x > abs.z) return 'x';
+      if (abs.y > abs.x && abs.y > abs.z) return 'y';
+      return 'z';
+    }
+
+    function getLayerForHit(hit) {
+      if (!hit) return null;
+      const normal = hit.face.normal.clone();
+      normal.transformDirection(hit.object.matrixWorld);
+      const axis = axisFromNormal(normal);
+      const coords = hit.object.userData.coords;
+      return { axis, index: coords[axis] };
+    }
+
+    function layerCubelets(layer) {
+      return cubelets.filter(mesh => Math.round(mesh.userData.coords[layer.axis]) === layer.index);
+    }
+
+    function setCubeletHighlight(mesh, highlighted) {
+      for (const mat of mesh.material) {
+        mat.emissive.setHex(highlighted ? 0x243c6c : 0x000000);
+        mat.emissiveIntensity = highlighted ? 0.45 : 0.2;
+      }
+    }
+
+    function updateHighlight() {
+      const highlightLayer = currentMode === 'layer' ? (hoveredLayer || selectedLayer) : null;
+      cubelets.forEach(mesh => {
+        const isLayer = highlightLayer && Math.round(mesh.userData.coords[highlightLayer.axis]) === highlightLayer.index;
+        setCubeletHighlight(mesh, isLayer);
+      });
+    }
+
+    function updateStatus(message) {
+      const activeLayer = currentMode === 'layer' ? selectedLayer : null;
+      status.innerHTML = message || `Mode: <strong>${currentMode === 'cube' ? 'Whole cube' : 'Layer'}</strong>${activeLayer ? `<br/>Selected layer: <strong>${activeLayer.axis.toUpperCase()} ${activeLayer.index}</strong>` : ''}`;
+    }
+
+    function createRotateGroup(layer) {
+      const group = new THREE.Group();
+      scene.add(group);
+      scene.updateMatrixWorld(true);
+      layerCubelets(layer).forEach(cubelet => {
+        group.attach(cubelet);
+      });
+      group.userData.axis = layer.axis;
+      return group;
+    }
+
+    function snapRotation(group) {
+      const axis = group.userData.axis;
+      const angle = group.rotation[axis];
+      const snapped = Math.round(angle / (Math.PI / 2)) * (Math.PI / 2);
+      group.rotation[axis] = snapped;
+      scene.updateMatrixWorld(true);
+      while (group.children.length) {
+        cubeGroup.attach(group.children[0]);
+      }
+      scene.remove(group);
+    }
+
+    function onPointerDown(event) {
+      if (event.button !== 0) return;
+      isDragging = true;
+      dragStart = { x: event.clientX, y: event.clientY };
+      if (currentMode === 'layer') {
+        const hover = getIntersect(event);
+        hoveredLayer = getLayerForHit(hover) || hoveredLayer;
+        const layer = hoveredLayer || selectedLayer;
+        if (layer) {
+          activeRotateGroup = createRotateGroup(layer);
+          rotationAxis = layer.axis;
+          initialGroupRotation = activeRotateGroup.rotation[rotationAxis];
+        }
+      }
+    }
+
+    function onPointerMove(event) {
+      if (!isDragging) {
+        const hit = getIntersect(event);
+        hoveredLayer = currentMode === 'layer' ? getLayerForHit(hit) : null;
+        updateStatus();
+        updateHighlight();
+        return;
+      }
+
+      const dx = event.clientX - dragStart.x;
+      const dy = event.clientY - dragStart.y;
+
+      if (currentMode === 'cube' && !activeRotateGroup) {
+        cubeGroup.rotation.y += dx * 0.004;
+        cubeGroup.rotation.x += dy * 0.004;
+        cubeGroup.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, cubeGroup.rotation.x));
+        dragStart = { x: event.clientX, y: event.clientY };
+      }
+
+      if (activeRotateGroup) {
+        let angleChange = 0;
+        if (rotationAxis === 'x') angleChange = dy * 0.01;
+        if (rotationAxis === 'y') angleChange = dx * 0.01;
+        if (rotationAxis === 'z') angleChange = dx * 0.01;
+        activeRotateGroup.rotation[rotationAxis] = initialGroupRotation + angleChange;
+      }
+    }
+
+    function onPointerUp(event) {
+      if (!isDragging) return;
+      isDragging = false;
+      if (activeRotateGroup) {
+        snapRotation(activeRotateGroup);
+        activeRotateGroup = null;
+        updateHighlight();
+      }
+    }
+
+    function onWheel(event) {
+      event.preventDefault();
+      const factor = event.deltaY * 0.003;
+      camera.position.multiplyScalar(1 + factor);
+      camera.position.clampScalar(3, 20);
+    }
+
+    function onResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    window.addEventListener('resize', onResize);
+    renderer.domElement.addEventListener('pointerdown', onPointerDown);
+    renderer.domElement.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointerup', onPointerUp);
+    renderer.domElement.addEventListener('wheel', onWheel, { passive: false });
+
+    function animate() {
+      requestAnimationFrame(animate);
+      renderer.render(scene, camera);
+    }
+
+    updateStatus();
+    updateHighlight();
+    animate();
+  </script>
+</body>
+</html>
