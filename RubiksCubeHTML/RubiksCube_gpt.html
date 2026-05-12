@@ -65,12 +65,12 @@
     }
     .input-group {
       display: flex;
-      gap: 8px;
+      gap: 6px;
       align-items: center;
       margin-bottom: 10px;
     }
     .input-group input { flex: 1; }
-    .input-group button { flex: 0 0 auto; width: 50px; }
+    .input-group button { flex: 0 0 auto; width: 40px; padding: 8px !important; }
     #ui select, #ui input[type="text"], #ui input[type="range"] {
       width: 100%;
       border-radius: 10px;
@@ -170,52 +170,62 @@
     </select>
 
     <h2>Solve Rubik's Cube</h2>
-    <div class="radio-row">
-      <label><input type="radio" name="solveMode" value="auto" checked /> Auto</label>
-      <label><input type="radio" name="solveMode" value="custom" /> Custom</label>
-    </div>
 
     <label>Animation Speed</label>
     <input type="range" id="speedSlider" min="0.2" max="2" step="0.1" value="1" />
     <p style="text-align: center; font-size: 0.85rem; margin-top: -8px; color: rgba(148, 163, 184, 0.6);" id="speedLabel">1.0x</p>
 
-    <button id="shuffleBtn" class="danger">🔀 Shuffle Cube</button>
+    <div class="radio-row">
+      <label><input type="radio" name="solveMode" value="auto" checked /> Auto</label>
+      <label><input type="radio" name="solveMode" value="custom" /> Custom</label>
+    </div>
+
+    <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+      <input type="number" id="shuffleCount" placeholder="Steps" min="1" max="100" value="15" style="flex: 1;" />
+      <button id="shuffleBtn" class="danger" style="flex: 0 0 auto;">🔀 Shuffle</button>
+    </div>
 
     <div class="control-section">
-      <strong>White Cross</strong>
+      <strong>1. White Cross</strong>
       <div class="input-group">
         <input type="text" id="moves1" placeholder="Moves..." />
         <button id="executeBtn1">Execute</button>
       </div>
 
-      <strong>White Face</strong>
+      <strong>2. White Face</strong>
       <div class="input-group">
         <input type="text" id="moves2" placeholder="Moves..." />
         <button id="executeBtn2">Execute</button>
       </div>
 
-      <strong>Middle Layer</strong>
+      <strong>3. Middle Layer</strong>
       <div class="input-group">
         <input type="text" id="moves3" placeholder="Moves..." />
         <button id="executeBtn3">Execute</button>
       </div>
 
-      <strong>Yellow Top</strong>
+      <strong>4. Yellow Cross</strong>
       <div class="input-group">
         <input type="text" id="moves4" placeholder="Moves..." />
         <button id="executeBtn4">Execute</button>
       </div>
 
-      <strong>Yellow Edges</strong>
+      <strong>5. Yellow Top</strong>
       <div class="input-group">
         <input type="text" id="moves5" placeholder="Moves..." />
         <button id="executeBtn5">Execute</button>
       </div>
 
-      <strong>Yellow Corners</strong>
+      <strong>6. Yellow Edges</strong>
       <div class="input-group">
         <input type="text" id="moves6" placeholder="Moves..." />
         <button id="executeBtn6">Execute</button>
+      </div>
+
+      <strong>7. Yellow Corners</strong>
+      <div class="input-group">
+        <input type="text" id="moves7" placeholder="Moves..." />
+        <button id="executeBtn7">Execute</button>
       </div>
     </div>
 
@@ -235,23 +245,26 @@
     const solveModeInputs = Array.from(document.querySelectorAll('input[name="solveMode"]'));
     const resetBtn = document.getElementById('resetBtn');
     const shuffleBtn = document.getElementById('shuffleBtn');
+    const shuffleCount = document.getElementById('shuffleCount');
     const speedSlider = document.getElementById('speedSlider');
     const speedLabel = document.getElementById('speedLabel');
 
     // Solving move sequences
     const solvingMoves = {
-      1: 'D L2 D2 L D L',           // White cross (simplified)
-      2: 'R U R\' U\'',             // White corners (simplified)
-      3: 'U R U\' R\' U\' F\' U F', // Middle layer (simplified)
-      4: 'F R U\' R\' F\'',          // Yellow top
-      5: 'R U R\' U R U2 R\'',       // Yellow edges
-      6: 'R\' D\' R D'               // Yellow corners
+      1: 'D L2 D2 L D L',           // White cross
+      2: 'R U R\' U\'',             // White face
+      3: 'U R U\' R\' U\' F\' U F', // Middle layer
+      4: 'F R U\' R\' F\'',          // Yellow cross
+      5: 'F R U\' R\' F\'',          // Yellow top
+      6: 'R U R\' U R U2 R\'',       // Yellow edges
+      7: 'R\' D\' R D'               // Yellow corners
     };
 
     let currentMode = 'cube';
     let solveMode = 'auto';
     let animationSpeed = 1;
     let isAnimating = false;
+    let originalCubeRotation = { x: 0, y: 0, z: 0 };
 
     // THREE.js setup
     const scene = new THREE.Scene();
@@ -348,6 +361,9 @@
     solveModeInputs.forEach(input => {
       input.addEventListener('change', () => {
         solveMode = input.value;
+        if (solveMode === 'auto') {
+          populateAutoMoves();
+        }
       });
     });
 
@@ -357,10 +373,44 @@
       updateHighlight();
     });
 
-    resetBtn.addEventListener('click', () => {
-      cubeGroup.rotation.set(0, 0, 0);
+    function populateAutoMoves() {
+      for (let i = 1; i <= 7; i++) {
+        const input = document.getElementById(`moves${i}`);
+        if (input) {
+          input.value = solvingMoves[i] || '';
+        }
+      }
+    }
+
+    resetBtn.addEventListener('click', async () => {
+      if (isAnimating) return;
+      isAnimating = true;
+      const startRotation = { x: cubeGroup.rotation.x, y: cubeGroup.rotation.y, z: cubeGroup.rotation.z };
+      const duration = 600 / animationSpeed;
+      const startTime = Date.now();
+
+      await new Promise(resolve => {
+        const animate = () => {
+          const elapsed = Date.now() - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          const easing = progress < 0.5 ? 2 * progress * progress : -1 + (4 - 2 * progress) * progress;
+
+          cubeGroup.rotation.x = startRotation.x + (0 - startRotation.x) * easing;
+          cubeGroup.rotation.y = startRotation.y + (0 - startRotation.y) * easing;
+          cubeGroup.rotation.z = startRotation.z + (0 - startRotation.z) * easing;
+
+          if (progress < 1) {
+            requestAnimationFrame(animate);
+          } else {
+            cubeGroup.rotation.set(0, 0, 0);
+            resolve();
+          }
+        };
+        animate();
+      });
       updateStatus('Orientation reset');
       updateHighlight();
+      isAnimating = false;
     });
 
     speedSlider.addEventListener('input', (e) => {
@@ -370,12 +420,12 @@
 
     shuffleBtn.addEventListener('click', () => {
       if (isAnimating) return;
+      const count = parseInt(shuffleCount.value) || 15;
       const shuffleMoves = [
-        'R U R\' U\'', 'L U L\' U\'', 'F U F\' U\'',
-        'D R D\' R\'', 'U2 R2 U2', 'F2 D2 B2'
+        'R', 'R\'', 'L', 'L\'', 'U', 'U\'', 'D', 'D\'', 'F', 'F\'', 'B', 'B\''
       ];
       let moves = '';
-      for (let i = 0; i < 15; i++) {
+      for (let i = 0; i < count; i++) {
         moves += shuffleMoves[Math.floor(Math.random() * shuffleMoves.length)] + ' ';
       }
       executeMoves(moves.trim());
@@ -592,7 +642,7 @@
     }
 
     // Execute buttons
-    for (let i = 1; i <= 6; i++) {
+    for (let i = 1; i <= 7; i++) {
       document.getElementById(`executeBtn${i}`).addEventListener('click', () => {
         if (isAnimating) return;
         const movesInput = document.getElementById(`moves${i}`);
@@ -605,6 +655,9 @@
         executeMoves(movesToExecute);
       });
     }
+
+    // Populate auto moves on startup
+    populateAutoMoves();
 
     function updateDirections() {
       const camDir = camera.position.clone().normalize();
