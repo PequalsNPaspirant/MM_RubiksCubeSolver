@@ -1,0 +1,13 @@
+Modify RubiksCube_gpt.html to do following:
+
+place the Rubiks Cube in the center of rendering window. 
+If it is mobile device, then orient it automatifcally so that it will be in landscape mode.
+all radio button descripton should be in front of radio button, not below.
+make orange and yello colors distinct, they look similar. Also default position of cube should have white later on top.
+when a layer is selected, put a purple rectangular box around selected layer.
+remove dragging/snapping feature of layer. There will be change in selection of layer. Instead of selecting later based on where the mouse pointer is, the two arrows for each layer should always apprear around each layer and it should move along with cube when the cube is oriented in different direction. When the mouse pointer is on any semicircular arrow, the corresponding layer should be selected and then it should show one more arrow along the later to show which direction it will be rotated and when user clicks on it, it should rotate. The semicircular arrows should point in direction where the layer will be rotated.
+there is no way to select bottom layer, select it if mouse pointer is just below it on screen.
+in front of layer selection drop down, add two buttons with semicircular arrows. When they are pressed, the selected layer will rotate by 90 degrees in each direction.
+speed slider range should be from 0 to 10.
+regarding 7 steps and buttons for them, the edit box should be wider and Execute button should be small in width. If auto mode is selected, the solution sequence of moves should be generated automatically and displayed in edit box and edit. When custom mode is selected, user should be able to type in sequence of moves and use standard letters for it, e.g. F for frony layer clockwise rotation, F' for front layer counter clockwise rotation etc.
+In rotate cube mode, cube can not be rotated towards top after certain point. It should be completed free to rotate around all 3 axes.

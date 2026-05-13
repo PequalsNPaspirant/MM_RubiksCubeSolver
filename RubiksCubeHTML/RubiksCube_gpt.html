@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Rubik's Cube Solver</title>
   <style>
     * { box-sizing: border-box; }
@@ -22,7 +22,7 @@
       position: absolute;
       top: 16px;
       left: 16px;
-      width: 360px;
+      width: min(360px, calc(100vw - 32px));
       max-height: 90vh;
       border-radius: 16px;
       background: rgba(15, 23, 42, 0.95);
@@ -32,17 +32,9 @@
       overflow-y: auto;
       padding: 16px;
     }
-    #ui::-webkit-scrollbar {
-      width: 8px;
-    }
-    #ui::-webkit-scrollbar-track {
-      background: rgba(148, 163, 184, 0.1);
-      border-radius: 4px;
-    }
-    #ui::-webkit-scrollbar-thumb {
-      background: rgba(148, 163, 184, 0.3);
-      border-radius: 4px;
-    }
+    #ui::-webkit-scrollbar { width: 8px; }
+    #ui::-webkit-scrollbar-track { background: rgba(148, 163, 184, 0.1); border-radius: 4px; }
+    #ui::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.3); border-radius: 4px; }
     #ui h1 { margin: 0 0 14px; font-size: 1.2rem; }
     #ui h2 { margin: 14px 0 10px; font-size: 1rem; border-bottom: 1px solid rgba(148, 163, 184, 0.2); padding-bottom: 8px; }
     #ui label, #ui select, #ui p, #ui button, #ui input {
@@ -55,9 +47,11 @@
       gap: 12px;
       flex-wrap: wrap;
       margin-bottom: 10px;
+      align-items: center;
     }
     .radio-row label {
       display: inline-flex;
+      flex-direction: row;
       align-items: center;
       gap: 6px;
       margin-bottom: 0;
@@ -65,12 +59,40 @@
     }
     .input-group {
       display: flex;
-      gap: 6px;
+      gap: 8px;
       align-items: center;
       margin-bottom: 10px;
     }
-    .input-group input { flex: 1; }
-    .input-group button { flex: 0 0 auto; width: 40px; padding: 8px !important; }
+    .input-group input[type="text"] {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+    .input-group button.execute-btn {
+      flex: 0 0 auto;
+      width: auto;
+      min-width: 72px;
+      max-width: 88px;
+      padding: 8px 10px !important;
+    }
+    .layer-spin-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .layer-spin-row select { flex: 1 1 auto; min-width: 0; margin-bottom: 0; }
+    .layer-spin-row button {
+      flex: 0 0 44px;
+      width: 44px;
+      height: 44px;
+      padding: 0 !important;
+      margin-bottom: 0;
+      font-size: 1.35rem;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
     #ui select, #ui input[type="text"], #ui input[type="range"] {
       width: 100%;
       border-radius: 10px;
@@ -96,15 +118,8 @@
       color: #fecaca;
     }
     #ui button.danger:hover { background: rgba(239, 68, 68, 0.25); }
-    #ui button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-    #ui input[type="range"] {
-      padding: 0;
-      height: 8px;
-      cursor: pointer;
-    }
+    #ui button:disabled { opacity: 0.5; cursor: not-allowed; }
+    #ui input[type="range"] { padding: 0; height: 8px; cursor: pointer; }
     #status {
       margin-bottom: 12px;
       padding: 12px;
@@ -125,10 +140,7 @@
       pointer-events: none;
       text-shadow: 0 0 4px rgba(0, 0, 0, 0.8);
     }
-    .direction-label {
-      display: inline-block;
-      margin-right: 16px;
-    }
+    .direction-label { display: inline-block; margin-right: 16px; }
     .control-section {
       margin-top: 16px;
       padding: 12px;
@@ -136,9 +148,32 @@
       background: rgba(148, 163, 184, 0.05);
       border: 1px solid rgba(148, 163, 184, 0.1);
     }
+    #portrait-hint {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      background: rgba(15, 23, 42, 0.92);
+      color: #f8fafc;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 24px;
+      font-size: 1.1rem;
+      line-height: 1.5;
+    }
+    @media (orientation: portrait) {
+      body.mobile-coerce #portrait-hint { display: flex; }
+    }
   </style>
 </head>
 <body>
+  <div id="portrait-hint">
+    <div>
+      <strong>Landscape recommended</strong><br />
+      Rotate your device to landscape for the best view. Tap anywhere after rotating to continue.
+    </div>
+  </div>
   <div id="container"></div>
   <div id="directions">
     <span class="direction-label">T: <span id="dir-top">-</span></span>
@@ -152,32 +187,36 @@
 
     <h2>Cube Controls</h2>
     <div class="radio-row">
-      <label><input type="radio" name="mode" value="cube" checked /> Rotate Cube</label>
-      <label><input type="radio" name="mode" value="layer" /> Rotate Layer</label>
+      <label>Rotate Cube <input type="radio" name="mode" value="cube" checked /></label>
+      <label>Rotate Layer <input type="radio" name="mode" value="layer" /></label>
     </div>
     <button id="resetBtn">Reset Orientation</button>
     <label for="layerSelect">Layer to Rotate</label>
-    <select id="layerSelect">
-      <option value="x:-1">Left Face (X-1)</option>
-      <option value="x:0" selected>Middle (X0)</option>
-      <option value="x:1">Right Face (X+1)</option>
-      <option value="y:-1">Bottom Face (Y-1)</option>
-      <option value="y:0">Middle (Y0)</option>
-      <option value="y:1">Top Face (Y+1)</option>
-      <option value="z:-1">Front Face (Z-1)</option>
-      <option value="z:0">Middle (Z0)</option>
-      <option value="z:1">Back Face (Z+1)</option>
-    </select>
+    <div class="layer-spin-row">
+      <button type="button" id="layerCCWBtn" title="Rotate selected layer 90° (counterclockwise)">↶</button>
+      <select id="layerSelect">
+        <option value="x:-1">Left Face (X-1)</option>
+        <option value="x:0" selected>Middle (X0)</option>
+        <option value="x:1">Right Face (X+1)</option>
+        <option value="y:-1">Bottom Face (Y-1)</option>
+        <option value="y:0">Middle (Y0)</option>
+        <option value="y:1">Top Face (Y+1)</option>
+        <option value="z:-1">Front Face (Z-1)</option>
+        <option value="z:0">Middle (Z0)</option>
+        <option value="z:1">Back Face (Z+1)</option>
+      </select>
+      <button type="button" id="layerCWBtn" title="Rotate selected layer 90° (clockwise)">↷</button>
+    </div>
 
     <h2>Solve Rubik's Cube</h2>
 
-    <label>Animation Speed</label>
-    <input type="range" id="speedSlider" min="0.2" max="2" step="0.1" value="1" />
-    <p style="text-align: center; font-size: 0.85rem; margin-top: -8px; color: rgba(148, 163, 184, 0.6);" id="speedLabel">1.0x</p>
+    <label>Animation Speed (0–10)</label>
+    <input type="range" id="speedSlider" min="0" max="10" step="0.1" value="5" />
+    <p style="text-align: center; font-size: 0.85rem; margin-top: -8px; color: rgba(148, 163, 184, 0.6);" id="speedLabel">5.0</p>
 
     <div class="radio-row">
-      <label><input type="radio" name="solveMode" value="auto" checked /> Auto</label>
-      <label><input type="radio" name="solveMode" value="custom" /> Custom</label>
+      <label>Auto <input type="radio" name="solveMode" value="auto" checked /></label>
+      <label>Custom <input type="radio" name="solveMode" value="custom" /></label>
     </div>
 
     <div style="display: flex; gap: 8px; margin-bottom: 10px;">
@@ -188,50 +227,50 @@
     <div class="control-section">
       <strong>1. White Cross</strong>
       <div class="input-group">
-        <input type="text" id="moves1" placeholder="Moves..." />
-        <button id="executeBtn1">Execute</button>
+        <input type="text" id="moves1" placeholder="Moves (e.g. F R U R' U' F')..." />
+        <button type="button" class="execute-btn" id="executeBtn1">Execute</button>
       </div>
 
       <strong>2. White Face</strong>
       <div class="input-group">
         <input type="text" id="moves2" placeholder="Moves..." />
-        <button id="executeBtn2">Execute</button>
+        <button type="button" class="execute-btn" id="executeBtn2">Execute</button>
       </div>
 
       <strong>3. Middle Layer</strong>
       <div class="input-group">
         <input type="text" id="moves3" placeholder="Moves..." />
-        <button id="executeBtn3">Execute</button>
+        <button type="button" class="execute-btn" id="executeBtn3">Execute</button>
       </div>
 
       <strong>4. Yellow Cross</strong>
       <div class="input-group">
         <input type="text" id="moves4" placeholder="Moves..." />
-        <button id="executeBtn4">Execute</button>
+        <button type="button" class="execute-btn" id="executeBtn4">Execute</button>
       </div>
 
       <strong>5. Yellow Top</strong>
       <div class="input-group">
         <input type="text" id="moves5" placeholder="Moves..." />
-        <button id="executeBtn5">Execute</button>
+        <button type="button" class="execute-btn" id="executeBtn5">Execute</button>
       </div>
 
       <strong>6. Yellow Edges</strong>
       <div class="input-group">
         <input type="text" id="moves6" placeholder="Moves..." />
-        <button id="executeBtn6">Execute</button>
+        <button type="button" class="execute-btn" id="executeBtn6">Execute</button>
       </div>
 
       <strong>7. Yellow Corners</strong>
       <div class="input-group">
         <input type="text" id="moves7" placeholder="Moves..." />
-        <button id="executeBtn7">Execute</button>
+        <button type="button" class="execute-btn" id="executeBtn7">Execute</button>
       </div>
     </div>
 
     <p style="font-size: 0.85rem; color: rgba(148, 163, 184, 0.5); margin-top: 16px;">
-      <strong>Controls:</strong><br/>
-      Wheel: Zoom | Drag: Rotate | L-click + drag (layer): Rotate layer
+      <strong>Controls:</strong><br />
+      Wheel: Zoom | Drag (Rotate Cube mode): Orbit view | Layer mode: use curved arrows or layer buttons
     </p>
   </aside>
 
@@ -239,8 +278,11 @@
     import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js';
 
     const container = document.getElementById('container');
+    const ui = document.getElementById('ui');
     const status = document.getElementById('status');
     const layerSelect = document.getElementById('layerSelect');
+    const layerCWBtn = document.getElementById('layerCWBtn');
+    const layerCCWBtn = document.getElementById('layerCCWBtn');
     const modeInputs = Array.from(document.querySelectorAll('input[name="mode"]'));
     const solveModeInputs = Array.from(document.querySelectorAll('input[name="solveMode"]'));
     const resetBtn = document.getElementById('resetBtn');
@@ -248,33 +290,50 @@
     const shuffleCount = document.getElementById('shuffleCount');
     const speedSlider = document.getElementById('speedSlider');
     const speedLabel = document.getElementById('speedLabel');
+    const portraitHint = document.getElementById('portrait-hint');
 
-    // Solving move sequences
+    const isCoarsePointer = window.matchMedia('(pointer: coarse)').matches;
+    const isSmall = window.matchMedia('(max-width: 900px)').matches;
+    if (isCoarsePointer || isSmall) {
+      document.body.classList.add('mobile-coerce');
+    }
+
+    function dismissPortraitHint() {
+      portraitHint.style.display = 'none';
+    }
+    portraitHint.addEventListener('click', () => {
+      if (screen.orientation && screen.orientation.lock) {
+        screen.orientation.lock('landscape').catch(() => {});
+      }
+      dismissPortraitHint();
+    });
+    window.addEventListener('orientationchange', () => {
+      if (window.matchMedia('(orientation: landscape)').matches) dismissPortraitHint();
+    });
+
     const solvingMoves = {
-      1: 'D L2 D2 L D L',           // White cross
-      2: 'R U R\' U\'',             // White face
-      3: 'U R U\' R\' U\' F\' U F', // Middle layer
-      4: 'F R U\' R\' F\'',          // Yellow cross
-      5: 'F R U\' R\' F\'',          // Yellow top
-      6: 'R U R\' U R U2 R\'',       // Yellow edges
-      7: 'R\' D\' R D'               // Yellow corners
+      1: 'D L2 D2 L D L',
+      2: 'R U R\' U\'',
+      3: 'U R U\' R\' U\' F\' U F',
+      4: 'F R U\' R\' F\'',
+      5: 'F R U\' R\' F\'',
+      6: 'R U R\' U R U2 R\'',
+      7: 'R\' D\' R D'
     };
 
     let currentMode = 'cube';
     let solveMode = 'auto';
-    let animationSpeed = 1;
+    let animationSpeed = 5;
     let isAnimating = false;
-    let originalCubeRotation = { x: 0, y: 0, z: 0 };
 
-    // THREE.js setup
     const scene = new THREE.Scene();
     scene.background = new THREE.Color('#17203a');
     const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
-    camera.position.set(6, 5.2, 7.3);
+    camera.position.set(6.2, 5.4, 6.2);
     camera.lookAt(0, 0, 0);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.outputEncoding = THREE.sRGBEncoding;
     container.appendChild(renderer.domElement);
@@ -289,14 +348,22 @@
 
     const cubelets = [];
     const faceColors = {
-      white: 0xf8f8f2, yellow: 0xf9d857, orange: 0xed8b2d,
-      green: 0x30b13a, red: 0xdd1f25, blue: 0x0f4c9d, mid: 0x111827
+      white: 0xf5f5f5,
+      yellow: 0xffd400,
+      orange: 0xc2410c,
+      green: 0x30b13a,
+      red: 0xdd1f25,
+      blue: 0x0f4c9d,
+      mid: 0x111827
     };
 
     function createFaceMaterial(color) {
       return new THREE.MeshStandardMaterial({
-        color, metalness: 0.2, roughness: 0.5,
-        emissive: 0x000000, emissiveIntensity: 0.2,
+        color,
+        metalness: 0.2,
+        roughness: 0.5,
+        emissive: 0x000000,
+        emissiveIntensity: 0.2,
       });
     }
 
@@ -306,11 +373,14 @@
     for (let x = -1; x <= 1; x += 1) {
       for (let y = -1; y <= 1; y += 1) {
         for (let z = -1; z <= 1; z += 1) {
-          const materials = [greyMaterial.clone(), greyMaterial.clone(), greyMaterial.clone(), greyMaterial.clone(), greyMaterial.clone(), greyMaterial.clone()];
+          const materials = [
+            greyMaterial.clone(), greyMaterial.clone(), greyMaterial.clone(),
+            greyMaterial.clone(), greyMaterial.clone(), greyMaterial.clone()
+          ];
           if (x === 1) materials[0] = createFaceMaterial(faceColors.green);
           if (x === -1) materials[1] = createFaceMaterial(faceColors.orange);
-          if (y === 1) materials[2] = createFaceMaterial(faceColors.yellow);
-          if (y === -1) materials[3] = createFaceMaterial(faceColors.white);
+          if (y === 1) materials[2] = createFaceMaterial(faceColors.white);
+          if (y === -1) materials[3] = createFaceMaterial(faceColors.yellow);
           if (z === 1) materials[4] = createFaceMaterial(faceColors.red);
           if (z === -1) materials[5] = createFaceMaterial(faceColors.blue);
 
@@ -323,6 +393,8 @@
         }
       }
     }
+
+    cubeGroup.rotation.order = 'YXZ';
 
     function updateCubeletCoordinates() {
       cubelets.forEach(cubelet => {
@@ -338,32 +410,60 @@
     const raycaster = new THREE.Raycaster();
     const pointer = new THREE.Vector2();
     let hoveredLayer = null;
+    let hoveredArrow = null;
     let selectedLayer = parseLayerValue(layerSelect.value);
     let isDragging = false;
     let dragStart = null;
-    let activeRotateGroup = null;
-    let rotationAxis = null;
-    let initialGroupRotation = 0;
+    let pendingClick = null;
+
+    const layerArrowsGroup = new THREE.Group();
+    cubeGroup.add(layerArrowsGroup);
+
+    const selectionBoxGroup = new THREE.Group();
+    cubeGroup.add(selectionBoxGroup);
+    let selectionBoxLines = null;
+
+    const arrowMeshes = [];
 
     function parseLayerValue(value) {
       const [axis, index] = value.split(':');
       return { axis, index: parseInt(index, 10) };
     }
 
+    function layerKey(layer) {
+      return `${layer.axis}:${layer.index}`;
+    }
+
+    const layerCWMove = {
+      'x:-1': 'L', 'x:0': 'M', 'x:1': 'R',
+      'y:-1': 'D', 'y:0': 'E', 'y:1': 'U',
+      'z:-1': 'F', 'z:0': 'S', 'z:1': 'B'
+    };
+
+    function layerCCWMoveFrom(layer) {
+      const cw = layerCWMove[layerKey(layer)];
+      if (!cw) return null;
+      return cw.endsWith('2') ? cw : `${cw}'`;
+    }
+
+    function layerCWMoveString(layer) {
+      return layerCWMove[layerKey(layer)] || 'U';
+    }
+
     modeInputs.forEach(input => {
       input.addEventListener('change', () => {
         currentMode = input.value;
+        layerArrowsGroup.visible = currentMode === 'layer';
         updateStatus();
         updateHighlight();
+        updateSelectionBox();
       });
     });
 
     solveModeInputs.forEach(input => {
       input.addEventListener('change', () => {
         solveMode = input.value;
-        if (solveMode === 'auto') {
-          populateAutoMoves();
-        }
+        if (solveMode === 'auto') populateAutoMoves();
       });
     });
 
@@ -371,14 +471,24 @@
       selectedLayer = parseLayerValue(layerSelect.value);
       updateStatus();
       updateHighlight();
+      updateSelectionBox();
+    });
+
+    layerCWBtn.addEventListener('click', () => {
+      if (isAnimating) return;
+      const m = layerCWMoveString(selectedLayer);
+      executeMoves(m);
+    });
+    layerCCWBtn.addEventListener('click', () => {
+      if (isAnimating) return;
+      const m = layerCCWMoveFrom(selectedLayer);
+      if (m) executeMoves(m);
     });
 
     function populateAutoMoves() {
       for (let i = 1; i <= 7; i++) {
         const input = document.getElementById(`moves${i}`);
-        if (input) {
-          input.value = solvingMoves[i] || '';
-        }
+        if (input) input.value = solvingMoves[i] || '';
       }
     }
 
@@ -386,7 +496,7 @@
       if (isAnimating) return;
       isAnimating = true;
       const startRotation = { x: cubeGroup.rotation.x, y: cubeGroup.rotation.y, z: cubeGroup.rotation.z };
-      const duration = 600 / animationSpeed;
+      const duration = 600 / effectiveSpeedFactor();
       const startTime = Date.now();
 
       await new Promise(resolve => {
@@ -399,9 +509,8 @@
           cubeGroup.rotation.y = startRotation.y + (0 - startRotation.y) * easing;
           cubeGroup.rotation.z = startRotation.z + (0 - startRotation.z) * easing;
 
-          if (progress < 1) {
-            requestAnimationFrame(animate);
-          } else {
+          if (progress < 1) requestAnimationFrame(animate);
+          else {
             cubeGroup.rotation.set(0, 0, 0);
             resolve();
           }
@@ -409,21 +518,27 @@
         animate();
       });
       updateStatus('Orientation reset');
+      rebuildLayerArrows();
       updateHighlight();
+      updateSelectionBox();
       isAnimating = false;
     });
 
+    function effectiveSpeedFactor() {
+      const s = Math.max(0, animationSpeed);
+      if (s <= 0.05) return 0.08;
+      return 0.15 + s * (1.85 / 10);
+    }
+
     speedSlider.addEventListener('input', (e) => {
       animationSpeed = parseFloat(e.target.value);
-      speedLabel.textContent = animationSpeed.toFixed(1) + 'x';
+      speedLabel.textContent = animationSpeed.toFixed(1);
     });
 
     shuffleBtn.addEventListener('click', () => {
       if (isAnimating) return;
-      const count = parseInt(shuffleCount.value) || 15;
-      const shuffleMoves = [
-        'R', 'R\'', 'L', 'L\'', 'U', 'U\'', 'D', 'D\'', 'F', 'F\'', 'B', 'B\''
-      ];
+      const count = parseInt(shuffleCount.value, 10) || 15;
+      const shuffleMoves = ['R', 'R\'', 'L', 'L\'', 'U', 'U\'', 'D', 'D\'', 'F', 'F\'', 'B', 'B\''];
       let moves = '';
       for (let i = 0; i < count; i++) {
         moves += shuffleMoves[Math.floor(Math.random() * shuffleMoves.length)] + ' ';
@@ -431,33 +546,45 @@
       executeMoves(moves.trim());
     });
 
-    function getIntersect(event) {
-      if (!event) return null;
-      pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
-      pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
-      raycaster.setFromCamera(pointer, camera);
-      const hits = raycaster.intersectObjects(cubelets, false);
-      return hits.length ? hits[0] : null;
+    function getCubeScreenBounds() {
+      let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+      cubelets.forEach(m => {
+        const v = m.position.clone().applyMatrix4(cubeGroup.matrixWorld).project(camera);
+        const sx = (v.x * 0.5 + 0.5) * window.innerWidth;
+        const sy = (-v.y * 0.5 + 0.5) * window.innerHeight;
+        minX = Math.min(minX, sx);
+        maxX = Math.max(maxX, sx);
+        minY = Math.min(minY, sy);
+        maxY = Math.max(maxY, sy);
+      });
+      const pad = 24;
+      return { minX: minX - pad, maxX: maxX + pad, minY: minY - pad, maxY: maxY + pad };
     }
 
-    function axisFromNormal(normal) {
-      const abs = new THREE.Vector3(Math.abs(normal.x), Math.abs(normal.y), Math.abs(normal.z));
-      if (abs.x > abs.y && abs.x > abs.z) return 'x';
-      if (abs.y > abs.x && abs.y > abs.z) return 'y';
-      return 'z';
-    }
-
-    function getLayerForHit(hit) {
-      if (!hit) return null;
-      const normal = hit.face.normal.clone();
-      normal.transformDirection(hit.object.matrixWorld);
-      const axis = axisFromNormal(normal);
-      const coords = hit.object.userData.coords;
-      return { axis, index: coords[axis] };
+    function pickBottomBelowPointer(event) {
+      const b = getCubeScreenBounds();
+      if (!Number.isFinite(b.minX)) return null;
+      const x = event.clientX;
+      const y = event.clientY;
+      const margin = 48;
+      if (x < b.minX - margin || x > b.maxX + margin) return null;
+      if (y > b.maxY && y < b.maxY + 120) {
+        return { axis: 'y', index: -1 };
+      }
+      return null;
     }
 
     function layerCubelets(layer) {
       return cubelets.filter(mesh => Math.round(mesh.userData.coords[layer.axis]) === layer.index);
+    }
+
+    function layerCenterWorld(layer) {
+      const box = new THREE.Box3();
+      layerCubelets(layer).forEach(m => {
+        const p = m.position.clone().applyMatrix4(cubeGroup.matrixWorld);
+        box.expandByPoint(p);
+      });
+      return box.getCenter(new THREE.Vector3());
     }
 
     function setCubeletHighlight(mesh, highlighted) {
@@ -468,11 +595,36 @@
     }
 
     function updateHighlight() {
-      const highlightLayer = currentMode === 'layer' ? (hoveredLayer || selectedLayer) : null;
+      const hl = currentMode === 'layer' ? (hoveredLayer || selectedLayer) : null;
       cubelets.forEach(mesh => {
-        const isLayer = highlightLayer && Math.round(mesh.userData.coords[highlightLayer.axis]) === highlightLayer.index;
+        const isLayer = hl && Math.round(mesh.userData.coords[hl.axis]) === hl.index;
         setCubeletHighlight(mesh, isLayer);
       });
+    }
+
+    function updateSelectionBox() {
+      while (selectionBoxGroup.children.length) selectionBoxGroup.remove(selectionBoxGroup.children[0]);
+      selectionBoxLines = null;
+      if (currentMode !== 'layer') return;
+      const layer = hoveredLayer || selectedLayer;
+      if (!layer) return;
+
+      const half = 0.46;
+      const box = new THREE.Box3();
+      layerCubelets(layer).forEach(m => {
+        const p = m.position;
+        box.expandByPoint(new THREE.Vector3(p.x + half, p.y + half, p.z + half));
+        box.expandByPoint(new THREE.Vector3(p.x - half, p.y - half, p.z - half));
+      });
+      const size = box.getSize(new THREE.Vector3()).addScalar(0.1);
+      const center = box.getCenter(new THREE.Vector3());
+      const geom = new THREE.BoxGeometry(size.x, size.y, size.z);
+      const edges = new THREE.EdgesGeometry(geom);
+      const mat = new THREE.LineBasicMaterial({ color: 0xb855f7 });
+      const lines = new THREE.LineSegments(edges, mat);
+      lines.position.copy(center);
+      selectionBoxGroup.add(lines);
+      selectionBoxLines = lines;
     }
 
     function updateStatus(message) {
@@ -504,80 +656,221 @@
       updateCubeletCoordinates();
     }
 
+    function axisVector(axis) {
+      if (axis === 'x') return new THREE.Vector3(1, 0, 0);
+      if (axis === 'y') return new THREE.Vector3(0, 1, 0);
+      return new THREE.Vector3(0, 0, 1);
+    }
+
+    function buildSemicircleArrow(layer, angleSign) {
+      const A = axisVector(layer.axis);
+      const centerW = layerCenterWorld(layer);
+      const centerL = centerW.clone().applyMatrix4(new THREE.Matrix4().copy(cubeGroup.matrixWorld).invert());
+
+      let outward = new THREE.Vector3();
+      if (layer.axis === 'x') outward.set(layer.index === 0 ? 1 : layer.index, 0, 0);
+      else if (layer.axis === 'y') outward.set(0, layer.index === 0 ? 1 : layer.index, 0);
+      else outward.set(0, 0, layer.index === 0 ? 1 : layer.index);
+      outward.normalize();
+
+      let U = new THREE.Vector3().crossVectors(A, outward);
+      if (U.lengthSq() < 1e-6) {
+        if (layer.axis === 'x') U.set(0, 1, 0);
+        else U.set(1, 0, 0);
+        U.sub(A.clone().multiplyScalar(A.dot(U))).normalize();
+      } else U.normalize();
+      const V = new THREE.Vector3().crossVectors(A, U).normalize();
+
+      const radius = 1.42;
+      const bump = 0.38;
+      const base = centerL.clone().add(outward.clone().multiplyScalar(bump));
+      const startAngle = angleSign > 0 ? -Math.PI / 2 : Math.PI / 2;
+      const segments = 28;
+      const pts = [];
+      for (let i = 0; i <= segments; i++) {
+        const t = startAngle + (Math.PI * i) / segments;
+        const p = base.clone()
+          .add(U.clone().multiplyScalar(Math.cos(t) * radius))
+          .add(V.clone().multiplyScalar(Math.sin(t) * radius));
+        pts.push(p);
+      }
+      const curve = new THREE.CatmullRomCurve3(pts);
+      const tube = new THREE.TubeGeometry(curve, segments, 0.055, 6, false);
+      const mat = new THREE.MeshStandardMaterial({
+        color: angleSign > 0 ? 0x7dd3fc : 0xfbbf24,
+        metalness: 0.1,
+        roughness: 0.45,
+        emissive: 0x111111,
+        emissiveIntensity: 0.15,
+        transparent: true,
+        opacity: 0.92
+      });
+      const mesh = new THREE.Mesh(tube, mat);
+      const innerTube = new THREE.TubeGeometry(curve, segments, 0.028, 6, false);
+      const innerMat = new THREE.MeshBasicMaterial({ color: 0xf0abfc, transparent: true, opacity: 0 });
+      const innerMesh = new THREE.Mesh(innerTube, innerMat);
+      mesh.add(innerMesh);
+      mesh.userData = {
+        type: 'layerArrow',
+        layer: { axis: layer.axis, index: layer.index },
+        angleSign,
+        baseMatProps: { color: mat.color.getHex(), emissive: mat.emissive.getHex(), opacity: mat.opacity },
+        innerMat,
+      };
+      mesh.renderOrder = 5;
+      return mesh;
+    }
+
+    function rebuildLayerArrows() {
+      while (layerArrowsGroup.children.length) layerArrowsGroup.remove(layerArrowsGroup.children[0]);
+      arrowMeshes.length = 0;
+      const defs = [];
+      ['x', 'y', 'z'].forEach(axis => {
+        [-1, 0, 1].forEach(index => {
+          defs.push({ axis, index });
+        });
+      });
+      defs.forEach(layer => {
+        const m1 = buildSemicircleArrow(layer, 1);
+        const m2 = buildSemicircleArrow(layer, -1);
+        layerArrowsGroup.add(m1, m2);
+        arrowMeshes.push(m1, m2);
+      });
+    }
+
+    rebuildLayerArrows();
+
+    function raycastArrows(event) {
+      pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
+      pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
+      raycaster.setFromCamera(pointer, camera);
+      const hits = raycaster.intersectObjects(arrowMeshes, false);
+      return hits.length ? hits[0] : null;
+    }
+
+    function setArrowHoverVisual(mesh, hover) {
+      if (!mesh || !mesh.userData.baseMatProps) return;
+      const mat = mesh.material;
+      if (hover) {
+        mat.color.setHex(0xffffff);
+        mat.emissive.setHex(0x6b21a8);
+        mat.emissiveIntensity = 0.55;
+        mat.opacity = 1;
+        mesh.scale.setScalar(1.14);
+        if (mesh.userData.innerMat) mesh.userData.innerMat.opacity = 0.95;
+      } else {
+        mat.color.setHex(mesh.userData.baseMatProps.color);
+        mat.emissive.setHex(mesh.userData.baseMatProps.emissive);
+        mat.emissiveIntensity = 0.15;
+        mat.opacity = mesh.userData.baseMatProps.opacity;
+        mesh.scale.setScalar(1);
+        if (mesh.userData.innerMat) mesh.userData.innerMat.opacity = 0;
+      }
+    }
+
     function onPointerDown(event) {
       if (event.button !== 0 || isAnimating) return;
       isDragging = true;
       dragStart = { x: event.clientX, y: event.clientY };
+      pendingClick = null;
+
       if (currentMode === 'layer') {
-        const hover = getIntersect(event);
-        hoveredLayer = getLayerForHit(hover) || hoveredLayer;
-        const layer = hoveredLayer || selectedLayer;
-        if (layer) {
-          activeRotateGroup = createRotateGroup(layer);
-          rotationAxis = layer.axis;
-          initialGroupRotation = activeRotateGroup.rotation[rotationAxis];
+        const ah = raycastArrows(event);
+        if (ah) {
+          pendingClick = { mesh: ah.object, layer: { ...ah.object.userData.layer }, angleSign: ah.object.userData.angleSign, x: event.clientX, y: event.clientY };
         }
       }
     }
 
     function onPointerMove(event) {
-      if (!isDragging) {
-        const hit = getIntersect(event);
-        hoveredLayer = currentMode === 'layer' ? getLayerForHit(hit) : null;
+      if (currentMode === 'layer' && !isDragging) {
+        const ah = raycastArrows(event);
+        let bottomPick = null;
+        if (!ah) bottomPick = pickBottomBelowPointer(event);
+
+        if (ah) {
+          hoveredArrow = ah.object;
+          hoveredLayer = { ...ah.object.userData.layer };
+          layerSelect.value = `${hoveredLayer.axis}:${hoveredLayer.index}`;
+          selectedLayer = hoveredLayer;
+        } else if (bottomPick) {
+          hoveredArrow = null;
+          hoveredLayer = bottomPick;
+          layerSelect.value = `${bottomPick.axis}:${bottomPick.index}`;
+          selectedLayer = bottomPick;
+        } else {
+          hoveredArrow = null;
+          hoveredLayer = null;
+        }
+
+        arrowMeshes.forEach(m => setArrowHoverVisual(m, m === hoveredArrow));
         updateStatus();
         updateHighlight();
+        updateSelectionBox();
         return;
       }
+
+      if (!isDragging) return;
 
       const dx = event.clientX - dragStart.x;
       const dy = event.clientY - dragStart.y;
 
-      if (currentMode === 'cube' && !activeRotateGroup) {
+      if (currentMode === 'cube') {
         cubeGroup.rotation.y += dx * 0.004;
         cubeGroup.rotation.x += dy * 0.004;
-        cubeGroup.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, cubeGroup.rotation.x));
         dragStart = { x: event.clientX, y: event.clientY };
-      }
-
-      if (activeRotateGroup) {
-        let angleChange = 0;
-        if (rotationAxis === 'x') angleChange = dy * 0.01;
-        if (rotationAxis === 'y') angleChange = dx * 0.01;
-        if (rotationAxis === 'z') angleChange = dx * 0.01;
-        activeRotateGroup.rotation[rotationAxis] = initialGroupRotation + angleChange;
       }
     }
 
     function onPointerUp(event) {
       if (!isDragging) return;
       isDragging = false;
-      if (activeRotateGroup) {
-        snapRotation(activeRotateGroup);
-        activeRotateGroup = null;
-        updateHighlight();
+
+      if (pendingClick && currentMode === 'layer') {
+        const dist = Math.hypot(event.clientX - pendingClick.x, event.clientY - pendingClick.y);
+        if (dist < 8) {
+          const layer = pendingClick.layer;
+          const cw = layerCWMoveString(layer);
+          const ccw = layerCCWMoveFrom(layer);
+          const move = pendingClick.angleSign > 0 ? cw : ccw;
+          if (move) executeMoves(move);
+        }
       }
+      pendingClick = null;
     }
 
     function onWheel(event) {
       event.preventDefault();
       const factor = event.deltaY * 0.003;
       camera.position.multiplyScalar(1 + factor);
-      camera.position.clampScalar(3, 20);
+      camera.position.clampScalar(3, 22);
+    }
+
+    function applyCameraCentering() {
+      const uiRect = ui.getBoundingClientRect();
+      const bias = (uiRect.width / window.innerWidth) * 2.4;
+      cubeGroup.position.x = bias;
+      camera.lookAt(bias, 0, 0);
     }
 
     function onResize() {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
+      applyCameraCentering();
     }
 
     window.addEventListener('resize', onResize);
-    renderer.domElement.addEventListener('pointerdown', onPointerDown);
+    renderer.domElement.addEventListener('pointerdown', (e) => {
+      if (document.body.classList.contains('mobile-coerce') && screen.orientation && screen.orientation.lock) {
+        screen.orientation.lock('landscape').catch(() => {});
+      }
+      onPointerDown(e);
+    });
     renderer.domElement.addEventListener('pointermove', onPointerMove);
     window.addEventListener('pointerup', onPointerUp);
     renderer.domElement.addEventListener('wheel', onWheel, { passive: false });
 
-    // Move notation to rotation mapping
     const moveMap = {
       'R': { axis: 'x', index: 1, angle: Math.PI / 2 },
       'R\'': { axis: 'x', index: 1, angle: -Math.PI / 2 },
@@ -585,18 +878,27 @@
       'L': { axis: 'x', index: -1, angle: -Math.PI / 2 },
       'L\'': { axis: 'x', index: -1, angle: Math.PI / 2 },
       'L2': { axis: 'x', index: -1, angle: Math.PI },
+      'M': { axis: 'x', index: 0, angle: -Math.PI / 2 },
+      'M\'': { axis: 'x', index: 0, angle: Math.PI / 2 },
+      'M2': { axis: 'x', index: 0, angle: Math.PI },
       'U': { axis: 'y', index: 1, angle: Math.PI / 2 },
       'U\'': { axis: 'y', index: 1, angle: -Math.PI / 2 },
       'U2': { axis: 'y', index: 1, angle: Math.PI },
       'D': { axis: 'y', index: -1, angle: -Math.PI / 2 },
       'D\'': { axis: 'y', index: -1, angle: Math.PI / 2 },
       'D2': { axis: 'y', index: -1, angle: Math.PI },
+      'E': { axis: 'y', index: 0, angle: -Math.PI / 2 },
+      'E\'': { axis: 'y', index: 0, angle: Math.PI / 2 },
+      'E2': { axis: 'y', index: 0, angle: Math.PI },
       'F': { axis: 'z', index: -1, angle: Math.PI / 2 },
       'F\'': { axis: 'z', index: -1, angle: -Math.PI / 2 },
       'F2': { axis: 'z', index: -1, angle: Math.PI },
       'B': { axis: 'z', index: 1, angle: -Math.PI / 2 },
       'B\'': { axis: 'z', index: 1, angle: Math.PI / 2 },
       'B2': { axis: 'z', index: 1, angle: Math.PI },
+      'S': { axis: 'z', index: 0, angle: Math.PI / 2 },
+      'S\'': { axis: 'z', index: 0, angle: -Math.PI / 2 },
+      'S2': { axis: 'z', index: 0, angle: Math.PI },
     };
 
     async function performMove(moveStr) {
@@ -607,7 +909,7 @@
       const group = createRotateGroup(layer);
 
       const startTime = Date.now();
-      const duration = 400 / animationSpeed;
+      const duration = 420 / effectiveSpeedFactor();
       const startAngle = 0;
 
       return new Promise(resolve => {
@@ -616,9 +918,8 @@
           const progress = Math.min(elapsed / duration, 1);
           group.rotation[move.axis] = startAngle + move.angle * progress;
 
-          if (progress < 1) {
-            requestAnimationFrame(animate);
-          } else {
+          if (progress < 1) requestAnimationFrame(animate);
+          else {
             snapRotation(group);
             resolve();
           }
@@ -630,33 +931,35 @@
     async function executeMoves(movesStr) {
       if (isAnimating || !movesStr.trim()) return;
       isAnimating = true;
-      const moves = movesStr.split(/\s+/).filter(m => m);
+      layerArrowsGroup.visible = false;
+      try {
+        const moves = movesStr.trim().split(/\s+/).filter(Boolean);
 
-      for (const move of moves) {
-        await performMove(move);
-        await new Promise(r => setTimeout(r, 50 / animationSpeed));
+        for (const move of moves) {
+          await performMove(move);
+          rebuildLayerArrows();
+          updateSelectionBox();
+          await new Promise(r => setTimeout(r, 40 / effectiveSpeedFactor()));
+        }
+        updateHighlight();
+        updateSelectionBox();
+        updateStatus('Moves completed');
+      } finally {
+        layerArrowsGroup.visible = currentMode === 'layer';
+        isAnimating = false;
       }
-      updateHighlight();
-      isAnimating = false;
-      updateStatus('Moves completed');
     }
 
-    // Execute buttons
     for (let i = 1; i <= 7; i++) {
       document.getElementById(`executeBtn${i}`).addEventListener('click', () => {
         if (isAnimating) return;
         const movesInput = document.getElementById(`moves${i}`);
-        let movesToExecute = movesInput.value;
-
-        if (solveMode === 'auto') {
-          movesToExecute = solvingMoves[i] || '';
-        }
-
+        let movesToExecute = movesInput.value.trim();
+        if (solveMode === 'auto') movesToExecute = (solvingMoves[i] || '').trim();
         executeMoves(movesToExecute);
       });
     }
 
-    // Populate auto moves on startup
     populateAutoMoves();
 
     function updateDirections() {
@@ -687,8 +990,13 @@
       renderer.render(scene, camera);
     }
 
+    animationSpeed = parseFloat(speedSlider.value);
+    speedLabel.textContent = animationSpeed.toFixed(1);
+    layerArrowsGroup.visible = currentMode === 'layer';
+    applyCameraCentering();
     updateStatus();
     updateHighlight();
+    updateSelectionBox();
     animate();
   </script>
 </body>
