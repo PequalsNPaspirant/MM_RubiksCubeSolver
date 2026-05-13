@@ -992,9 +992,9 @@
       const visibleTheta = Math.atan2(camToCenter.dot(planeV), camToCenter.dot(planeU));
       const visibleRotation = Math.sign(visibleTheta - baseTheta) * Math.PI / 4;
       const startAngle = baseTheta + angleDir * 0.08 + visibleRotation;
-      const arcSpan = Math.PI * 0.21;
+      const arcSpan = Math.PI * 0.105;
       const side = OUT * 2;
-      const R = Math.SQRT2 * side;
+      const R = Math.SQRT2 * side * 0.5;
       const segs = 48;
 
       class CircularArcCurve extends THREE.Curve {
