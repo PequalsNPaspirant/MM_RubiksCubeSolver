@@ -664,100 +664,108 @@
     const HALF = 0.46;
     const OUT = GRID + HALF;
 
-    /** Endpoints on two adjacent outer faces of the layer; `bis` points outward from the dihedral for arc bulge. */
-    function getWedgeSpec(layer, angleSign) {
-      const g = GRID;
-      const o = OUT;
-      const { axis, index } = layer;
-      const s = angleSign > 0 ? 1 : -1;
-      const spread = (axis === 'z' ? index * 0.11 : axis === 'x' ? index * 0.1 : index * 0.1)
-        + (angleSign > 0 ? 0.06 : -0.06);
-      const yb = axis === 'z' ? spread : axis === 'x' ? (index * 0.07 + angleSign * 0.04) : 0;
-      const zb = axis === 'y' ? spread : axis === 'x' ? (index * 0.06 + angleSign * 0.03) : 0;
+    const moveMap = {
+      'R': { axis: 'x', index: 1, angle: Math.PI / 2 },
+      'R\'': { axis: 'x', index: 1, angle: -Math.PI / 2 },
+      'R2': { axis: 'x', index: 1, angle: Math.PI },
+      'L': { axis: 'x', index: -1, angle: -Math.PI / 2 },
+      'L\'': { axis: 'x', index: -1, angle: Math.PI / 2 },
+      'L2': { axis: 'x', index: -1, angle: Math.PI },
+      'M': { axis: 'x', index: 0, angle: -Math.PI / 2 },
+      'M\'': { axis: 'x', index: 0, angle: Math.PI / 2 },
+      'M2': { axis: 'x', index: 0, angle: Math.PI },
+      'U': { axis: 'y', index: 1, angle: Math.PI / 2 },
+      'U\'': { axis: 'y', index: 1, angle: -Math.PI / 2 },
+      'U2': { axis: 'y', index: 1, angle: Math.PI },
+      'D': { axis: 'y', index: -1, angle: -Math.PI / 2 },
+      'D\'': { axis: 'y', index: -1, angle: Math.PI / 2 },
+      'D2': { axis: 'y', index: -1, angle: Math.PI },
+      'E': { axis: 'y', index: 0, angle: -Math.PI / 2 },
+      'E\'': { axis: 'y', index: 0, angle: Math.PI / 2 },
+      'E2': { axis: 'y', index: 0, angle: Math.PI },
+      'F': { axis: 'z', index: -1, angle: Math.PI / 2 },
+      'F\'': { axis: 'z', index: -1, angle: -Math.PI / 2 },
+      'F2': { axis: 'z', index: -1, angle: Math.PI },
+      'B': { axis: 'z', index: 1, angle: -Math.PI / 2 },
+      'B\'': { axis: 'z', index: 1, angle: Math.PI / 2 },
+      'B2': { axis: 'z', index: 1, angle: Math.PI },
+      'S': { axis: 'z', index: 0, angle: Math.PI / 2 },
+      'S\'': { axis: 'z', index: 0, angle: -Math.PI / 2 },
+      'S2': { axis: 'z', index: 0, angle: Math.PI },
+    };
 
-      let E1, E2, bis;
-
-      if (axis === 'z') {
-        const zm = index * g;
-        if (s > 0) {
-          E1 = new THREE.Vector3(-o, yb, zm);
-          if (index === -1) E2 = new THREE.Vector3(-g + 0.03, yb, -o);
-          else if (index === 1) E2 = new THREE.Vector3(-g + 0.03, yb, o);
-          else E2 = new THREE.Vector3(-g + 0.03, yb, -0.52);
-          bis = new THREE.Vector3(-1, 0, index === 1 ? 1 : -1).normalize();
-        } else {
-          E1 = new THREE.Vector3(o, yb, zm);
-          if (index === -1) E2 = new THREE.Vector3(g - 0.03, yb, -o);
-          else if (index === 1) E2 = new THREE.Vector3(g - 0.03, yb, o);
-          else E2 = new THREE.Vector3(g - 0.03, yb, -0.52);
-          bis = new THREE.Vector3(1, 0, index === 1 ? 1 : -1).normalize();
-        }
-      } else if (axis === 'x') {
-        const xm = index * g;
-        if (s > 0) {
-          E1 = new THREE.Vector3(xm, yb, -o);
-          if (index === -1) E2 = new THREE.Vector3(-o, yb, -g + 0.03);
-          else if (index === 1) E2 = new THREE.Vector3(o, yb, -g + 0.03);
-          else E2 = new THREE.Vector3(0.44, yb, -g + 0.03);
-          bis = new THREE.Vector3(index === 1 ? 1 : -1, 0, -1).normalize();
-        } else {
-          E1 = new THREE.Vector3(xm, yb, o);
-          if (index === -1) E2 = new THREE.Vector3(-o, yb, g - 0.03);
-          else if (index === 1) E2 = new THREE.Vector3(o, yb, g - 0.03);
-          else E2 = new THREE.Vector3(0.44, yb, g - 0.03);
-          bis = new THREE.Vector3(index === 1 ? 1 : -1, 0, 1).normalize();
-        }
-      } else {
-        const ym = index * g;
-        if (s > 0) {
-          E1 = new THREE.Vector3(-o, ym, zb);
-          if (index === 1) E2 = new THREE.Vector3(-g + 0.03, o, zb);
-          else if (index === -1) E2 = new THREE.Vector3(-g + 0.03, -o, zb);
-          else E2 = new THREE.Vector3(-g + 0.03, 0.42, zb);
-          bis = new THREE.Vector3(-1, index === 1 ? 1 : -1, 0).normalize();
-        } else {
-          E1 = new THREE.Vector3(o, ym, zb);
-          if (index === 1) E2 = new THREE.Vector3(g - 0.03, o, zb);
-          else if (index === -1) E2 = new THREE.Vector3(g - 0.03, -o, zb);
-          else E2 = new THREE.Vector3(g - 0.03, 0.42, zb);
-          bis = new THREE.Vector3(1, index === 1 ? 1 : -1, 0).normalize();
-        }
-      }
-
-      return { E1, E2, bis };
+    function axisVector(axis) {
+      if (axis === 'x') return new THREE.Vector3(1, 0, 0);
+      if (axis === 'y') return new THREE.Vector3(0, 1, 0);
+      return new THREE.Vector3(0, 0, 1);
     }
 
-    function buildLayerArrowGroup(layer, angleSign) {
-      const { E1, E2, bis } = getWedgeSpec(layer, angleSign);
-      const chordV = E2.clone().sub(E1);
-      const L = chordV.length();
-      const M = E1.clone().lerp(E2, 0.5);
-      const chordU = chordV.clone().multiplyScalar(1 / Math.max(L, 1e-6));
-      let nPl = bis.clone().sub(chordU.clone().multiplyScalar(bis.dot(chordU)));
-      if (nPl.lengthSq() < 1e-8) nPl = new THREE.Vector3(0, 1, 0);
-      nPl.normalize();
-      const Rc = L / Math.SQRT2;
-      const h = Math.sqrt(Math.max(0.0001, Rc * Rc - (L * 0.5) * (L * 0.5)));
-      let O = M.clone().add(nPl.multiplyScalar(h));
-      let v1 = E1.clone().sub(O);
-      let v2 = E2.clone().sub(O);
-      if (v1.dot(v2) > 0.05) {
-        O = M.clone().add(nPl.multiplyScalar(-h));
-        v1 = E1.clone().sub(O);
-        v2 = E2.clone().sub(O);
-      }
-      const Rarc = (v1.length() + v2.length()) * 0.5;
-      v1.normalize();
-      v2.normalize();
+    /** Orthonormal tangent basis on the outer face plane (normal = outN). */
+    function basisFromNormal(outN) {
+      let a = new THREE.Vector3(0, 1, 0);
+      if (Math.abs(outN.dot(a)) > 0.88) a = new THREE.Vector3(1, 0, 0);
+      const e1 = new THREE.Vector3().crossVectors(a, outN).normalize();
+      const e2 = new THREE.Vector3().crossVectors(outN, e1).normalize();
+      return { e1, e2 };
+    }
 
-      const segs = 28;
+    /**
+     * One quarter-circle in the layer's rotation plane, drawn on an outer cube face.
+     * angleSign +1 → CW move string on +X/+Y/-Z face by axis; −1 → opposite face (3 arcs per physical face total across the two opposite faces for that axis family).
+     */
+    function buildLayerArrowGroup(layer, angleSign) {
+      const mKey = angleSign > 0 ? layerCWMoveString(layer) : layerCCWMoveFrom(layer);
+      const mv = moveMap[mKey];
+      const empty = new THREE.Group();
+      empty.userData = { type: 'layerArrow', layer: { ...layer }, angleSign, tube: null, cone: null, baseMatProps: null };
+
+      if (!mv) return empty;
+
+      const { axis, index: idx } = layer;
+      const g = GRID;
+      const skin = 0.06;
+      const dist = OUT + skin;
+
+      let outN = new THREE.Vector3();
+      if (axis === 'z') {
+        outN.set(0, 0, angleSign > 0 ? -1 : 1);
+      } else if (axis === 'x') {
+        outN.set(angleSign > 0 ? 1 : -1, 0, 0);
+      } else {
+        outN.set(0, angleSign > 0 ? 1 : -1, 0);
+      }
+
+      const { e1, e2 } = basisFromNormal(outN);
+      const faceP = outN.clone().multiplyScalar(dist);
+
+      const slot = new THREE.Vector3();
+      if (axis === 'z') {
+        slot.copy(e1).multiplyScalar(idx * g).add(e2.clone().multiplyScalar(idx * 0.08));
+      } else if (axis === 'x') {
+        slot.copy(e2).multiplyScalar(idx * g).add(e1.clone().multiplyScalar(idx * 0.08));
+      } else {
+        slot.copy(e1).multiplyScalar(idx * g).add(e2.clone().multiplyScalar(idx * 0.08));
+      }
+
+      const R = 0.34;
+      const center = faceP.clone().add(slot).sub(outN.clone().multiplyScalar(R * 0.72));
+
+      let u = e1.clone();
+      let v = e2.clone();
+      if (Math.sign(mv.angle) < 0) {
+        const tmp = u.clone();
+        u.copy(v);
+        v.copy(tmp).negate();
+      }
+
+      const segs = 26;
       const pathPts = [];
       for (let i = 0; i <= segs; i++) {
         const t = (i / segs) * (Math.PI * 0.5);
-        pathPts.push(O.clone().add(v1.clone().multiplyScalar(Rarc * Math.cos(t))).add(v2.clone().multiplyScalar(Rarc * Math.sin(t))));
+        pathPts.push(center.clone().add(u.clone().multiplyScalar(R * Math.cos(t))).add(v.clone().multiplyScalar(R * Math.sin(t))));
       }
-      const path = new THREE.CatmullRomCurve3(pathPts);
 
+      const path = new THREE.CatmullRomCurve3(pathPts);
       const tubeRad = 0.0325;
       const pink = 0xfbcfe8;
       const mat = new THREE.MeshStandardMaterial({
@@ -774,9 +782,14 @@
       const tubeGeom = new THREE.TubeGeometry(path, segs, tubeRad, 6, false);
       const tube = new THREE.Mesh(tubeGeom, mat);
 
-      const end = E2.clone();
+      const end = pathPts[pathPts.length - 1].clone();
       const prev = pathPts[pathPts.length - 2].clone();
-      const dir = end.clone().sub(prev).normalize();
+      const dir = end.clone().sub(prev);
+      if (dir.lengthSq() < 1e-10) {
+        dir.set(0, 1, 0);
+      } else {
+        dir.normalize();
+      }
       const headLen = tubeRad * 6;
       const headR = tubeRad * 2.6;
       const coneGeom = new THREE.ConeGeometry(headR, headLen, 8);
@@ -792,7 +805,12 @@
         angleSign,
         tube,
         cone,
+        pathCurve: path,
+        pathSegs: segs,
+        pathEnd: end.clone(),
+        pathPrev: prev.clone(),
         baseMatProps: { color: pink, emissive: 0x4a1d3d, emissiveIntensity: 0.12, opacity: 0.98 },
+        _hoverState: false,
       };
       group.renderOrder = 10;
       return group;
@@ -835,9 +853,33 @@
     }
 
     function setArrowHoverVisual(group, hover) {
-      if (!group || !group.userData.baseMatProps) return;
+      if (!group || !group.userData.baseMatProps || !group.userData.tube) return;
+      if (group.userData._hoverState === hover) return;
+      group.userData._hoverState = hover;
       const b = group.userData.baseMatProps;
       const mats = [group.userData.tube.material, group.userData.cone.material];
+      const tube = group.userData.tube;
+      const cone = group.userData.cone;
+      const path = group.userData.pathCurve;
+      const segs = group.userData.pathSegs;
+
+      if (path && segs) {
+        const r = hover ? 0.048 : 0.0325;
+        tube.geometry.dispose();
+        tube.geometry = new THREE.TubeGeometry(path, segs, r, 6, false);
+        const headLen = r * 6;
+        const headR = r * 2.6;
+        cone.geometry.dispose();
+        cone.geometry = new THREE.ConeGeometry(headR, headLen, 8);
+        const end = group.userData.pathEnd.clone();
+        const prev = group.userData.pathPrev.clone();
+        const dir = end.clone().sub(prev);
+        if (dir.lengthSq() < 1e-10) dir.set(0, 1, 0);
+        else dir.normalize();
+        cone.position.copy(end).add(dir.clone().multiplyScalar(headLen * 0.38));
+        cone.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
+      }
+
       for (const mat of mats) {
         if (hover) {
           mat.color.setHex(0xa855f7);
@@ -851,7 +893,6 @@
           mat.opacity = b.opacity;
         }
       }
-      group.scale.setScalar(hover ? 1.38 : 1);
     }
 
     function updateArrowHoverFromEvent(event) {
@@ -984,36 +1025,6 @@
     renderer.domElement.addEventListener('pointermove', onPointerMove);
     window.addEventListener('pointerup', onPointerUp);
     renderer.domElement.addEventListener('wheel', onWheel, { passive: false });
-
-    const moveMap = {
-      'R': { axis: 'x', index: 1, angle: Math.PI / 2 },
-      'R\'': { axis: 'x', index: 1, angle: -Math.PI / 2 },
-      'R2': { axis: 'x', index: 1, angle: Math.PI },
-      'L': { axis: 'x', index: -1, angle: -Math.PI / 2 },
-      'L\'': { axis: 'x', index: -1, angle: Math.PI / 2 },
-      'L2': { axis: 'x', index: -1, angle: Math.PI },
-      'M': { axis: 'x', index: 0, angle: -Math.PI / 2 },
-      'M\'': { axis: 'x', index: 0, angle: Math.PI / 2 },
-      'M2': { axis: 'x', index: 0, angle: Math.PI },
-      'U': { axis: 'y', index: 1, angle: Math.PI / 2 },
-      'U\'': { axis: 'y', index: 1, angle: -Math.PI / 2 },
-      'U2': { axis: 'y', index: 1, angle: Math.PI },
-      'D': { axis: 'y', index: -1, angle: -Math.PI / 2 },
-      'D\'': { axis: 'y', index: -1, angle: Math.PI / 2 },
-      'D2': { axis: 'y', index: -1, angle: Math.PI },
-      'E': { axis: 'y', index: 0, angle: -Math.PI / 2 },
-      'E\'': { axis: 'y', index: 0, angle: Math.PI / 2 },
-      'E2': { axis: 'y', index: 0, angle: Math.PI },
-      'F': { axis: 'z', index: -1, angle: Math.PI / 2 },
-      'F\'': { axis: 'z', index: -1, angle: -Math.PI / 2 },
-      'F2': { axis: 'z', index: -1, angle: Math.PI },
-      'B': { axis: 'z', index: 1, angle: -Math.PI / 2 },
-      'B\'': { axis: 'z', index: 1, angle: Math.PI / 2 },
-      'B2': { axis: 'z', index: 1, angle: Math.PI },
-      'S': { axis: 'z', index: 0, angle: Math.PI / 2 },
-      'S\'': { axis: 'z', index: 0, angle: -Math.PI / 2 },
-      'S2': { axis: 'z', index: 0, angle: Math.PI },
-    };
 
     async function performMove(moveStr) {
       const move = moveMap[moveStr];
