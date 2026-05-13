@@ -988,9 +988,13 @@
 
       const baseTheta = Math.atan2(anchorOffset.dot(planeV), anchorOffset.dot(planeU));
       const angleDir = angleSign > 0 ? 1 : -1;
-      const startAngle = baseTheta + angleDir * 0.08;
-      const arcSpan = Math.PI * 0.42;
-      const R = Math.max(OUT * 1.8, anchorOffset.length() + 0.8);
+      const camToCenter = camera.position.clone().sub(circleCenter);
+      const visibleTheta = Math.atan2(camToCenter.dot(planeV), camToCenter.dot(planeU));
+      const visibleRotation = Math.sign(visibleTheta - baseTheta) * Math.PI / 4;
+      const startAngle = baseTheta + angleDir * 0.08 + visibleRotation;
+      const arcSpan = Math.PI * 0.21;
+      const side = OUT * 2;
+      const R = Math.SQRT2 * side;
       const segs = 48;
 
       class CircularArcCurve extends THREE.Curve {
