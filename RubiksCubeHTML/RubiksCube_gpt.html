@@ -986,25 +986,32 @@
       else if (layer.axis === 'y') anchorOffset.y = 0;
       else anchorOffset.z = 0;
 
-      let R = anchorOffset.length();
-      if (R < OUT * 1.1) R = OUT * 1.1;
-      const theta = Math.atan2(anchorOffset.dot(planeV), anchorOffset.dot(planeU));
+      const baseTheta = Math.atan2(anchorOffset.dot(planeV), anchorOffset.dot(planeU));
       const angleDir = angleSign > 0 ? 1 : -1;
-      const gap = 0.11;
-      const arcSpan = Math.PI * 0.7;
-      const startAngle = theta + angleDir * gap;
+      const startAngle = baseTheta + angleDir * 0.08;
+      const arcSpan = Math.PI * 0.42;
+      const R = Math.max(OUT * 1.8, anchorOffset.length() + 0.8);
+      const segs = 48;
 
-      const segs = 36;
-      const pathPts = [];
-      for (let i = 0; i <= segs; i++) {
-        const t = i / segs;
-        const angle = startAngle + angleDir * t * arcSpan;
-        pathPts.push(circleCenter.clone()
-          .add(planeU.clone().multiplyScalar(R * Math.cos(angle)))
-          .add(planeV.clone().multiplyScalar(R * Math.sin(angle))));
+      class CircularArcCurve extends THREE.Curve {
+        constructor(center, u, v, radius, start, end) {
+          super();
+          this.center = center;
+          this.u = u;
+          this.v = v;
+          this.radius = radius;
+          this.start = start;
+          this.end = end;
+        }
+        getPoint(t) {
+          const angle = this.start + (this.end - this.start) * t;
+          return this.center.clone()
+            .add(this.u.clone().multiplyScalar(this.radius * Math.cos(angle)))
+            .add(this.v.clone().multiplyScalar(this.radius * Math.sin(angle)));
+        }
       }
 
-      const path = new THREE.CatmullRomCurve3(pathPts);
+      const path = new CircularArcCurve(circleCenter, planeU, planeV, R, startAngle, startAngle + angleDir * arcSpan);
       const tubeRad = 0.0325;
       const pink = 0xfbcfe8;
       const mat = new THREE.MeshStandardMaterial({
@@ -1025,8 +1032,8 @@
       const tube = new THREE.Mesh(tubeGeom, mat);
       tube.renderOrder = 20;
 
-      const end = pathPts[pathPts.length - 1].clone();
-      const prev = pathPts[pathPts.length - 2].clone();
+      const end = path.getPoint(1).clone();
+      const prev = path.getPoint(1 - 1 / segs).clone();
       const dir = end.clone().sub(prev);
       if (dir.lengthSq() < 1e-10) dir.set(0, 1, 0);
       else dir.normalize();
