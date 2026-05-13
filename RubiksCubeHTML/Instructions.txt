@@ -24,3 +24,10 @@ keep the arrows visible while layer is being rotated, currently arrows disappear
 The arrow direction is wrong.
 The plane in which the arrow is, should be same as plane of layer. So for top layer, two horizontal quarter arc arows should appear on each side. So basically every face will have 3 quarter arc arrows arrached to it which will be outside of layer.
 Also when arrow is highlghted, it changes the position, it should not happen. The arrow positionshould remain same,only color and thickness should change.
+
+
+
+
+There are total 3 + 3 + 3 = 9 layer. There will be 2 arrows for each layer so total 18 arrows. 
+there are only 3 visble faces. All arrows should be placed on visible edges of all small cubes.
+

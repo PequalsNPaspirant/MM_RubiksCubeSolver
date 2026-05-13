@@ -663,6 +663,9 @@
     const GRID = 1.04;
     const HALF = 0.46;
     const OUT = GRID + HALF;
+    const ARROW_SKIN = 0.22;
+
+    let lastArrowVisSig = '';
 
     const moveMap = {
       'R': { axis: 'x', index: 1, angle: Math.PI / 2 },
@@ -709,11 +712,150 @@
       return { e1, e2 };
     }
 
+    function faceKeyToNormal(key) {
+      switch (key) {
+        case 'x+': return new THREE.Vector3(1, 0, 0);
+        case 'x-': return new THREE.Vector3(-1, 0, 0);
+        case 'y+': return new THREE.Vector3(0, 1, 0);
+        case 'y-': return new THREE.Vector3(0, -1, 0);
+        case 'z+': return new THREE.Vector3(0, 0, 1);
+        default: return new THREE.Vector3(0, 0, -1);
+      }
+    }
+
+    function faceKeyFromNormal(n) {
+      if (n.x > 0.5) return 'x+';
+      if (n.x < -0.5) return 'x-';
+      if (n.y > 0.5) return 'y+';
+      if (n.y < -0.5) return 'y-';
+      if (n.z > 0.5) return 'z+';
+      return 'z-';
+    }
+
+    /** The three cube faces most toward the camera (world space). */
+    function getThreeVisibleFaces() {
+      cubeGroup.updateMatrixWorld(true);
+      const wc = new THREE.Vector3();
+      cubeGroup.getWorldPosition(wc);
+      const toCam = camera.position.clone().sub(wc).normalize();
+      const keys = ['x+', 'x-', 'y+', 'y-', 'z+', 'z-'];
+      const scored = keys.map(key => {
+        const nL = faceKeyToNormal(key);
+        const nW = nL.clone().transformDirection(cubeGroup.matrixWorld).normalize();
+        return { key, nL, score: toCam.dot(nW) };
+      });
+      scored.sort((a, b) => b.score - a.score);
+      return scored.slice(0, 3);
+    }
+
+    function dedupeVecs(pts) {
+      const seen = new Set();
+      const out = [];
+      for (const p of pts) {
+        const s = `${p.x.toFixed(3)},${p.y.toFixed(3)},${p.z.toFixed(3)}`;
+        if (!seen.has(s)) {
+          seen.add(s);
+          out.push(p);
+        }
+      }
+      return out;
+    }
+
+    /** Perimeter + internal sticker-edge midpoints on one outer face (local space, on shell + ARROW_SKIN). */
+    function faceEdgeMidpoints(faceKey) {
+      const d = OUT + ARROW_SKIN;
+      const a = GRID + HALF;
+      const g = GRID;
+      const pts = [];
+      const add = (v) => pts.push(v);
+
+      function gridMids(set) {
+        for (let s = -1; s <= 1; s++) {
+          add(set(s * g, -a));
+          add(set(s * g, a));
+        }
+        for (let s = -1; s <= 1; s++) {
+          add(set(-a, s * g));
+          add(set(a, s * g));
+        }
+        for (let i = -1; i < 1; i++) {
+          for (let j = -1; j <= 1; j++) {
+            add(set((i + 0.5) * g, j * g));
+          }
+        }
+        for (let j = -1; j < 1; j++) {
+          for (let i = -1; i <= 1; i++) {
+            add(set(i * g, (j + 0.5) * g));
+          }
+        }
+      }
+
+      if (faceKey === 'z+') gridMids((u, v) => new THREE.Vector3(u, v, d));
+      else if (faceKey === 'z-') gridMids((u, v) => new THREE.Vector3(u, v, -d));
+      else if (faceKey === 'y+') gridMids((u, v) => new THREE.Vector3(u, d, v));
+      else if (faceKey === 'y-') gridMids((u, v) => new THREE.Vector3(u, -d, v));
+      else if (faceKey === 'x+') gridMids((u, v) => new THREE.Vector3(d, u, v));
+      else gridMids((u, v) => new THREE.Vector3(-d, u, v));
+
+      return dedupeVecs(pts);
+    }
+
+    function nearestEdgeMid(cands, target) {
+      if (!cands.length) return target.clone();
+      let best = cands[0];
+      let md = Infinity;
+      for (const c of cands) {
+        const d = c.distanceToSquared(target);
+        if (d < md) {
+          md = d;
+          best = c;
+        }
+      }
+      return best.clone();
+    }
+
+    function axisPreferredNormal(axis, angleSign) {
+      if (axis === 'z') return new THREE.Vector3(0, 0, angleSign > 0 ? -1 : 1);
+      if (axis === 'x') return new THREE.Vector3(angleSign > 0 ? 1 : -1, 0, 0);
+      return new THREE.Vector3(0, angleSign > 0 ? 1 : -1, 0);
+    }
+
+    function chooseOutNormal(layer, angleSign, visTop) {
+      const pref = axisPreferredNormal(layer.axis, angleSign);
+      const kPref = faceKeyFromNormal(pref);
+      const visKeys = new Set(visTop.map(f => f.key));
+      if (visKeys.has(kPref)) return pref.clone();
+      const opp = pref.clone().negate();
+      if (visKeys.has(faceKeyFromNormal(opp))) return opp;
+      let bestN = pref.clone();
+      let bestAbs = -1;
+      for (const f of visTop) {
+        const ad = Math.abs(f.nL.dot(axisVector(layer.axis)));
+        if (ad > bestAbs) {
+          bestAbs = ad;
+          bestN = f.nL.clone();
+        }
+      }
+      if (bestAbs > 0.92) return bestN;
+      return visTop[0].nL.clone();
+    }
+
+    function nominalLayerTarget(layer, angleSign, outN, e1, e2) {
+      const d = OUT + ARROW_SKIN;
+      const idx = layer.index;
+      const g = GRID;
+      const sh = (angleSign > 0 ? -0.4 : 0.4) * g;
+      const base = outN.clone().multiplyScalar(d);
+      if (layer.axis === 'z') return base.add(e1.clone().multiplyScalar(idx * g)).add(e2.clone().multiplyScalar(sh));
+      if (layer.axis === 'x') return base.add(e1.clone().multiplyScalar(sh)).add(e2.clone().multiplyScalar(idx * g));
+      return base.add(e1.clone().multiplyScalar(idx * g)).add(e2.clone().multiplyScalar(sh));
+    }
+
     /**
-     * One quarter-circle in the layer's rotation plane, drawn on an outer cube face.
-     * angleSign +1 → CW move string on +X/+Y/-Z face by axis; −1 → opposite face (3 arcs per physical face total across the two opposite faces for that axis family).
+     * 9 layers × 2 directions = 18 arrows. Arc lies in the layer rotation plane; center snaps to the nearest
+     * outer-face edge midpoint (perimeter or internal sticker edge) on the chosen shell face.
      */
-    function buildLayerArrowGroup(layer, angleSign) {
+    function buildLayerArrowGroup(layer, angleSign, visTop) {
       const mKey = angleSign > 0 ? layerCWMoveString(layer) : layerCCWMoveFrom(layer);
       const mv = moveMap[mKey];
       const empty = new THREE.Group();
@@ -721,34 +863,12 @@
 
       if (!mv) return empty;
 
-      const { axis, index: idx } = layer;
-      const g = GRID;
-      const skin = 0.06;
-      const dist = OUT + skin;
-
-      let outN = new THREE.Vector3();
-      if (axis === 'z') {
-        outN.set(0, 0, angleSign > 0 ? -1 : 1);
-      } else if (axis === 'x') {
-        outN.set(angleSign > 0 ? 1 : -1, 0, 0);
-      } else {
-        outN.set(0, angleSign > 0 ? 1 : -1, 0);
-      }
-
+      const outN = chooseOutNormal(layer, angleSign, visTop);
+      const faceKey = faceKeyFromNormal(outN);
+      const edgeMids = faceEdgeMidpoints(faceKey);
       const { e1, e2 } = basisFromNormal(outN);
-      const faceP = outN.clone().multiplyScalar(dist);
-
-      const slot = new THREE.Vector3();
-      if (axis === 'z') {
-        slot.copy(e1).multiplyScalar(idx * g).add(e2.clone().multiplyScalar(idx * 0.08));
-      } else if (axis === 'x') {
-        slot.copy(e2).multiplyScalar(idx * g).add(e1.clone().multiplyScalar(idx * 0.08));
-      } else {
-        slot.copy(e1).multiplyScalar(idx * g).add(e2.clone().multiplyScalar(idx * 0.08));
-      }
-
-      const R = 0.34;
-      const center = faceP.clone().add(slot).sub(outN.clone().multiplyScalar(R * 0.72));
+      const nominal = nominalLayerTarget(layer, angleSign, outN, e1, e2);
+      const center = nearestEdgeMid(edgeMids, nominal);
 
       let u = e1.clone();
       let v = e2.clone();
@@ -758,6 +878,7 @@
         v.copy(tmp).negate();
       }
 
+      const R = 0.28;
       const segs = 26;
       const pathPts = [];
       for (let i = 0; i <= segs; i++) {
@@ -776,26 +897,28 @@
         emissiveIntensity: 0.12,
         transparent: true,
         opacity: 0.98,
-        depthWrite: true,
+        depthWrite: false,
+        polygonOffset: true,
+        polygonOffsetFactor: -3,
+        polygonOffsetUnits: -3,
       });
 
       const tubeGeom = new THREE.TubeGeometry(path, segs, tubeRad, 6, false);
       const tube = new THREE.Mesh(tubeGeom, mat);
+      tube.renderOrder = 20;
 
       const end = pathPts[pathPts.length - 1].clone();
       const prev = pathPts[pathPts.length - 2].clone();
       const dir = end.clone().sub(prev);
-      if (dir.lengthSq() < 1e-10) {
-        dir.set(0, 1, 0);
-      } else {
-        dir.normalize();
-      }
+      if (dir.lengthSq() < 1e-10) dir.set(0, 1, 0);
+      else dir.normalize();
       const headLen = tubeRad * 6;
       const headR = tubeRad * 2.6;
       const coneGeom = new THREE.ConeGeometry(headR, headLen, 8);
       const cone = new THREE.Mesh(coneGeom, mat.clone());
       cone.position.copy(end).add(dir.clone().multiplyScalar(headLen * 0.38));
       cone.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
+      cone.renderOrder = 20;
 
       const group = new THREE.Group();
       group.add(tube, cone);
@@ -812,13 +935,15 @@
         baseMatProps: { color: pink, emissive: 0x4a1d3d, emissiveIntensity: 0.12, opacity: 0.98 },
         _hoverState: false,
       };
-      group.renderOrder = 10;
+      group.renderOrder = 20;
       return group;
     }
 
     function rebuildLayerArrows() {
       while (layerArrowsGroup.children.length) layerArrowsGroup.remove(layerArrowsGroup.children[0]);
       arrowMeshes.length = 0;
+      const visTop = getThreeVisibleFaces();
+      lastArrowVisSig = visTop.map(f => f.key).join(',');
       const defs = [];
       ['x', 'y', 'z'].forEach(axis => {
         [-1, 0, 1].forEach(index => {
@@ -826,8 +951,8 @@
         });
       });
       defs.forEach(layer => {
-        const g1 = buildLayerArrowGroup(layer, 1);
-        const g2 = buildLayerArrowGroup(layer, -1);
+        const g1 = buildLayerArrowGroup(layer, 1, visTop);
+        const g2 = buildLayerArrowGroup(layer, -1, visTop);
         layerArrowsGroup.add(g1, g2);
         arrowMeshes.push(g1, g2);
       });
@@ -1109,6 +1234,9 @@
 
     function animate() {
       requestAnimationFrame(animate);
+      const visTop = getThreeVisibleFaces();
+      const sig = visTop.map(f => f.key).join(',');
+      if (sig !== lastArrowVisSig) rebuildLayerArrows();
       updateDirections();
       renderer.render(scene, camera);
     }
