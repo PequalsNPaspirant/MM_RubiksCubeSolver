@@ -11,3 +11,11 @@ in front of layer selection drop down, add two buttons with semicircular arrows.
 speed slider range should be from 0 to 10.
 regarding 7 steps and buttons for them, the edit box should be wider and Execute button should be small in width. If auto mode is selected, the solution sequence of moves should be generated automatically and displayed in edit box and edit. When custom mode is selected, user should be able to type in sequence of moves and use standard letters for it, e.g. F for frony layer clockwise rotation, F' for front layer counter clockwise rotation etc.
 In rotate cube mode, cube can not be rotated towards top after certain point. It should be completed free to rotate around all 3 axes.
+
+
+the semicircular arrows in redering window around layers should appear always and should be away from layers so that they are visible. Currently they are hidden inside the layers. When mouse pointer is on any semicircular arrow, then it should also become purple in color otherwise it should remain light pink. The animation speed of 2 is default and normal. speed of 10 should be 5 times normal speed.
+Now we dont need roate cube and rotate layer these 2 modes. When the mouse left button is pressed and dragged, it should rotate whole cube. When the left mouse button is clicked and released without dragging , it should rotate layer.
+
+
+
+

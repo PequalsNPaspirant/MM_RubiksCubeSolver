@@ -186,10 +186,6 @@
     <div id="status">Ready</div>
 
     <h2>Cube Controls</h2>
-    <div class="radio-row">
-      <label>Rotate Cube <input type="radio" name="mode" value="cube" checked /></label>
-      <label>Rotate Layer <input type="radio" name="mode" value="layer" /></label>
-    </div>
     <button id="resetBtn">Reset Orientation</button>
     <label for="layerSelect">Layer to Rotate</label>
     <div class="layer-spin-row">
@@ -210,9 +206,9 @@
 
     <h2>Solve Rubik's Cube</h2>
 
-    <label>Animation Speed (0–10)</label>
-    <input type="range" id="speedSlider" min="0" max="10" step="0.1" value="5" />
-    <p style="text-align: center; font-size: 0.85rem; margin-top: -8px; color: rgba(148, 163, 184, 0.6);" id="speedLabel">5.0</p>
+    <label>Animation Speed (0–10, 2 = normal)</label>
+    <input type="range" id="speedSlider" min="0" max="10" step="0.1" value="2" />
+    <p style="text-align: center; font-size: 0.85rem; margin-top: -8px; color: rgba(148, 163, 184, 0.6);" id="speedLabel">2.0</p>
 
     <div class="radio-row">
       <label>Auto <input type="radio" name="solveMode" value="auto" checked /></label>
@@ -270,7 +266,7 @@
 
     <p style="font-size: 0.85rem; color: rgba(148, 163, 184, 0.5); margin-top: 16px;">
       <strong>Controls:</strong><br />
-      Wheel: Zoom | Drag (Rotate Cube mode): Orbit view | Layer mode: use curved arrows or layer buttons
+      Wheel: Zoom | Drag: rotate whole cube | Click (no drag): rotate layer (face, arrow, or strip under cube for bottom)
     </p>
   </aside>
 
@@ -283,7 +279,6 @@
     const layerSelect = document.getElementById('layerSelect');
     const layerCWBtn = document.getElementById('layerCWBtn');
     const layerCCWBtn = document.getElementById('layerCCWBtn');
-    const modeInputs = Array.from(document.querySelectorAll('input[name="mode"]'));
     const solveModeInputs = Array.from(document.querySelectorAll('input[name="solveMode"]'));
     const resetBtn = document.getElementById('resetBtn');
     const shuffleBtn = document.getElementById('shuffleBtn');
@@ -321,9 +316,8 @@
       7: 'R\' D\' R D'
     };
 
-    let currentMode = 'cube';
     let solveMode = 'auto';
-    let animationSpeed = 5;
+    let animationSpeed = 2;
     let isAnimating = false;
 
     const scene = new THREE.Scene();
@@ -412,9 +406,12 @@
     let hoveredLayer = null;
     let hoveredArrow = null;
     let selectedLayer = parseLayerValue(layerSelect.value);
-    let isDragging = false;
-    let dragStart = null;
-    let pendingClick = null;
+    const DRAG_THRESHOLD_PX = 6;
+    const CLICK_MAX_PX = 8;
+    let pointerDown = false;
+    let opStartClient = null;
+    let lastPointerClient = null;
+    let engagedCubeDrag = false;
 
     const layerArrowsGroup = new THREE.Group();
     cubeGroup.add(layerArrowsGroup);
@@ -449,16 +446,6 @@
     function layerCWMoveString(layer) {
       return layerCWMove[layerKey(layer)] || 'U';
     }
-
-    modeInputs.forEach(input => {
-      input.addEventListener('change', () => {
-        currentMode = input.value;
-        layerArrowsGroup.visible = currentMode === 'layer';
-        updateStatus();
-        updateHighlight();
-        updateSelectionBox();
-      });
-    });
 
     solveModeInputs.forEach(input => {
       input.addEventListener('change', () => {
@@ -526,8 +513,8 @@
 
     function effectiveSpeedFactor() {
       const s = Math.max(0, animationSpeed);
-      if (s <= 0.05) return 0.08;
-      return 0.15 + s * (1.85 / 10);
+      if (s <= 0.05) return 0.05;
+      return s / 2;
     }
 
     speedSlider.addEventListener('input', (e) => {
@@ -545,6 +532,15 @@
       }
       executeMoves(moves.trim());
     });
+
+    function getIntersect(event) {
+      if (!event) return null;
+      pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
+      pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
+      raycaster.setFromCamera(pointer, camera);
+      const hits = raycaster.intersectObjects(cubelets, false);
+      return hits.length ? hits[0] : null;
+    }
 
     function getCubeScreenBounds() {
       let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
@@ -574,6 +570,22 @@
       return null;
     }
 
+    function axisFromNormal(normal) {
+      const abs = new THREE.Vector3(Math.abs(normal.x), Math.abs(normal.y), Math.abs(normal.z));
+      if (abs.x > abs.y && abs.x > abs.z) return 'x';
+      if (abs.y > abs.x && abs.y > abs.z) return 'y';
+      return 'z';
+    }
+
+    function getLayerForHit(hit) {
+      if (!hit) return null;
+      const normal = hit.face.normal.clone();
+      normal.transformDirection(hit.object.matrixWorld);
+      const axis = axisFromNormal(normal);
+      const coords = hit.object.userData.coords;
+      return { axis, index: coords[axis] };
+    }
+
     function layerCubelets(layer) {
       return cubelets.filter(mesh => Math.round(mesh.userData.coords[layer.axis]) === layer.index);
     }
@@ -595,7 +607,7 @@
     }
 
     function updateHighlight() {
-      const hl = currentMode === 'layer' ? (hoveredLayer || selectedLayer) : null;
+      const hl = hoveredLayer || selectedLayer;
       cubelets.forEach(mesh => {
         const isLayer = hl && Math.round(mesh.userData.coords[hl.axis]) === hl.index;
         setCubeletHighlight(mesh, isLayer);
@@ -605,7 +617,6 @@
     function updateSelectionBox() {
       while (selectionBoxGroup.children.length) selectionBoxGroup.remove(selectionBoxGroup.children[0]);
       selectionBoxLines = null;
-      if (currentMode !== 'layer') return;
       const layer = hoveredLayer || selectedLayer;
       if (!layer) return;
 
@@ -628,8 +639,10 @@
     }
 
     function updateStatus(message) {
-      const activeLayer = currentMode === 'layer' ? selectedLayer : null;
-      status.innerHTML = message || `Mode: <strong>${currentMode === 'cube' ? 'Cube' : 'Layer'}</strong>${activeLayer ? ` | Layer: <strong>${activeLayer.axis.toUpperCase()} ${activeLayer.index}</strong>` : ''}`;
+      const activeLayer = selectedLayer;
+      status.innerHTML = message || (activeLayer
+        ? `Layer: <strong>${activeLayer.axis.toUpperCase()} ${activeLayer.index}</strong> — drag to orbit cube, click for quarter turn`
+        : 'Ready — drag to orbit cube, click for quarter turn');
     }
 
     function createRotateGroup(layer) {
@@ -681,8 +694,8 @@
       } else U.normalize();
       const V = new THREE.Vector3().crossVectors(A, U).normalize();
 
-      const radius = 1.42;
-      const bump = 0.38;
+      const radius = 1.62;
+      const bump = 2.05;
       const base = centerL.clone().add(outward.clone().multiplyScalar(bump));
       const startAngle = angleSign > 0 ? -Math.PI / 2 : Math.PI / 2;
       const segments = 28;
@@ -695,29 +708,26 @@
         pts.push(p);
       }
       const curve = new THREE.CatmullRomCurve3(pts);
-      const tube = new THREE.TubeGeometry(curve, segments, 0.055, 6, false);
+      const tube = new THREE.TubeGeometry(curve, segments, 0.065, 8, false);
+      const pink = 0xfbcfe8;
       const mat = new THREE.MeshStandardMaterial({
-        color: angleSign > 0 ? 0x7dd3fc : 0xfbbf24,
-        metalness: 0.1,
-        roughness: 0.45,
-        emissive: 0x111111,
-        emissiveIntensity: 0.15,
+        color: pink,
+        metalness: 0.05,
+        roughness: 0.42,
+        emissive: 0x4a1d3d,
+        emissiveIntensity: 0.12,
         transparent: true,
-        opacity: 0.92
+        opacity: 0.98,
+        depthWrite: true,
       });
       const mesh = new THREE.Mesh(tube, mat);
-      const innerTube = new THREE.TubeGeometry(curve, segments, 0.028, 6, false);
-      const innerMat = new THREE.MeshBasicMaterial({ color: 0xf0abfc, transparent: true, opacity: 0 });
-      const innerMesh = new THREE.Mesh(innerTube, innerMat);
-      mesh.add(innerMesh);
       mesh.userData = {
         type: 'layerArrow',
         layer: { axis: layer.axis, index: layer.index },
         angleSign,
-        baseMatProps: { color: mat.color.getHex(), emissive: mat.emissive.getHex(), opacity: mat.opacity },
-        innerMat,
+        baseMatProps: { color: pink, emissive: 0x4a1d3d, emissiveIntensity: 0.12, opacity: 0.98 },
       };
-      mesh.renderOrder = 5;
+      mesh.renderOrder = 10;
       return mesh;
     }
 
@@ -751,92 +761,119 @@
     function setArrowHoverVisual(mesh, hover) {
       if (!mesh || !mesh.userData.baseMatProps) return;
       const mat = mesh.material;
+      const b = mesh.userData.baseMatProps;
       if (hover) {
-        mat.color.setHex(0xffffff);
+        mat.color.setHex(0xa855f7);
         mat.emissive.setHex(0x6b21a8);
-        mat.emissiveIntensity = 0.55;
+        mat.emissiveIntensity = 0.45;
         mat.opacity = 1;
-        mesh.scale.setScalar(1.14);
-        if (mesh.userData.innerMat) mesh.userData.innerMat.opacity = 0.95;
+        mesh.scale.setScalar(1.06);
       } else {
-        mat.color.setHex(mesh.userData.baseMatProps.color);
-        mat.emissive.setHex(mesh.userData.baseMatProps.emissive);
-        mat.emissiveIntensity = 0.15;
-        mat.opacity = mesh.userData.baseMatProps.opacity;
+        mat.color.setHex(b.color);
+        mat.emissive.setHex(b.emissive);
+        mat.emissiveIntensity = b.emissiveIntensity;
+        mat.opacity = b.opacity;
         mesh.scale.setScalar(1);
-        if (mesh.userData.innerMat) mesh.userData.innerMat.opacity = 0;
       }
+    }
+
+    function updateArrowHoverFromEvent(event) {
+      if (isAnimating || engagedCubeDrag) return;
+      const ah = raycastArrows(event);
+      const bottomPick = !ah ? pickBottomBelowPointer(event) : null;
+
+      if (ah) {
+        hoveredArrow = ah.object;
+        hoveredLayer = { ...ah.object.userData.layer };
+        layerSelect.value = `${hoveredLayer.axis}:${hoveredLayer.index}`;
+        selectedLayer = hoveredLayer;
+      } else if (bottomPick) {
+        hoveredArrow = null;
+        hoveredLayer = bottomPick;
+        layerSelect.value = `${bottomPick.axis}:${bottomPick.index}`;
+        selectedLayer = bottomPick;
+      } else {
+        hoveredArrow = null;
+        hoveredLayer = null;
+      }
+
+      arrowMeshes.forEach(m => setArrowHoverVisual(m, m === hoveredArrow));
+      updateStatus();
+      updateHighlight();
+      updateSelectionBox();
     }
 
     function onPointerDown(event) {
       if (event.button !== 0 || isAnimating) return;
-      isDragging = true;
-      dragStart = { x: event.clientX, y: event.clientY };
-      pendingClick = null;
-
-      if (currentMode === 'layer') {
-        const ah = raycastArrows(event);
-        if (ah) {
-          pendingClick = { mesh: ah.object, layer: { ...ah.object.userData.layer }, angleSign: ah.object.userData.angleSign, x: event.clientX, y: event.clientY };
-        }
-      }
+      pointerDown = true;
+      engagedCubeDrag = false;
+      opStartClient = { x: event.clientX, y: event.clientY };
+      lastPointerClient = { x: event.clientX, y: event.clientY };
     }
 
     function onPointerMove(event) {
-      if (currentMode === 'layer' && !isDragging) {
-        const ah = raycastArrows(event);
-        let bottomPick = null;
-        if (!ah) bottomPick = pickBottomBelowPointer(event);
-
-        if (ah) {
-          hoveredArrow = ah.object;
-          hoveredLayer = { ...ah.object.userData.layer };
-          layerSelect.value = `${hoveredLayer.axis}:${hoveredLayer.index}`;
-          selectedLayer = hoveredLayer;
-        } else if (bottomPick) {
-          hoveredArrow = null;
-          hoveredLayer = bottomPick;
-          layerSelect.value = `${bottomPick.axis}:${bottomPick.index}`;
-          selectedLayer = bottomPick;
-        } else {
-          hoveredArrow = null;
-          hoveredLayer = null;
-        }
-
-        arrowMeshes.forEach(m => setArrowHoverVisual(m, m === hoveredArrow));
-        updateStatus();
-        updateHighlight();
-        updateSelectionBox();
+      if (!pointerDown) {
+        updateArrowHoverFromEvent(event);
         return;
       }
 
-      if (!isDragging) return;
-
-      const dx = event.clientX - dragStart.x;
-      const dy = event.clientY - dragStart.y;
-
-      if (currentMode === 'cube') {
-        cubeGroup.rotation.y += dx * 0.004;
-        cubeGroup.rotation.x += dy * 0.004;
-        dragStart = { x: event.clientX, y: event.clientY };
+      const dx = event.clientX - opStartClient.x;
+      const dy = event.clientY - opStartClient.y;
+      if (!engagedCubeDrag && Math.hypot(dx, dy) > DRAG_THRESHOLD_PX) {
+        engagedCubeDrag = true;
+        hoveredArrow = null;
+        arrowMeshes.forEach(m => setArrowHoverVisual(m, false));
       }
+
+      if (engagedCubeDrag) {
+        const mdx = event.clientX - lastPointerClient.x;
+        const mdy = event.clientY - lastPointerClient.y;
+        cubeGroup.rotation.y += mdx * 0.004;
+        cubeGroup.rotation.x += mdy * 0.004;
+        lastPointerClient = { x: event.clientX, y: event.clientY };
+        return;
+      }
+
+      updateArrowHoverFromEvent(event);
     }
 
     function onPointerUp(event) {
-      if (!isDragging) return;
-      isDragging = false;
+      if (!pointerDown) return;
+      pointerDown = false;
 
-      if (pendingClick && currentMode === 'layer') {
-        const dist = Math.hypot(event.clientX - pendingClick.x, event.clientY - pendingClick.y);
-        if (dist < 8) {
-          const layer = pendingClick.layer;
+      const travel = Math.hypot(event.clientX - opStartClient.x, event.clientY - opStartClient.y);
+
+      if (!engagedCubeDrag && travel < CLICK_MAX_PX) {
+        const ah = raycastArrows(event);
+        if (ah) {
+          const o = ah.object;
+          const layer = o.userData.layer;
           const cw = layerCWMoveString(layer);
           const ccw = layerCCWMoveFrom(layer);
-          const move = pendingClick.angleSign > 0 ? cw : ccw;
+          const move = o.userData.angleSign > 0 ? cw : ccw;
           if (move) executeMoves(move);
+        } else {
+          const bottomPick = pickBottomBelowPointer(event);
+          if (bottomPick) {
+            layerSelect.value = `${bottomPick.axis}:${bottomPick.index}`;
+            selectedLayer = bottomPick;
+            executeMoves(layerCWMoveString(bottomPick));
+          } else {
+            const hit = getIntersect(event);
+            const layer = getLayerForHit(hit);
+            if (layer) {
+              layerSelect.value = `${layer.axis}:${layer.index}`;
+              selectedLayer = layer;
+              executeMoves(layerCWMoveString(layer));
+            }
+          }
         }
       }
-      pendingClick = null;
+
+      engagedCubeDrag = false;
+      opStartClient = null;
+      lastPointerClient = null;
+      updateArrowHoverFromEvent(event);
     }
 
     function onWheel(event) {
@@ -945,7 +982,7 @@
         updateSelectionBox();
         updateStatus('Moves completed');
       } finally {
-        layerArrowsGroup.visible = currentMode === 'layer';
+        layerArrowsGroup.visible = true;
         isAnimating = false;
       }
     }
@@ -992,7 +1029,7 @@
 
     animationSpeed = parseFloat(speedSlider.value);
     speedLabel.textContent = animationSpeed.toFixed(1);
-    layerArrowsGroup.visible = currentMode === 'layer';
+    layerArrowsGroup.visible = true;
     applyCameraCentering();
     updateStatus();
     updateHighlight();
