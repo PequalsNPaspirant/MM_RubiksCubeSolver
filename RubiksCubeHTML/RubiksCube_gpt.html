@@ -590,15 +590,6 @@
       return cubelets.filter(mesh => Math.round(mesh.userData.coords[layer.axis]) === layer.index);
     }
 
-    function layerCenterWorld(layer) {
-      const box = new THREE.Box3();
-      layerCubelets(layer).forEach(m => {
-        const p = m.position.clone().applyMatrix4(cubeGroup.matrixWorld);
-        box.expandByPoint(p);
-      });
-      return box.getCenter(new THREE.Vector3());
-    }
-
     function setCubeletHighlight(mesh, highlighted) {
       for (const mat of mesh.material) {
         mat.emissive.setHex(highlighted ? 0x243c6c : 0x000000);
@@ -669,46 +660,105 @@
       updateCubeletCoordinates();
     }
 
-    function axisVector(axis) {
-      if (axis === 'x') return new THREE.Vector3(1, 0, 0);
-      if (axis === 'y') return new THREE.Vector3(0, 1, 0);
-      return new THREE.Vector3(0, 0, 1);
+    const GRID = 1.04;
+    const HALF = 0.46;
+    const OUT = GRID + HALF;
+
+    /** Endpoints on two adjacent outer faces of the layer; `bis` points outward from the dihedral for arc bulge. */
+    function getWedgeSpec(layer, angleSign) {
+      const g = GRID;
+      const o = OUT;
+      const { axis, index } = layer;
+      const s = angleSign > 0 ? 1 : -1;
+      const spread = (axis === 'z' ? index * 0.11 : axis === 'x' ? index * 0.1 : index * 0.1)
+        + (angleSign > 0 ? 0.06 : -0.06);
+      const yb = axis === 'z' ? spread : axis === 'x' ? (index * 0.07 + angleSign * 0.04) : 0;
+      const zb = axis === 'y' ? spread : axis === 'x' ? (index * 0.06 + angleSign * 0.03) : 0;
+
+      let E1, E2, bis;
+
+      if (axis === 'z') {
+        const zm = index * g;
+        if (s > 0) {
+          E1 = new THREE.Vector3(-o, yb, zm);
+          if (index === -1) E2 = new THREE.Vector3(-g + 0.03, yb, -o);
+          else if (index === 1) E2 = new THREE.Vector3(-g + 0.03, yb, o);
+          else E2 = new THREE.Vector3(-g + 0.03, yb, -0.52);
+          bis = new THREE.Vector3(-1, 0, index === 1 ? 1 : -1).normalize();
+        } else {
+          E1 = new THREE.Vector3(o, yb, zm);
+          if (index === -1) E2 = new THREE.Vector3(g - 0.03, yb, -o);
+          else if (index === 1) E2 = new THREE.Vector3(g - 0.03, yb, o);
+          else E2 = new THREE.Vector3(g - 0.03, yb, -0.52);
+          bis = new THREE.Vector3(1, 0, index === 1 ? 1 : -1).normalize();
+        }
+      } else if (axis === 'x') {
+        const xm = index * g;
+        if (s > 0) {
+          E1 = new THREE.Vector3(xm, yb, -o);
+          if (index === -1) E2 = new THREE.Vector3(-o, yb, -g + 0.03);
+          else if (index === 1) E2 = new THREE.Vector3(o, yb, -g + 0.03);
+          else E2 = new THREE.Vector3(0.44, yb, -g + 0.03);
+          bis = new THREE.Vector3(index === 1 ? 1 : -1, 0, -1).normalize();
+        } else {
+          E1 = new THREE.Vector3(xm, yb, o);
+          if (index === -1) E2 = new THREE.Vector3(-o, yb, g - 0.03);
+          else if (index === 1) E2 = new THREE.Vector3(o, yb, g - 0.03);
+          else E2 = new THREE.Vector3(0.44, yb, g - 0.03);
+          bis = new THREE.Vector3(index === 1 ? 1 : -1, 0, 1).normalize();
+        }
+      } else {
+        const ym = index * g;
+        if (s > 0) {
+          E1 = new THREE.Vector3(-o, ym, zb);
+          if (index === 1) E2 = new THREE.Vector3(-g + 0.03, o, zb);
+          else if (index === -1) E2 = new THREE.Vector3(-g + 0.03, -o, zb);
+          else E2 = new THREE.Vector3(-g + 0.03, 0.42, zb);
+          bis = new THREE.Vector3(-1, index === 1 ? 1 : -1, 0).normalize();
+        } else {
+          E1 = new THREE.Vector3(o, ym, zb);
+          if (index === 1) E2 = new THREE.Vector3(g - 0.03, o, zb);
+          else if (index === -1) E2 = new THREE.Vector3(g - 0.03, -o, zb);
+          else E2 = new THREE.Vector3(g - 0.03, 0.42, zb);
+          bis = new THREE.Vector3(1, index === 1 ? 1 : -1, 0).normalize();
+        }
+      }
+
+      return { E1, E2, bis };
     }
 
-    function buildSemicircleArrow(layer, angleSign) {
-      const A = axisVector(layer.axis);
-      const centerW = layerCenterWorld(layer);
-      const centerL = centerW.clone().applyMatrix4(new THREE.Matrix4().copy(cubeGroup.matrixWorld).invert());
-
-      let outward = new THREE.Vector3();
-      if (layer.axis === 'x') outward.set(layer.index === 0 ? 1 : layer.index, 0, 0);
-      else if (layer.axis === 'y') outward.set(0, layer.index === 0 ? 1 : layer.index, 0);
-      else outward.set(0, 0, layer.index === 0 ? 1 : layer.index);
-      outward.normalize();
-
-      let U = new THREE.Vector3().crossVectors(A, outward);
-      if (U.lengthSq() < 1e-6) {
-        if (layer.axis === 'x') U.set(0, 1, 0);
-        else U.set(1, 0, 0);
-        U.sub(A.clone().multiplyScalar(A.dot(U))).normalize();
-      } else U.normalize();
-      const V = new THREE.Vector3().crossVectors(A, U).normalize();
-
-      const radius = 1.62;
-      const bump = 2.05;
-      const base = centerL.clone().add(outward.clone().multiplyScalar(bump));
-      const startAngle = angleSign > 0 ? -Math.PI / 2 : Math.PI / 2;
-      const segments = 28;
-      const pts = [];
-      for (let i = 0; i <= segments; i++) {
-        const t = startAngle + (Math.PI * i) / segments;
-        const p = base.clone()
-          .add(U.clone().multiplyScalar(Math.cos(t) * radius))
-          .add(V.clone().multiplyScalar(Math.sin(t) * radius));
-        pts.push(p);
+    function buildLayerArrowGroup(layer, angleSign) {
+      const { E1, E2, bis } = getWedgeSpec(layer, angleSign);
+      const chordV = E2.clone().sub(E1);
+      const L = chordV.length();
+      const M = E1.clone().lerp(E2, 0.5);
+      const chordU = chordV.clone().multiplyScalar(1 / Math.max(L, 1e-6));
+      let nPl = bis.clone().sub(chordU.clone().multiplyScalar(bis.dot(chordU)));
+      if (nPl.lengthSq() < 1e-8) nPl = new THREE.Vector3(0, 1, 0);
+      nPl.normalize();
+      const Rc = L / Math.SQRT2;
+      const h = Math.sqrt(Math.max(0.0001, Rc * Rc - (L * 0.5) * (L * 0.5)));
+      let O = M.clone().add(nPl.multiplyScalar(h));
+      let v1 = E1.clone().sub(O);
+      let v2 = E2.clone().sub(O);
+      if (v1.dot(v2) > 0.05) {
+        O = M.clone().add(nPl.multiplyScalar(-h));
+        v1 = E1.clone().sub(O);
+        v2 = E2.clone().sub(O);
       }
-      const curve = new THREE.CatmullRomCurve3(pts);
-      const tube = new THREE.TubeGeometry(curve, segments, 0.065, 8, false);
+      const Rarc = (v1.length() + v2.length()) * 0.5;
+      v1.normalize();
+      v2.normalize();
+
+      const segs = 28;
+      const pathPts = [];
+      for (let i = 0; i <= segs; i++) {
+        const t = (i / segs) * (Math.PI * 0.5);
+        pathPts.push(O.clone().add(v1.clone().multiplyScalar(Rarc * Math.cos(t))).add(v2.clone().multiplyScalar(Rarc * Math.sin(t))));
+      }
+      const path = new THREE.CatmullRomCurve3(pathPts);
+
+      const tubeRad = 0.0325;
       const pink = 0xfbcfe8;
       const mat = new THREE.MeshStandardMaterial({
         color: pink,
@@ -720,15 +770,32 @@
         opacity: 0.98,
         depthWrite: true,
       });
-      const mesh = new THREE.Mesh(tube, mat);
-      mesh.userData = {
+
+      const tubeGeom = new THREE.TubeGeometry(path, segs, tubeRad, 6, false);
+      const tube = new THREE.Mesh(tubeGeom, mat);
+
+      const end = E2.clone();
+      const prev = pathPts[pathPts.length - 2].clone();
+      const dir = end.clone().sub(prev).normalize();
+      const headLen = tubeRad * 6;
+      const headR = tubeRad * 2.6;
+      const coneGeom = new THREE.ConeGeometry(headR, headLen, 8);
+      const cone = new THREE.Mesh(coneGeom, mat.clone());
+      cone.position.copy(end).add(dir.clone().multiplyScalar(headLen * 0.38));
+      cone.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
+
+      const group = new THREE.Group();
+      group.add(tube, cone);
+      group.userData = {
         type: 'layerArrow',
         layer: { axis: layer.axis, index: layer.index },
         angleSign,
+        tube,
+        cone,
         baseMatProps: { color: pink, emissive: 0x4a1d3d, emissiveIntensity: 0.12, opacity: 0.98 },
       };
-      mesh.renderOrder = 10;
-      return mesh;
+      group.renderOrder = 10;
+      return group;
     }
 
     function rebuildLayerArrows() {
@@ -741,44 +808,54 @@
         });
       });
       defs.forEach(layer => {
-        const m1 = buildSemicircleArrow(layer, 1);
-        const m2 = buildSemicircleArrow(layer, -1);
-        layerArrowsGroup.add(m1, m2);
-        arrowMeshes.push(m1, m2);
+        const g1 = buildLayerArrowGroup(layer, 1);
+        const g2 = buildLayerArrowGroup(layer, -1);
+        layerArrowsGroup.add(g1, g2);
+        arrowMeshes.push(g1, g2);
       });
     }
 
     rebuildLayerArrows();
 
+    function getArrowPickRoot(obj) {
+      let o = obj;
+      while (o.parent && o.parent !== layerArrowsGroup) o = o.parent;
+      return o.parent === layerArrowsGroup && o.userData?.type === 'layerArrow' ? o : null;
+    }
+
     function raycastArrows(event) {
       pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
       pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
       raycaster.setFromCamera(pointer, camera);
-      const hits = raycaster.intersectObjects(arrowMeshes, false);
-      return hits.length ? hits[0] : null;
+      const hits = raycaster.intersectObjects(layerArrowsGroup.children, true);
+      if (!hits.length) return null;
+      const root = getArrowPickRoot(hits[0].object);
+      if (!root) return null;
+      return { object: root, distance: hits[0].distance, point: hits[0].point };
     }
 
-    function setArrowHoverVisual(mesh, hover) {
-      if (!mesh || !mesh.userData.baseMatProps) return;
-      const mat = mesh.material;
-      const b = mesh.userData.baseMatProps;
-      if (hover) {
-        mat.color.setHex(0xa855f7);
-        mat.emissive.setHex(0x6b21a8);
-        mat.emissiveIntensity = 0.45;
-        mat.opacity = 1;
-        mesh.scale.setScalar(1.06);
-      } else {
-        mat.color.setHex(b.color);
-        mat.emissive.setHex(b.emissive);
-        mat.emissiveIntensity = b.emissiveIntensity;
-        mat.opacity = b.opacity;
-        mesh.scale.setScalar(1);
+    function setArrowHoverVisual(group, hover) {
+      if (!group || !group.userData.baseMatProps) return;
+      const b = group.userData.baseMatProps;
+      const mats = [group.userData.tube.material, group.userData.cone.material];
+      for (const mat of mats) {
+        if (hover) {
+          mat.color.setHex(0xa855f7);
+          mat.emissive.setHex(0x6b21a8);
+          mat.emissiveIntensity = 0.48;
+          mat.opacity = 1;
+        } else {
+          mat.color.setHex(b.color);
+          mat.emissive.setHex(b.emissive);
+          mat.emissiveIntensity = b.emissiveIntensity;
+          mat.opacity = b.opacity;
+        }
       }
+      group.scale.setScalar(hover ? 1.38 : 1);
     }
 
     function updateArrowHoverFromEvent(event) {
-      if (isAnimating || engagedCubeDrag) return;
+      if (engagedCubeDrag) return;
       const ah = raycastArrows(event);
       const bottomPick = !ah ? pickBottomBelowPointer(event) : null;
 
@@ -968,7 +1045,6 @@
     async function executeMoves(movesStr) {
       if (isAnimating || !movesStr.trim()) return;
       isAnimating = true;
-      layerArrowsGroup.visible = false;
       try {
         const moves = movesStr.trim().split(/\s+/).filter(Boolean);
 
@@ -982,7 +1058,6 @@
         updateSelectionBox();
         updateStatus('Moves completed');
       } finally {
-        layerArrowsGroup.visible = true;
         isAnimating = false;
       }
     }

@@ -17,5 +17,10 @@ the semicircular arrows in redering window around layers should appear always an
 Now we dont need roate cube and rotate layer these 2 modes. When the mouse left button is pressed and dragged, it should rotate whole cube. When the left mouse button is clicked and released without dragging , it should rotate layer.
 
 
+The arrow should be a quarter of circle, not half circle. Also they should have a clearly visible arrow pointer. By default their width should be half of current thickness and when any arrow is highlighted, its thickness should grow and color should change to purple. The arraw should appear on the side face of layer on one side.So for front layer, one arrow should be on left side face touching its head and tail on front layer and another arrow should be on right side face touching its head and tail on front layer. Arrage all the arrows in such a way that they do not intersect.
+keep the arrows visible while layer is being rotated, currently arrows disappear durng layer rotation and then they reappear when layer stops.
 
 
+The arrow direction is wrong.
+The plane in which the arrow is, should be same as plane of layer. So for top layer, two horizontal quarter arc arows should appear on each side. So basically every face will have 3 quarter arc arrows arrached to it which will be outside of layer.
+Also when arrow is highlghted, it changes the position, it should not happen. The arrow positionshould remain same,only color and thickness should change.
