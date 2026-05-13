@@ -814,10 +814,107 @@
       return best.clone();
     }
 
+    function closestEdgeCandidate(cands, target) {
+      if (!cands.length) return target.clone();
+      let best = cands[0];
+      let md = Infinity;
+      for (const c of cands) {
+        const d = c.pos.distanceToSquared(target);
+        if (d < md) {
+          md = d;
+          best = c;
+        }
+      }
+      return best;
+    }
+
     function axisPreferredNormal(axis, angleSign) {
       if (axis === 'z') return new THREE.Vector3(0, 0, angleSign > 0 ? -1 : 1);
       if (axis === 'x') return new THREE.Vector3(angleSign > 0 ? 1 : -1, 0, 0);
       return new THREE.Vector3(0, angleSign > 0 ? 1 : -1, 0);
+    }
+
+    function faceBorderEdges(faceKey) {
+      const d = OUT + ARROW_SKIN;
+      const a = GRID + HALF;
+      const edges = [];
+      const add = (pos, dir) => edges.push({ pos, dir });
+
+      if (faceKey === 'z+' || faceKey === 'z-') {
+        const z = faceKey === 'z+' ? d : -d;
+        for (const x of [-a, 0, a]) {
+          add(new THREE.Vector3(x, -a, z), new THREE.Vector3(0, 1, 0));
+          add(new THREE.Vector3(x, a, z), new THREE.Vector3(0, 1, 0));
+        }
+        for (const y of [-a, 0, a]) {
+          add(new THREE.Vector3(-a, y, z), new THREE.Vector3(1, 0, 0));
+          add(new THREE.Vector3(a, y, z), new THREE.Vector3(1, 0, 0));
+        }
+      } else if (faceKey === 'y+' || faceKey === 'y-') {
+        const y = faceKey === 'y+' ? d : -d;
+        for (const x of [-a, 0, a]) {
+          add(new THREE.Vector3(x, y, -a), new THREE.Vector3(0, 0, 1));
+          add(new THREE.Vector3(x, y, a), new THREE.Vector3(0, 0, 1));
+        }
+        for (const z of [-a, 0, a]) {
+          add(new THREE.Vector3(-a, y, z), new THREE.Vector3(1, 0, 0));
+          add(new THREE.Vector3(a, y, z), new THREE.Vector3(1, 0, 0));
+        }
+      } else {
+        const x = faceKey === 'x+' ? d : -d;
+        for (const y of [-a, 0, a]) {
+          add(new THREE.Vector3(x, y, -a), new THREE.Vector3(0, 0, 1));
+          add(new THREE.Vector3(x, y, a), new THREE.Vector3(0, 0, 1));
+        }
+        for (const z of [-a, 0, a]) {
+          add(new THREE.Vector3(x, -a, z), new THREE.Vector3(0, 1, 0));
+          add(new THREE.Vector3(x, a, z), new THREE.Vector3(0, 1, 0));
+        }
+      }
+
+      const seen = new Set();
+      return edges.filter(edge => {
+        const key = `${edge.pos.x.toFixed(3)},${edge.pos.y.toFixed(3)},${edge.pos.z.toFixed(3)}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    }
+
+    function getCameraScreenBasis() {
+      const forward = new THREE.Vector3();
+      camera.getWorldDirection(forward).normalize();
+      const up = camera.up.clone().applyQuaternion(camera.quaternion).normalize();
+      const right = new THREE.Vector3().crossVectors(up, forward).normalize();
+      return { right, up };
+    }
+
+    function worldDirToScreen(dir, right, up) {
+      return new THREE.Vector2(dir.dot(right), dir.dot(up));
+    }
+
+    function visibleEdgeCandidates(visTop) {
+      return visTop.flatMap(f => faceBorderEdges(f.key));
+    }
+
+    function chooseVisibleEdgeCandidate(layer, visTop, nominal) {
+      const cameraBasis = getCameraScreenBasis();
+      const candidates = visibleEdgeCandidates(visTop).map(edge => {
+        const worldDir = edge.dir.clone().transformDirection(cubeGroup.matrixWorld).normalize();
+        const screenDir = worldDirToScreen(worldDir, cameraBasis.right, cameraBasis.up);
+        return { ...edge, screenDir };
+      });
+
+      let filtered = [];
+      if (layer.axis === 'y') {
+        filtered = candidates.filter(c => Math.abs(c.screenDir.y) >= Math.abs(c.screenDir.x));
+      } else if (layer.axis === 'z') {
+        filtered = candidates.filter(c => c.screenDir.x > 0);
+      } else {
+        filtered = candidates.filter(c => c.screenDir.x < 0);
+      }
+      if (!filtered.length) filtered = candidates;
+      return closestEdgeCandidate(filtered, nominal).pos;
     }
 
     function chooseOutNormal(layer, angleSign, visTop) {
@@ -852,8 +949,8 @@
     }
 
     /**
-     * 9 layers × 2 directions = 18 arrows. Arc lies in the layer rotation plane; center snaps to the nearest
-     * outer-face edge midpoint (perimeter or internal sticker edge) on the chosen shell face.
+     * 9 layers × 2 directions = 18 arrows. Each pair shares a visible edge anchor and traces two opposite
+     * arcs on a circle around the cube, centered on the layer's original X/Y/Z axis through the cube.
      */
     function buildLayerArrowGroup(layer, angleSign, visTop) {
       const mKey = angleSign > 0 ? layerCWMoveString(layer) : layerCCWMoveFrom(layer);
@@ -864,26 +961,47 @@
       if (!mv) return empty;
 
       const outN = chooseOutNormal(layer, angleSign, visTop);
-      const faceKey = faceKeyFromNormal(outN);
-      const edgeMids = faceEdgeMidpoints(faceKey);
       const { e1, e2 } = basisFromNormal(outN);
       const nominal = nominalLayerTarget(layer, angleSign, outN, e1, e2);
-      const center = nearestEdgeMid(edgeMids, nominal);
+      const edgeStart = chooseVisibleEdgeCandidate(layer, visTop, nominal);
 
-      let u = e1.clone();
-      let v = e2.clone();
-      if (Math.sign(mv.angle) < 0) {
-        const tmp = u.clone();
-        u.copy(v);
-        v.copy(tmp).negate();
-      }
+      const circleCenter = new THREE.Vector3(
+        layer.axis === 'x' ? layer.index * GRID : 0,
+        layer.axis === 'y' ? layer.index * GRID : 0,
+        layer.axis === 'z' ? layer.index * GRID : 0
+      );
+      const planeU = layer.axis === 'x'
+        ? new THREE.Vector3(0, 0, 1)
+        : layer.axis === 'y'
+          ? new THREE.Vector3(1, 0, 0)
+          : new THREE.Vector3(1, 0, 0);
+      const planeV = layer.axis === 'x'
+        ? new THREE.Vector3(0, 1, 0)
+        : layer.axis === 'y'
+          ? new THREE.Vector3(0, 0, 1)
+          : new THREE.Vector3(0, 1, 0);
 
-      const R = 0.28;
-      const segs = 26;
+      const anchorOffset = edgeStart.clone().sub(circleCenter);
+      if (layer.axis === 'x') anchorOffset.x = 0;
+      else if (layer.axis === 'y') anchorOffset.y = 0;
+      else anchorOffset.z = 0;
+
+      let R = anchorOffset.length();
+      if (R < OUT * 1.1) R = OUT * 1.1;
+      const theta = Math.atan2(anchorOffset.dot(planeV), anchorOffset.dot(planeU));
+      const angleDir = angleSign > 0 ? 1 : -1;
+      const gap = 0.11;
+      const arcSpan = Math.PI * 0.7;
+      const startAngle = theta + angleDir * gap;
+
+      const segs = 36;
       const pathPts = [];
       for (let i = 0; i <= segs; i++) {
-        const t = (i / segs) * (Math.PI * 0.5);
-        pathPts.push(center.clone().add(u.clone().multiplyScalar(R * Math.cos(t))).add(v.clone().multiplyScalar(R * Math.sin(t))));
+        const t = i / segs;
+        const angle = startAngle + angleDir * t * arcSpan;
+        pathPts.push(circleCenter.clone()
+          .add(planeU.clone().multiplyScalar(R * Math.cos(angle)))
+          .add(planeV.clone().multiplyScalar(R * Math.sin(angle))));
       }
 
       const path = new THREE.CatmullRomCurve3(pathPts);
