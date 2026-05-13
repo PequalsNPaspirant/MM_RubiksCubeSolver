@@ -15,18 +15,22 @@
     }
     #container {
       position: absolute;
-      inset: 0;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 70vh;
       overflow: hidden;
     }
     #ui {
       position: absolute;
-      top: 16px;
-      left: 16px;
-      width: min(360px, calc(100vw - 32px));
-      max-height: 90vh;
-      border-radius: 16px;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 30vh;
+      width: 100%;
+      border-radius: 16px 16px 0 0;
       background: rgba(15, 23, 42, 0.95);
-      box-shadow: 0 24px 80px rgba(15, 23, 42, 0.45);
+      box-shadow: 0 -16px 40px rgba(15, 23, 42, 0.35);
       backdrop-filter: blur(12px);
       z-index: 2;
       overflow-y: auto;
@@ -328,7 +332,7 @@
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.outputEncoding = THREE.sRGBEncoding;
     container.appendChild(renderer.domElement);
 
@@ -1256,16 +1260,14 @@
     }
 
     function applyCameraCentering() {
-      const uiRect = ui.getBoundingClientRect();
-      const bias = (uiRect.width / window.innerWidth) * 2.4;
-      cubeGroup.position.x = bias;
-      camera.lookAt(bias, 0, 0);
+      cubeGroup.position.x = 0;
+      camera.lookAt(0, 0, 0);
     }
 
     function onResize() {
-      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.aspect = container.clientWidth / container.clientHeight;
       camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setSize(container.clientWidth, container.clientHeight);
       applyCameraCentering();
     }
 
