@@ -361,6 +361,7 @@
     scene.background = new THREEjs.Color('#17203a');
     const camera = new THREEjs.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
     camera.position.set(6.2, 5.4, 6.2);
+    camera.position.setLength(15);
     camera.lookAt(0, 0, 0);
 
     const renderer = new THREEjs.WebGLRenderer({ antialias: true });
