@@ -368,7 +368,9 @@
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(container.clientWidth, container.clientHeight);
     // renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.outputEncoding = THREEjs.sRGBEncoding;
+    // renderer.outputEncoding = THREEjs.sRGBEncoding;
+    renderer.toneMapping = THREEjs.ACESFilmicToneMapping;
+    renderer.outputColorSpace = THREEjs.SRGBColorSpace;
     container.appendChild(renderer.domElement);
     renderer.domElement.style.position = 'absolute';
     renderer.domElement.style.inset = '0';
