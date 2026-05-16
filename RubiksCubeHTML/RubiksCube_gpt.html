@@ -205,10 +205,10 @@
 </head>
 <body>
   <div id="portrait-hint">
-    <div>
+    <!-- <div>
       <strong>Landscape recommended</strong><br />
       Rotate your device to landscape for the best view. Tap anywhere after rotating to continue.
-    </div>
+    </div> -->
   </div>
   <div id="container"></div>
   <div id="directions">
@@ -220,6 +220,10 @@
   <div id="render-check">Render status: initializing...</div>
   <aside id="ui">
     <h2>Rubik's Cube Control</h2>
+    <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+      <input type="number" id="shuffleCount" placeholder="Steps" min="1" max="100" value="15" style="flex: 1;" />
+      <button id="shuffleBtn" class="danger" style="flex: 0 0 auto;">🔀 Shuffle</button>
+    </div>
     <button id="resetBtn">Reset Orientation</button>
     <label for="layerSelect">Layer to Rotate</label>
     <div class="layer-spin-row">
@@ -247,11 +251,6 @@
     <div class="radio-row">
       <label>Custom <input type="radio" name="solveMode" value="custom" checked /></label>
       <label>Auto <input type="radio" name="solveMode" value="auto" /></label>
-    </div>
-
-    <div style="display: flex; gap: 8px; margin-bottom: 10px;">
-      <input type="number" id="shuffleCount" placeholder="Steps" min="1" max="100" value="15" style="flex: 1;" />
-      <button id="shuffleBtn" class="danger" style="flex: 0 0 auto;">🔀 Shuffle</button>
     </div>
 
     <div class="control-section">
