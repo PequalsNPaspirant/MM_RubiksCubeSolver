@@ -1310,7 +1310,7 @@
     function onWheel(event) {
       event.preventDefault();
       const factor = 1 + event.deltaY * 0.003;
-      const newDistance = THREEjs.MathUtils.clamp(camera.position.length() * factor, 3, 22);
+      const newDistance = THREEjs.MathUtils.clamp(camera.position.length() * factor, 3, 100);
       camera.position.setLength(newDistance);
     }
 
