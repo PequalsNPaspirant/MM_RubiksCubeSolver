@@ -654,7 +654,7 @@
     }
 
     function updateHighlight() {
-      const hl = hoveredLayer || selectedLayer;
+      const hl = hoveredLayer;
       cubelets.forEach(mesh => {
         const isLayer = hl && Math.round(mesh.userData.coords[hl.axis]) === hl.index;
         setCubeletHighlight(mesh, isLayer);
@@ -664,7 +664,7 @@
     function updateSelectionBox() {
       while (selectionBoxGroup.children.length) selectionBoxGroup.remove(selectionBoxGroup.children[0]);
       selectionBoxLines = null;
-      const layer = hoveredLayer || selectedLayer;
+      const layer = hoveredLayer;
       if (!layer) return;
 
       const half = 0.46;
@@ -814,12 +814,14 @@
         const arcStart = baseAngle;
         const arcEnd = baseAngle + angleSign * Math.PI * 0.35;
         const path = new AxisQuarterCurve(center, u, v, radius, arcStart, arcEnd);
-        const tube = new THREEjs.Mesh(new THREEjs.TubeGeometry(path, 32, 0.04, 6, false), material);
+        const oppositPath = new AxisQuarterCurve(center, u, v, radius, arcEnd, arcStart);
+        const pathToUse = baseAngle === 0 ? path : oppositPath;
+        const tube = new THREEjs.Mesh(new THREEjs.TubeGeometry(pathToUse, 32, 0.04, 6, false), material);
         tube.renderOrder = 20;
         group.add(tube);
 
-        const pointA = path.getPoint(0.98);
-        const pointB = path.getPoint(1);
+        const pointA = pathToUse.getPoint(0.98);
+        const pointB = pathToUse.getPoint(1);
         const dir = pointB.clone().sub(pointA).normalize();
         const cone = new THREEjs.Mesh(new THREEjs.ConeGeometry(0.08, 0.24, 8), material);
         cone.position.copy(pointB).add(dir.clone().multiplyScalar(0.14));
@@ -1376,6 +1378,13 @@
       onPointerDown(e);
     });
     renderer.domElement.addEventListener('pointermove', onPointerMove);
+    renderer.domElement.addEventListener('pointerleave', () => {
+      hoveredArrow = null;
+      hoveredLayer = null;
+      axisIndicatorMeshes.forEach(m => setArrowHoverVisual(m, false));
+      updateHighlight();
+      updateSelectionBox();
+    });
     window.addEventListener('pointerup', onPointerUp);
     renderer.domElement.addEventListener('pointercancel', onPointerUp);
     renderer.domElement.addEventListener('wheel', onWheel, { passive: false });
