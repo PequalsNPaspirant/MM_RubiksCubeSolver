@@ -814,8 +814,9 @@
         const arcStart = baseAngle;
         const arcEnd = baseAngle + angleSign * Math.PI * 0.35;
         const path = new AxisQuarterCurve(center, u, v, radius, arcStart, arcEnd);
-        const oppositPath = new AxisQuarterCurve(center, u, v, radius, arcEnd, arcStart);
-        const pathToUse = baseAngle === 0 ? path : oppositPath;
+        // const oppositPath = new AxisQuarterCurve(center, u, v, radius, arcEnd, arcStart);
+        // const pathToUse = baseAngle === 0 ? path : oppositPath;
+        const pathToUse = path;
         const tube = new THREEjs.Mesh(new THREEjs.TubeGeometry(pathToUse, 32, 0.04, 6, false), material);
         tube.renderOrder = 20;
         group.add(tube);
@@ -853,10 +854,10 @@
       const midPoint = faceStart.clone().lerp(axisEnd, 0.5);
       const endPoint = axisEnd.clone();
 
-      const centerPair1 = createRotationPair(axis, oppositeIndex, midPoint, radius, sign, 0);
-      const centerPair2 = createRotationPair(axis, faceIndex, midPoint, radius, sign, Math.PI);
-      const endPair1 = createRotationPair(axis, faceIndex, endPoint, radius, sign, 0);
-      const endPair2 = createRotationPair(axis, oppositeIndex, endPoint, radius, sign, Math.PI);
+      const centerPair1 = createRotationPair(axis, oppositeIndex, midPoint, radius, -sign, 0);
+      const centerPair2 = createRotationPair(axis, oppositeIndex, midPoint, radius, sign, Math.PI);
+      const endPair1 = createRotationPair(axis, faceIndex, endPoint, radius, -sign, 0);
+      const endPair2 = createRotationPair(axis, faceIndex, endPoint, radius, sign, Math.PI);
       group.add(centerPair1, centerPair2, endPair1, endPair2);
       axisIndicatorMeshes.push(centerPair1, centerPair2, endPair1, endPair2);
       return group;
