@@ -31,3 +31,11 @@ Also when arrow is highlghted, it changes the position, it should not happen. Th
 There are total 3 + 3 + 3 = 9 layer. There will be 2 arrows for each layer so total 18 arrows. 
 there are only 3 visble faces. All arrows should be placed on visible edges of all small cubes.
 
+
+
+in file RubiksCube_gpt.html, the rubiks cube is displayed in vertically compressed, it shoul dbe displayed properly without any scaling of vertical axis. It may be because the controls are moved to bottom. The bottom control with should be some minimum and it should be placed at center, so that if it is displayed on a big screen, it should not be elongated horizontally. Also it should be working on mobile screen and touch screens, curently the zoom in/out, rotate etc does nto work on mobile.  
+Also remove current arrows to rotate the layers. Instead draw X, Y and Z axes, in their visible direction (positive or negative whichever is visible on screen). The length of axis visible on screen should be equal to side or cube. On that axis at midpoint (between surface of cube to end) draw two quarter arc arrows showing layer rotation direction. Draw simiar pair of arrows at the end of axis. The pair at end will rotate the layer which is visible and perpendicular to that axis. The pair at center of axis will rotate the later at opposit end of axis. Do same for all 3 axes.
+
+
+
+

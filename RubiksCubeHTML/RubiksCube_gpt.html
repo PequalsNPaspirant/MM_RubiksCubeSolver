@@ -6,6 +6,10 @@
   <title>Rubik's Cube Solver</title>
   <style>
     * { box-sizing: border-box; }
+    html, body {
+      width: 100%;
+      height: 100%;
+    }
     body {
       margin: 0;
       overflow: hidden;
@@ -14,20 +18,35 @@
       color: #f8fafc;
     }
     #container {
-      position: absolute;
+      position: fixed;
       top: 0;
       left: 0;
       right: 0;
-      height: 70vh;
+      bottom: 0;
+      min-height: 100vh;
+      min-width: 100vw;
       overflow: hidden;
+      z-index: 0;
+    }
+    #container canvas {
+      position: absolute;
+      inset: 0;
+      touch-action: none;
+      user-select: none;
+      width: 100%;
+      height: 100%;
+      display: block;
     }
     #ui {
       position: absolute;
-      left: 0;
-      right: 0;
+      left: 50%;
+      transform: translateX(-50%);
       bottom: 0;
-      height: 30vh;
-      width: 100%;
+      width: min(100%, 980px);
+      max-width: 980px;
+      min-width: 320px;
+      height: min(40vh, 360px);
+      min-height: 240px;
       border-radius: 16px 16px 0 0;
       background: rgba(15, 23, 42, 0.95);
       box-shadow: 0 -16px 40px rgba(15, 23, 42, 0.35);
@@ -145,6 +164,19 @@
       text-shadow: 0 0 4px rgba(0, 0, 0, 0.8);
     }
     .direction-label { display: inline-block; margin-right: 16px; }
+    #render-check {
+      position: fixed;
+      top: 12px;
+      left: 12px;
+      z-index: 3;
+      background: rgba(15, 23, 42, 0.92);
+      color: #f8fafc;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      padding: 8px 10px;
+      border-radius: 12px;
+      font-size: 0.82rem;
+      pointer-events: none;
+    }
     .control-section {
       margin-top: 16px;
       padding: 12px;
@@ -185,11 +217,9 @@
     <span class="direction-label">L: <span id="dir-left">-</span></span>
     <span class="direction-label">R: <span id="dir-right">-</span></span>
   </div>
+  <div id="render-check">Render status: initializing...</div>
   <aside id="ui">
-    <h1>🔲 Rubik's Cube Solver</h1>
-    <div id="status">Ready</div>
-
-    <h2>Cube Controls</h2>
+    <h2>Rubik's Cube Control</h2>
     <button id="resetBtn">Reset Orientation</button>
     <label for="layerSelect">Layer to Rotate</label>
     <div class="layer-spin-row">
@@ -215,8 +245,8 @@
     <p style="text-align: center; font-size: 0.85rem; margin-top: -8px; color: rgba(148, 163, 184, 0.6);" id="speedLabel">2.0</p>
 
     <div class="radio-row">
-      <label>Auto <input type="radio" name="solveMode" value="auto" checked /></label>
-      <label>Custom <input type="radio" name="solveMode" value="custom" /></label>
+      <label>Custom <input type="radio" name="solveMode" value="custom" checked /></label>
+      <label>Auto <input type="radio" name="solveMode" value="auto" /></label>
     </div>
 
     <div style="display: flex; gap: 8px; margin-bottom: 10px;">
@@ -275,27 +305,31 @@
   </aside>
 
   <script type="module">
-    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js';
+    import * as THREEjs from 'https://unpkg.com/three@0.161.0/build/three.module.js';
 
     const container = document.getElementById('container');
-    const ui = document.getElementById('ui');
-    const status = document.getElementById('status');
-    const layerSelect = document.getElementById('layerSelect');
-    const layerCWBtn = document.getElementById('layerCWBtn');
-    const layerCCWBtn = document.getElementById('layerCCWBtn');
-    const solveModeInputs = Array.from(document.querySelectorAll('input[name="solveMode"]'));
-    const resetBtn = document.getElementById('resetBtn');
-    const shuffleBtn = document.getElementById('shuffleBtn');
-    const shuffleCount = document.getElementById('shuffleCount');
-    const speedSlider = document.getElementById('speedSlider');
-    const speedLabel = document.getElementById('speedLabel');
-    const portraitHint = document.getElementById('portrait-hint');
+    // const renderCheck = document.getElementById('render-check');
+    // const renderer = new THREE.WebGLRenderer({ antialias: true });
 
-    const isCoarsePointer = window.matchMedia('(pointer: coarse)').matches;
-    const isSmall = window.matchMedia('(max-width: 900px)').matches;
-    if (isCoarsePointer || isSmall) {
-      document.body.classList.add('mobile-coerce');
-    }
+    async function initApp() {
+      const ui = document.getElementById('ui');
+      const status = document.getElementById('status');
+      const layerSelect = document.getElementById('layerSelect');
+      const layerCWBtn = document.getElementById('layerCWBtn');
+      const layerCCWBtn = document.getElementById('layerCCWBtn');
+      const solveModeInputs = Array.from(document.querySelectorAll('input[name="solveMode"]'));
+      const resetBtn = document.getElementById('resetBtn');
+      const shuffleBtn = document.getElementById('shuffleBtn');
+      const shuffleCount = document.getElementById('shuffleCount');
+      const speedSlider = document.getElementById('speedSlider');
+      const speedLabel = document.getElementById('speedLabel');
+      const portraitHint = document.getElementById('portrait-hint');
+
+      const isCoarsePointer = window.matchMedia('(pointer: coarse)').matches;
+      const isSmall = window.matchMedia('(max-width: 900px)').matches;
+      if (isCoarsePointer || isSmall) {
+        document.body.classList.add('mobile-coerce');
+      }
 
     function dismissPortraitHint() {
       portraitHint.style.display = 'none';
@@ -324,24 +358,31 @@
     let animationSpeed = 2;
     let isAnimating = false;
 
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color('#17203a');
-    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+    const scene = new THREEjs.Scene();
+    scene.background = new THREEjs.Color('#17203a');
+    const camera = new THREEjs.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
     camera.position.set(6.2, 5.4, 6.2);
     camera.lookAt(0, 0, 0);
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    const renderer = new THREEjs.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(container.clientWidth, container.clientHeight);
-    renderer.outputEncoding = THREE.sRGBEncoding;
+    renderer.outputEncoding = THREEjs.sRGBEncoding;
     container.appendChild(renderer.domElement);
+    renderer.domElement.style.position = 'absolute';
+    renderer.domElement.style.inset = '0';
+    renderer.domElement.style.zIndex = '1';
+    renderer.domElement.style.touchAction = 'none';
+    onResize();
 
-    const ambient = new THREE.AmbientLight(0xffffff, 0.45);
-    const directional = new THREE.DirectionalLight(0xffffff, 0.95);
+    if (renderCheck) renderCheck.textContent = 'Render status: canvas ready';
+
+    const ambient = new THREEjs.AmbientLight(0xffffff, 0.45);
+    const directional = new THREEjs.DirectionalLight(0xffffff, 0.95);
     directional.position.set(5, 8, 5);
     scene.add(ambient, directional);
 
-    const cubeGroup = new THREE.Group();
+    const cubeGroup = new THREEjs.Group();
     scene.add(cubeGroup);
 
     const cubelets = [];
@@ -356,7 +397,7 @@
     };
 
     function createFaceMaterial(color) {
-      return new THREE.MeshStandardMaterial({
+      return new THREEjs.MeshStandardMaterial({
         color,
         metalness: 0.2,
         roughness: 0.5,
@@ -366,7 +407,7 @@
     }
 
     const greyMaterial = createFaceMaterial(faceColors.mid);
-    const geometry = new THREE.BoxGeometry(0.92, 0.92, 0.92);
+    const geometry = new THREEjs.BoxGeometry(0.92, 0.92, 0.92);
 
     for (let x = -1; x <= 1; x += 1) {
       for (let y = -1; y <= 1; y += 1) {
@@ -382,7 +423,7 @@
           if (z === 1) materials[4] = createFaceMaterial(faceColors.red);
           if (z === -1) materials[5] = createFaceMaterial(faceColors.blue);
 
-          const cubelet = new THREE.Mesh(geometry, materials);
+          const cubelet = new THREEjs.Mesh(geometry, materials);
           cubelet.position.set(x * 1.04, y * 1.04, z * 1.04);
           cubelet.userData.coords = { x, y, z };
           cubelet.userData.originalCoords = { x, y, z };
@@ -405,8 +446,8 @@
       });
     }
 
-    const raycaster = new THREE.Raycaster();
-    const pointer = new THREE.Vector2();
+    const raycaster = new THREEjs.Raycaster();
+    const pointer = new THREEjs.Vector2();
     let hoveredLayer = null;
     let hoveredArrow = null;
     let selectedLayer = parseLayerValue(layerSelect.value);
@@ -416,15 +457,17 @@
     let opStartClient = null;
     let lastPointerClient = null;
     let engagedCubeDrag = false;
+    const activePointers = new Map();
+    let lastPinchDistance = null;
 
-    const layerArrowsGroup = new THREE.Group();
-    cubeGroup.add(layerArrowsGroup);
+    const axisIndicatorsGroup = new THREEjs.Group();
+    cubeGroup.add(axisIndicatorsGroup);
 
-    const selectionBoxGroup = new THREE.Group();
+    const selectionBoxGroup = new THREEjs.Group();
     cubeGroup.add(selectionBoxGroup);
     let selectionBoxLines = null;
 
-    const arrowMeshes = [];
+    const axisIndicatorMeshes = [];
 
     function parseLayerValue(value) {
       const [axis, index] = value.split(':');
@@ -509,7 +552,7 @@
         animate();
       });
       updateStatus('Orientation reset');
-      rebuildLayerArrows();
+      rebuildAxisIndicators();
       updateHighlight();
       updateSelectionBox();
       isAnimating = false;
@@ -575,7 +618,7 @@
     }
 
     function axisFromNormal(normal) {
-      const abs = new THREE.Vector3(Math.abs(normal.x), Math.abs(normal.y), Math.abs(normal.z));
+      const abs = new THREEjs.Vector3(Math.abs(normal.x), Math.abs(normal.y), Math.abs(normal.z));
       if (abs.x > abs.y && abs.x > abs.z) return 'x';
       if (abs.y > abs.x && abs.y > abs.z) return 'y';
       return 'z';
@@ -616,24 +659,25 @@
       if (!layer) return;
 
       const half = 0.46;
-      const box = new THREE.Box3();
+      const box = new THREEjs.Box3();
       layerCubelets(layer).forEach(m => {
         const p = m.position;
-        box.expandByPoint(new THREE.Vector3(p.x + half, p.y + half, p.z + half));
-        box.expandByPoint(new THREE.Vector3(p.x - half, p.y - half, p.z - half));
+        box.expandByPoint(new THREEjs.Vector3(p.x + half, p.y + half, p.z + half));
+        box.expandByPoint(new THREEjs.Vector3(p.x - half, p.y - half, p.z - half));
       });
-      const size = box.getSize(new THREE.Vector3()).addScalar(0.1);
-      const center = box.getCenter(new THREE.Vector3());
-      const geom = new THREE.BoxGeometry(size.x, size.y, size.z);
-      const edges = new THREE.EdgesGeometry(geom);
-      const mat = new THREE.LineBasicMaterial({ color: 0xb855f7 });
-      const lines = new THREE.LineSegments(edges, mat);
+      const size = box.getSize(new THREEjs.Vector3()).addScalar(0.1);
+      const center = box.getCenter(new THREEjs.Vector3());
+      const geom = new THREEjs.BoxGeometry(size.x, size.y, size.z);
+      const edges = new THREEjs.EdgesGeometry(geom);
+      const mat = new THREEjs.LineBasicMaterial({ color: 0xb855f7 });
+      const lines = new THREEjs.LineSegments(edges, mat);
       lines.position.copy(center);
       selectionBoxGroup.add(lines);
       selectionBoxLines = lines;
     }
 
     function updateStatus(message) {
+      if (!status) return;
       const activeLayer = selectedLayer;
       status.innerHTML = message || (activeLayer
         ? `Layer: <strong>${activeLayer.axis.toUpperCase()} ${activeLayer.index}</strong> — drag to orbit cube, click for quarter turn`
@@ -641,7 +685,7 @@
     }
 
     function createRotateGroup(layer) {
-      const group = new THREE.Group();
+      const group = new THREEjs.Group();
       cubeGroup.add(group);
       cubeGroup.updateMatrixWorld(true);
       layerCubelets(layer).forEach(cubelet => {
@@ -669,7 +713,7 @@
     const OUT = GRID + HALF;
     const ARROW_SKIN = 0.22;
 
-    let lastArrowVisSig = '';
+    let lastAxisVisSig = '';
 
     const moveMap = {
       'R': { axis: 'x', index: 1, angle: Math.PI / 2 },
@@ -701,29 +745,184 @@
       'S2': { axis: 'z', index: 0, angle: Math.PI },
     };
 
+    function axisPlaneBasis(axis) {
+      if (axis === 'x') return [new THREEjs.Vector3(0, 1, 0), new THREEjs.Vector3(0, 0, 1)];
+      if (axis === 'y') return [new THREEjs.Vector3(0, 0, 1), new THREEjs.Vector3(1, 0, 0)];
+      return [new THREEjs.Vector3(1, 0, 0), new THREEjs.Vector3(0, 1, 0)];
+    }
+
+    function visibleAxisDirection(axis) {
+      const worldAxis = axisVector(axis).clone().transformDirection(cubeGroup.matrixWorld).normalize();
+      const camDir = camera.position.clone().sub(new THREEjs.Vector3()).normalize();
+      return camDir.dot(worldAxis) > 0 ? 1 : -1;
+    }
+
+    class AxisQuarterCurve extends THREEjs.Curve {
+      constructor(center, u, v, radius, start, end) {
+        super();
+        this.center = center;
+        this.u = u;
+        this.v = v;
+        this.radius = radius;
+        this.start = start;
+        this.end = end;
+      }
+      getPoint(t) {
+        const angle = this.start + (this.end - this.start) * t;
+        return this.center.clone()
+          .add(this.u.clone().multiplyScalar(this.radius * Math.cos(angle)))
+          .add(this.v.clone().multiplyScalar(this.radius * Math.sin(angle)));
+      }
+    }
+
+    function createRotationPair(axis, index, center, radius, angleSign) {
+      const [u, v] = axisPlaneBasis(axis);
+      const material = new THREEjs.MeshStandardMaterial({
+        color: 0xa78bfa,
+        metalness: 0.05,
+        roughness: 0.4,
+        emissive: 0x4c1d95,
+        emissiveIntensity: 0.16,
+        transparent: true,
+        opacity: 0.96,
+        depthWrite: false,
+        polygonOffset: true,
+        polygonOffsetFactor: -2,
+        polygonOffsetUnits: -2,
+      });
+
+      const group = new THREEjs.Group();
+      group.userData = {
+        type: 'axisArrow',
+        layer: { axis, index },
+        angleSign,
+        materials: [material],
+        hovered: false,
+      };
+
+      const startAngles = [0, Math.PI];
+      for (const baseAngle of startAngles) {
+        const arcStart = baseAngle;
+        const arcEnd = baseAngle + angleSign * Math.PI * 0.35;
+        const path = new AxisQuarterCurve(center, u, v, radius, arcStart, arcEnd);
+        const tube = new THREEjs.Mesh(new THREEjs.TubeGeometry(path, 32, 0.04, 6, false), material);
+        tube.renderOrder = 20;
+        group.add(tube);
+
+        const pointA = path.getPoint(0.98);
+        const pointB = path.getPoint(1);
+        const dir = pointB.clone().sub(pointA).normalize();
+        const cone = new THREEjs.Mesh(new THREEjs.ConeGeometry(0.08, 0.24, 8), material);
+        cone.position.copy(pointB).add(dir.clone().multiplyScalar(0.14));
+        cone.quaternion.setFromUnitVectors(new THREEjs.Vector3(0, 1, 0), dir);
+        cone.renderOrder = 20;
+        group.add(cone);
+      }
+
+      return group;
+    }
+
+    function buildAxisIndicator(axis) {
+      const sign = visibleAxisDirection(axis);
+      const faceIndex = sign;
+      const oppositeIndex = -sign;
+      const axisDir = axisVector(axis).clone().multiplyScalar(sign);
+      const faceStart = axisDir.clone().multiplyScalar(OUT);
+      const axisLength = OUT * 2;
+      const axisEnd = faceStart.clone().add(axisDir.clone().multiplyScalar(axisLength));
+
+      const lineGeom = new THREEjs.BufferGeometry().setFromPoints([faceStart, axisEnd]);
+      const color = axis === 'x' ? 0xf87171 : axis === 'y' ? 0x34d399 : 0x60a5fa;
+      const line = new THREEjs.Line(lineGeom, new THREEjs.LineBasicMaterial({ color, linewidth: 3 }));
+
+      const group = new THREEjs.Group();
+      group.add(line);
+
+      const radius = 0.72;
+      const midPoint = faceStart.clone().lerp(axisEnd, 0.5);
+      const endPoint = axisEnd.clone();
+
+      const centerPair = createRotationPair(axis, oppositeIndex, midPoint, radius, sign);
+      const endPair = createRotationPair(axis, faceIndex, endPoint, radius, sign);
+      group.add(centerPair, endPair);
+      axisIndicatorMeshes.push(centerPair, endPair);
+      return group;
+    }
+
+    function getAxisSignature() {
+      return ['x', 'y', 'z'].map(axis => (visibleAxisDirection(axis) > 0 ? '+' : '-')).join(',');
+    }
+
+    function rebuildAxisIndicators() {
+      while (axisIndicatorsGroup.children.length) axisIndicatorsGroup.remove(axisIndicatorsGroup.children[0]);
+      axisIndicatorMeshes.length = 0;
+      ['x', 'y', 'z'].forEach(axis => axisIndicatorsGroup.add(buildAxisIndicator(axis)));
+      lastAxisVisSig = getAxisSignature();
+    }
+
+    function getArrowPickRoot(obj) {
+      let o = obj;
+      while (o && o.parent) {
+        if (o.userData?.type === 'axisArrow') return o;
+        if (o.parent === axisIndicatorsGroup) break;
+        o = o.parent;
+      }
+      return null;
+    }
+
+    function raycastArrows(event) {
+      pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
+      pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
+      raycaster.setFromCamera(pointer, camera);
+      const hits = raycaster.intersectObjects(axisIndicatorsGroup.children, true);
+      if (!hits.length) return null;
+      const root = getArrowPickRoot(hits[0].object);
+      if (!root) return null;
+      return { object: root, distance: hits[0].distance, point: hits[0].point };
+    }
+
+    function setArrowHoverVisual(group, hover) {
+      if (!group || !group.userData || !group.userData.materials) return;
+      if (group.userData.hovered === hover) return;
+      group.userData.hovered = hover;
+      for (const mat of group.userData.materials) {
+        if (hover) {
+          mat.color.setHex(0xea5cff);
+          mat.emissive.setHex(0x7c3aed);
+          mat.emissiveIntensity = 0.4;
+          mat.opacity = 1;
+        } else {
+          mat.color.setHex(0xa78bfa);
+          mat.emissive.setHex(0x4c1d95);
+          mat.emissiveIntensity = 0.16;
+          mat.opacity = 0.96;
+        }
+      }
+    }
+
     function axisVector(axis) {
-      if (axis === 'x') return new THREE.Vector3(1, 0, 0);
-      if (axis === 'y') return new THREE.Vector3(0, 1, 0);
-      return new THREE.Vector3(0, 0, 1);
+      if (axis === 'x') return new THREEjs.Vector3(1, 0, 0);
+      if (axis === 'y') return new THREEjs.Vector3(0, 1, 0);
+      return new THREEjs.Vector3(0, 0, 1);
     }
 
     /** Orthonormal tangent basis on the outer face plane (normal = outN). */
     function basisFromNormal(outN) {
-      let a = new THREE.Vector3(0, 1, 0);
-      if (Math.abs(outN.dot(a)) > 0.88) a = new THREE.Vector3(1, 0, 0);
-      const e1 = new THREE.Vector3().crossVectors(a, outN).normalize();
-      const e2 = new THREE.Vector3().crossVectors(outN, e1).normalize();
+      let a = new THREEjs.Vector3(0, 1, 0);
+      if (Math.abs(outN.dot(a)) > 0.88) a = new THREEjs.Vector3(1, 0, 0);
+      const e1 = new THREEjs.Vector3().crossVectors(a, outN).normalize();
+      const e2 = new THREEjs.Vector3().crossVectors(outN, e1).normalize();
       return { e1, e2 };
     }
 
     function faceKeyToNormal(key) {
       switch (key) {
-        case 'x+': return new THREE.Vector3(1, 0, 0);
-        case 'x-': return new THREE.Vector3(-1, 0, 0);
-        case 'y+': return new THREE.Vector3(0, 1, 0);
-        case 'y-': return new THREE.Vector3(0, -1, 0);
-        case 'z+': return new THREE.Vector3(0, 0, 1);
-        default: return new THREE.Vector3(0, 0, -1);
+        case 'x+': return new THREEjs.Vector3(1, 0, 0);
+        case 'x-': return new THREEjs.Vector3(-1, 0, 0);
+        case 'y+': return new THREEjs.Vector3(0, 1, 0);
+        case 'y-': return new THREEjs.Vector3(0, -1, 0);
+        case 'z+': return new THREEjs.Vector3(0, 0, 1);
+        default: return new THREEjs.Vector3(0, 0, -1);
       }
     }
 
@@ -739,7 +938,7 @@
     /** The three cube faces most toward the camera (world space). */
     function getThreeVisibleFaces() {
       cubeGroup.updateMatrixWorld(true);
-      const wc = new THREE.Vector3();
+      const wc = new THREEjs.Vector3();
       cubeGroup.getWorldPosition(wc);
       const toCam = camera.position.clone().sub(wc).normalize();
       const keys = ['x+', 'x-', 'y+', 'y-', 'z+', 'z-'];
@@ -794,12 +993,12 @@
         }
       }
 
-      if (faceKey === 'z+') gridMids((u, v) => new THREE.Vector3(u, v, d));
-      else if (faceKey === 'z-') gridMids((u, v) => new THREE.Vector3(u, v, -d));
-      else if (faceKey === 'y+') gridMids((u, v) => new THREE.Vector3(u, d, v));
-      else if (faceKey === 'y-') gridMids((u, v) => new THREE.Vector3(u, -d, v));
-      else if (faceKey === 'x+') gridMids((u, v) => new THREE.Vector3(d, u, v));
-      else gridMids((u, v) => new THREE.Vector3(-d, u, v));
+      if (faceKey === 'z+') gridMids((u, v) => new THREEjs.Vector3(u, v, d));
+      else if (faceKey === 'z-') gridMids((u, v) => new THREEjs.Vector3(u, v, -d));
+      else if (faceKey === 'y+') gridMids((u, v) => new THREEjs.Vector3(u, d, v));
+      else if (faceKey === 'y-') gridMids((u, v) => new THREEjs.Vector3(u, -d, v));
+      else if (faceKey === 'x+') gridMids((u, v) => new THREEjs.Vector3(d, u, v));
+      else gridMids((u, v) => new THREEjs.Vector3(-d, u, v));
 
       return dedupeVecs(pts);
     }
@@ -833,9 +1032,9 @@
     }
 
     function axisPreferredNormal(axis, angleSign) {
-      if (axis === 'z') return new THREE.Vector3(0, 0, angleSign > 0 ? -1 : 1);
-      if (axis === 'x') return new THREE.Vector3(angleSign > 0 ? 1 : -1, 0, 0);
-      return new THREE.Vector3(0, angleSign > 0 ? 1 : -1, 0);
+      if (axis === 'z') return new THREEjs.Vector3(0, 0, angleSign > 0 ? -1 : 1);
+      if (axis === 'x') return new THREEjs.Vector3(angleSign > 0 ? 1 : -1, 0, 0);
+      return new THREEjs.Vector3(0, angleSign > 0 ? 1 : -1, 0);
     }
 
     function faceBorderEdges(faceKey) {
@@ -847,32 +1046,32 @@
       if (faceKey === 'z+' || faceKey === 'z-') {
         const z = faceKey === 'z+' ? d : -d;
         for (const x of [-a, 0, a]) {
-          add(new THREE.Vector3(x, -a, z), new THREE.Vector3(0, 1, 0));
-          add(new THREE.Vector3(x, a, z), new THREE.Vector3(0, 1, 0));
+          add(new THREEjs.Vector3(x, -a, z), new THREEjs.Vector3(0, 1, 0));
+          add(new THREEjs.Vector3(x, a, z), new THREEjs.Vector3(0, 1, 0));
         }
         for (const y of [-a, 0, a]) {
-          add(new THREE.Vector3(-a, y, z), new THREE.Vector3(1, 0, 0));
-          add(new THREE.Vector3(a, y, z), new THREE.Vector3(1, 0, 0));
+          add(new THREEjs.Vector3(-a, y, z), new THREEjs.Vector3(1, 0, 0));
+          add(new THREEjs.Vector3(a, y, z), new THREEjs.Vector3(1, 0, 0));
         }
       } else if (faceKey === 'y+' || faceKey === 'y-') {
         const y = faceKey === 'y+' ? d : -d;
         for (const x of [-a, 0, a]) {
-          add(new THREE.Vector3(x, y, -a), new THREE.Vector3(0, 0, 1));
-          add(new THREE.Vector3(x, y, a), new THREE.Vector3(0, 0, 1));
+          add(new THREEjs.Vector3(x, y, -a), new THREEjs.Vector3(0, 0, 1));
+          add(new THREEjs.Vector3(x, y, a), new THREEjs.Vector3(0, 0, 1));
         }
         for (const z of [-a, 0, a]) {
-          add(new THREE.Vector3(-a, y, z), new THREE.Vector3(1, 0, 0));
-          add(new THREE.Vector3(a, y, z), new THREE.Vector3(1, 0, 0));
+          add(new THREEjs.Vector3(-a, y, z), new THREEjs.Vector3(1, 0, 0));
+          add(new THREEjs.Vector3(a, y, z), new THREEjs.Vector3(1, 0, 0));
         }
       } else {
         const x = faceKey === 'x+' ? d : -d;
         for (const y of [-a, 0, a]) {
-          add(new THREE.Vector3(x, y, -a), new THREE.Vector3(0, 0, 1));
-          add(new THREE.Vector3(x, y, a), new THREE.Vector3(0, 0, 1));
+          add(new THREEjs.Vector3(x, y, -a), new THREEjs.Vector3(0, 0, 1));
+          add(new THREEjs.Vector3(x, y, a), new THREEjs.Vector3(0, 0, 1));
         }
         for (const z of [-a, 0, a]) {
-          add(new THREE.Vector3(x, -a, z), new THREE.Vector3(0, 1, 0));
-          add(new THREE.Vector3(x, a, z), new THREE.Vector3(0, 1, 0));
+          add(new THREEjs.Vector3(x, -a, z), new THREEjs.Vector3(0, 1, 0));
+          add(new THREEjs.Vector3(x, a, z), new THREEjs.Vector3(0, 1, 0));
         }
       }
 
@@ -886,15 +1085,15 @@
     }
 
     function getCameraScreenBasis() {
-      const forward = new THREE.Vector3();
+      const forward = new THREEjs.Vector3();
       camera.getWorldDirection(forward).normalize();
       const up = camera.up.clone().applyQuaternion(camera.quaternion).normalize();
-      const right = new THREE.Vector3().crossVectors(up, forward).normalize();
+      const right = new THREEjs.Vector3().crossVectors(up, forward).normalize();
       return { right, up };
     }
 
     function worldDirToScreen(dir, right, up) {
-      return new THREE.Vector2(dir.dot(right), dir.dot(up));
+      return new THREEjs.Vector2(dir.dot(right), dir.dot(up));
     }
 
     function visibleEdgeCandidates(visTop) {
@@ -952,203 +1151,21 @@
       return base.add(e1.clone().multiplyScalar(idx * g)).add(e2.clone().multiplyScalar(sh));
     }
 
-    /**
-     * 9 layers × 2 directions = 18 arrows. Each pair shares a visible edge anchor and traces two opposite
-     * arcs on a circle around the cube, centered on the layer's original X/Y/Z axis through the cube.
-     */
-    function buildLayerArrowGroup(layer, angleSign, visTop) {
-      const mKey = angleSign > 0 ? layerCWMoveString(layer) : layerCCWMoveFrom(layer);
-      const mv = moveMap[mKey];
-      const empty = new THREE.Group();
-      empty.userData = { type: 'layerArrow', layer: { ...layer }, angleSign, tube: null, cone: null, baseMatProps: null };
-
-      if (!mv) return empty;
-
-      const outN = chooseOutNormal(layer, angleSign, visTop);
-      const { e1, e2 } = basisFromNormal(outN);
-      const nominal = nominalLayerTarget(layer, angleSign, outN, e1, e2);
-      const edgeStart = chooseVisibleEdgeCandidate(layer, visTop, nominal);
-
-      const circleCenter = new THREE.Vector3(
-        layer.axis === 'x' ? layer.index * GRID : 0,
-        layer.axis === 'y' ? layer.index * GRID : 0,
-        layer.axis === 'z' ? layer.index * GRID : 0
-      );
-      const planeU = layer.axis === 'x'
-        ? new THREE.Vector3(0, 0, 1)
-        : layer.axis === 'y'
-          ? new THREE.Vector3(1, 0, 0)
-          : new THREE.Vector3(1, 0, 0);
-      const planeV = layer.axis === 'x'
-        ? new THREE.Vector3(0, 1, 0)
-        : layer.axis === 'y'
-          ? new THREE.Vector3(0, 0, 1)
-          : new THREE.Vector3(0, 1, 0);
-
-      const anchorOffset = edgeStart.clone().sub(circleCenter);
-      if (layer.axis === 'x') anchorOffset.x = 0;
-      else if (layer.axis === 'y') anchorOffset.y = 0;
-      else anchorOffset.z = 0;
-
-      const baseTheta = Math.atan2(anchorOffset.dot(planeV), anchorOffset.dot(planeU));
-      const angleDir = angleSign > 0 ? 1 : -1;
-      const camToCenter = camera.position.clone().sub(circleCenter);
-      const visibleTheta = Math.atan2(camToCenter.dot(planeV), camToCenter.dot(planeU));
-      const visibleRotation = Math.sign(visibleTheta - baseTheta) * Math.PI / 4;
-      const startAngle = baseTheta + angleDir * 0.08 + visibleRotation;
-      const arcSpan = Math.PI * 0.105;
-      const side = OUT * 2;
-      const R = Math.SQRT2 * side * 0.5;
-      const segs = 48;
-
-      class CircularArcCurve extends THREE.Curve {
-        constructor(center, u, v, radius, start, end) {
-          super();
-          this.center = center;
-          this.u = u;
-          this.v = v;
-          this.radius = radius;
-          this.start = start;
-          this.end = end;
-        }
-        getPoint(t) {
-          const angle = this.start + (this.end - this.start) * t;
-          return this.center.clone()
-            .add(this.u.clone().multiplyScalar(this.radius * Math.cos(angle)))
-            .add(this.v.clone().multiplyScalar(this.radius * Math.sin(angle)));
-        }
-      }
-
-      const path = new CircularArcCurve(circleCenter, planeU, planeV, R, startAngle, startAngle + angleDir * arcSpan);
-      const tubeRad = 0.0325;
-      const pink = 0xfbcfe8;
-      const mat = new THREE.MeshStandardMaterial({
-        color: pink,
-        metalness: 0.05,
-        roughness: 0.42,
-        emissive: 0x4a1d3d,
-        emissiveIntensity: 0.12,
-        transparent: true,
-        opacity: 0.98,
-        depthWrite: false,
-        polygonOffset: true,
-        polygonOffsetFactor: -3,
-        polygonOffsetUnits: -3,
-      });
-
-      const tubeGeom = new THREE.TubeGeometry(path, segs, tubeRad, 6, false);
-      const tube = new THREE.Mesh(tubeGeom, mat);
-      tube.renderOrder = 20;
-
-      const end = path.getPoint(1).clone();
-      const prev = path.getPoint(1 - 1 / segs).clone();
-      const dir = end.clone().sub(prev);
-      if (dir.lengthSq() < 1e-10) dir.set(0, 1, 0);
-      else dir.normalize();
-      const headLen = tubeRad * 6;
-      const headR = tubeRad * 2.6;
-      const coneGeom = new THREE.ConeGeometry(headR, headLen, 8);
-      const cone = new THREE.Mesh(coneGeom, mat.clone());
-      cone.position.copy(end).add(dir.clone().multiplyScalar(headLen * 0.38));
-      cone.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
-      cone.renderOrder = 20;
-
-      const group = new THREE.Group();
-      group.add(tube, cone);
-      group.userData = {
-        type: 'layerArrow',
-        layer: { axis: layer.axis, index: layer.index },
-        angleSign,
-        tube,
-        cone,
-        pathCurve: path,
-        pathSegs: segs,
-        pathEnd: end.clone(),
-        pathPrev: prev.clone(),
-        baseMatProps: { color: pink, emissive: 0x4a1d3d, emissiveIntensity: 0.12, opacity: 0.98 },
-        _hoverState: false,
-      };
-      group.renderOrder = 20;
-      return group;
-    }
-
-    function rebuildLayerArrows() {
-      while (layerArrowsGroup.children.length) layerArrowsGroup.remove(layerArrowsGroup.children[0]);
-      arrowMeshes.length = 0;
-      const visTop = getThreeVisibleFaces();
-      lastArrowVisSig = visTop.map(f => f.key).join(',');
-      const defs = [];
-      ['x', 'y', 'z'].forEach(axis => {
-        [-1, 0, 1].forEach(index => {
-          defs.push({ axis, index });
-        });
-      });
-      defs.forEach(layer => {
-        const g1 = buildLayerArrowGroup(layer, 1, visTop);
-        const g2 = buildLayerArrowGroup(layer, -1, visTop);
-        layerArrowsGroup.add(g1, g2);
-        arrowMeshes.push(g1, g2);
-      });
-    }
-
-    rebuildLayerArrows();
-
-    function getArrowPickRoot(obj) {
-      let o = obj;
-      while (o.parent && o.parent !== layerArrowsGroup) o = o.parent;
-      return o.parent === layerArrowsGroup && o.userData?.type === 'layerArrow' ? o : null;
-    }
-
-    function raycastArrows(event) {
-      pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
-      pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
-      raycaster.setFromCamera(pointer, camera);
-      const hits = raycaster.intersectObjects(layerArrowsGroup.children, true);
-      if (!hits.length) return null;
-      const root = getArrowPickRoot(hits[0].object);
-      if (!root) return null;
-      return { object: root, distance: hits[0].distance, point: hits[0].point };
-    }
-
     function setArrowHoverVisual(group, hover) {
-      if (!group || !group.userData.baseMatProps || !group.userData.tube) return;
-      if (group.userData._hoverState === hover) return;
-      group.userData._hoverState = hover;
-      const b = group.userData.baseMatProps;
-      const mats = [group.userData.tube.material, group.userData.cone.material];
-      const tube = group.userData.tube;
-      const cone = group.userData.cone;
-      const path = group.userData.pathCurve;
-      const segs = group.userData.pathSegs;
-
-      if (path && segs) {
-        const r = hover ? 0.048 : 0.0325;
-        tube.geometry.dispose();
-        tube.geometry = new THREE.TubeGeometry(path, segs, r, 6, false);
-        const headLen = r * 6;
-        const headR = r * 2.6;
-        cone.geometry.dispose();
-        cone.geometry = new THREE.ConeGeometry(headR, headLen, 8);
-        const end = group.userData.pathEnd.clone();
-        const prev = group.userData.pathPrev.clone();
-        const dir = end.clone().sub(prev);
-        if (dir.lengthSq() < 1e-10) dir.set(0, 1, 0);
-        else dir.normalize();
-        cone.position.copy(end).add(dir.clone().multiplyScalar(headLen * 0.38));
-        cone.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
-      }
-
-      for (const mat of mats) {
+      if (!group || !group.userData || !group.userData.materials) return;
+      if (group.userData.hovered === hover) return;
+      group.userData.hovered = hover;
+      for (const mat of group.userData.materials) {
         if (hover) {
-          mat.color.setHex(0xa855f7);
-          mat.emissive.setHex(0x6b21a8);
-          mat.emissiveIntensity = 0.48;
+          mat.color.setHex(0xea5cff);
+          mat.emissive.setHex(0x7c3aed);
+          mat.emissiveIntensity = 0.4;
           mat.opacity = 1;
         } else {
-          mat.color.setHex(b.color);
-          mat.emissive.setHex(b.emissive);
-          mat.emissiveIntensity = b.emissiveIntensity;
-          mat.opacity = b.opacity;
+          mat.color.setHex(0xa78bfa);
+          mat.emissive.setHex(0x4c1d95);
+          mat.emissiveIntensity = 0.16;
+          mat.opacity = 0.96;
         }
       }
     }
@@ -1173,21 +1190,51 @@
         hoveredLayer = null;
       }
 
-      arrowMeshes.forEach(m => setArrowHoverVisual(m, m === hoveredArrow));
+      axisIndicatorMeshes.forEach(m => setArrowHoverVisual(m, m === hoveredArrow));
       updateStatus();
       updateHighlight();
       updateSelectionBox();
     }
 
+    function getPinchDistance() {
+      const points = Array.from(activePointers.values());
+      if (points.length !== 2) return null;
+      return Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y);
+    }
+
     function onPointerDown(event) {
-      if (event.button !== 0 || isAnimating) return;
-      pointerDown = true;
-      engagedCubeDrag = false;
-      opStartClient = { x: event.clientX, y: event.clientY };
-      lastPointerClient = { x: event.clientX, y: event.clientY };
+      if (event.pointerType === 'mouse' && event.button !== 0) return;
+      if (isAnimating) return;
+      activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      try { renderer.domElement.setPointerCapture(event.pointerId); } catch (err) {}
+
+      if (activePointers.size === 1) {
+        pointerDown = true;
+        engagedCubeDrag = false;
+        opStartClient = { x: event.clientX, y: event.clientY };
+        lastPointerClient = { x: event.clientX, y: event.clientY };
+      }
+
+      if (activePointers.size === 2) {
+        lastPinchDistance = getPinchDistance();
+      }
     }
 
     function onPointerMove(event) {
+      if (!activePointers.has(event.pointerId)) return;
+      activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+
+      if (activePointers.size === 2) {
+        const distance = getPinchDistance();
+        if (distance && lastPinchDistance) {
+          const scale = lastPinchDistance / distance;
+          const newDistance = THREEjs.MathUtils.clamp(camera.position.length() * scale, 3, 22);
+          camera.position.setLength(newDistance);
+          lastPinchDistance = distance;
+        }
+        return;
+      }
+
       if (!pointerDown) {
         updateArrowHoverFromEvent(event);
         return;
@@ -1198,7 +1245,7 @@
       if (!engagedCubeDrag && Math.hypot(dx, dy) > DRAG_THRESHOLD_PX) {
         engagedCubeDrag = true;
         hoveredArrow = null;
-        arrowMeshes.forEach(m => setArrowHoverVisual(m, false));
+        axisIndicatorMeshes.forEach(m => setArrowHoverVisual(m, false));
       }
 
       if (engagedCubeDrag) {
@@ -1214,49 +1261,56 @@
     }
 
     function onPointerUp(event) {
-      if (!pointerDown) return;
-      pointerDown = false;
+      if (!activePointers.has(event.pointerId)) return;
+      activePointers.delete(event.pointerId);
+      try { renderer.domElement.releasePointerCapture(event.pointerId); } catch (err) {}
+      if (activePointers.size < 2) lastPinchDistance = null;
 
-      const travel = Math.hypot(event.clientX - opStartClient.x, event.clientY - opStartClient.y);
-
-      if (!engagedCubeDrag && travel < CLICK_MAX_PX) {
-        const ah = raycastArrows(event);
-        if (ah) {
-          const o = ah.object;
-          const layer = o.userData.layer;
-          const cw = layerCWMoveString(layer);
-          const ccw = layerCCWMoveFrom(layer);
-          const move = o.userData.angleSign > 0 ? cw : ccw;
-          if (move) executeMoves(move);
-        } else {
-          const bottomPick = pickBottomBelowPointer(event);
-          if (bottomPick) {
-            layerSelect.value = `${bottomPick.axis}:${bottomPick.index}`;
-            selectedLayer = bottomPick;
-            executeMoves(layerCWMoveString(bottomPick));
+      if (pointerDown && activePointers.size === 0) {
+        const travel = Math.hypot(event.clientX - opStartClient.x, event.clientY - opStartClient.y);
+        if (!engagedCubeDrag && travel < CLICK_MAX_PX) {
+          const ah = raycastArrows(event);
+          if (ah) {
+            const o = ah.object;
+            const layer = o.userData.layer;
+            const cw = layerCWMoveString(layer);
+            const ccw = layerCCWMoveFrom(layer);
+            const move = o.userData.angleSign > 0 ? cw : ccw;
+            if (move) executeMoves(move);
           } else {
-            const hit = getIntersect(event);
-            const layer = getLayerForHit(hit);
-            if (layer) {
-              layerSelect.value = `${layer.axis}:${layer.index}`;
-              selectedLayer = layer;
-              executeMoves(layerCWMoveString(layer));
+            const bottomPick = pickBottomBelowPointer(event);
+            if (bottomPick) {
+              layerSelect.value = `${bottomPick.axis}:${bottomPick.index}`;
+              selectedLayer = bottomPick;
+              executeMoves(layerCWMoveString(bottomPick));
+            } else {
+              const hit = getIntersect(event);
+              const layer = getLayerForHit(hit);
+              if (layer) {
+                layerSelect.value = `${layer.axis}:${layer.index}`;
+                selectedLayer = layer;
+                executeMoves(layerCWMoveString(layer));
+              }
             }
           }
         }
       }
 
-      engagedCubeDrag = false;
-      opStartClient = null;
-      lastPointerClient = null;
+      if (activePointers.size === 0) {
+        pointerDown = false;
+        engagedCubeDrag = false;
+        opStartClient = null;
+        lastPointerClient = null;
+      }
+
       updateArrowHoverFromEvent(event);
     }
 
     function onWheel(event) {
       event.preventDefault();
-      const factor = event.deltaY * 0.003;
-      camera.position.multiplyScalar(1 + factor);
-      camera.position.clampScalar(3, 22);
+      const factor = 1 + event.deltaY * 0.003;
+      const newDistance = THREEjs.MathUtils.clamp(camera.position.length() * factor, 3, 22);
+      camera.position.setLength(newDistance);
     }
 
     function applyCameraCentering() {
@@ -1265,7 +1319,7 @@
     }
 
     function onResize() {
-      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(container.clientWidth, container.clientHeight);
       applyCameraCentering();
@@ -1280,6 +1334,7 @@
     });
     renderer.domElement.addEventListener('pointermove', onPointerMove);
     window.addEventListener('pointerup', onPointerUp);
+    renderer.domElement.addEventListener('pointercancel', onPointerUp);
     renderer.domElement.addEventListener('wheel', onWheel, { passive: false });
 
     async function performMove(moveStr) {
@@ -1317,7 +1372,7 @@
 
         for (const move of moves) {
           await performMove(move);
-          rebuildLayerArrows();
+          rebuildAxisIndicators();
           updateSelectionBox();
           await new Promise(r => setTimeout(r, 40 / effectiveSpeedFactor()));
         }
@@ -1343,9 +1398,9 @@
 
     function updateDirections() {
       const camDir = camera.position.clone().normalize();
-      const top = new THREE.Vector3(0, 1, 0).applyQuaternion(cubeGroup.quaternion).normalize();
-      const right = new THREE.Vector3(1, 0, 0).applyQuaternion(cubeGroup.quaternion).normalize();
-      const front = new THREE.Vector3(0, 0, -1).applyQuaternion(cubeGroup.quaternion).normalize();
+      const top = new THREEjs.Vector3(0, 1, 0).applyQuaternion(cubeGroup.quaternion).normalize();
+      const right = new THREEjs.Vector3(1, 0, 0).applyQuaternion(cubeGroup.quaternion).normalize();
+      const front = new THREEjs.Vector3(0, 0, -1).applyQuaternion(cubeGroup.quaternion).normalize();
 
       const dots = {
         top: camDir.dot(top), bottom: -camDir.dot(top),
@@ -1365,21 +1420,27 @@
 
     function animate() {
       requestAnimationFrame(animate);
-      const visTop = getThreeVisibleFaces();
-      const sig = visTop.map(f => f.key).join(',');
-      if (sig !== lastArrowVisSig) rebuildLayerArrows();
+      const currentSig = getAxisSignature();
+      if (currentSig !== lastAxisVisSig) rebuildAxisIndicators();
       updateDirections();
+      if (renderCheck) renderCheck.textContent = `Render status: ${renderer.domElement.width}x${renderer.domElement.height}`;
       renderer.render(scene, camera);
     }
 
     animationSpeed = parseFloat(speedSlider.value);
     speedLabel.textContent = animationSpeed.toFixed(1);
-    layerArrowsGroup.visible = true;
+    axisIndicatorsGroup.visible = true;
     applyCameraCentering();
     updateStatus();
     updateHighlight();
     updateSelectionBox();
     animate();
+    }
+
+    initApp().catch((err) => {
+      console.error(err);
+      if (renderCheck) renderCheck.textContent = 'Render status: failed to load Three.js';
+    });
   </script>
 </body>
 </html>
