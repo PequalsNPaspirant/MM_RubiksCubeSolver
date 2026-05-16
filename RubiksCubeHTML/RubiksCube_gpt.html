@@ -311,7 +311,7 @@
     // const renderer = new THREEjs.WebGLRenderer({ antialias: true });
 
     async function initApp() {
-      const ui = document.getElementById('ui');
+      const uiPanel = document.getElementById('ui');
       const status = document.getElementById('status');
       const layerSelect = document.getElementById('layerSelect');
       const layerCWBtn = document.getElementById('layerCWBtn');
@@ -583,19 +583,23 @@
 
     function getIntersect(event) {
       if (!event) return null;
-      pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
-      pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+      pointer.x = (event.clientX / width) * 2 - 1;
+      pointer.y = -(event.clientY / height) * 2 + 1;
       raycaster.setFromCamera(pointer, camera);
       const hits = raycaster.intersectObjects(cubelets, false);
       return hits.length ? hits[0] : null;
     }
 
     function getCubeScreenBounds() {
+      const width = container.clientWidth;
+      const height = container.clientHeight;
       let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
       cubelets.forEach(m => {
         const v = m.position.clone().applyMatrix4(cubeGroup.matrixWorld).project(camera);
-        const sx = (v.x * 0.5 + 0.5) * window.innerWidth;
-        const sy = (-v.y * 0.5 + 0.5) * window.innerHeight;
+        const sx = (v.x * 0.5 + 0.5) * width;
+        const sy = (-v.y * 0.5 + 0.5) * height;
         minX = Math.min(minX, sx);
         maxX = Math.max(maxX, sx);
         minY = Math.min(minY, sy);
@@ -1187,8 +1191,17 @@
         layerSelect.value = `${bottomPick.axis}:${bottomPick.index}`;
         selectedLayer = bottomPick;
       } else {
-        hoveredArrow = null;
-        hoveredLayer = null;
+        const hit = getIntersect(event);
+        const layer = getLayerForHit(hit);
+        if (layer) {
+          hoveredArrow = null;
+          hoveredLayer = layer;
+          layerSelect.value = `${layer.axis}:${layer.index}`;
+          selectedLayer = layer;
+        } else {
+          hoveredArrow = null;
+          hoveredLayer = null;
+        }
       }
 
       axisIndicatorMeshes.forEach(m => setArrowHoverVisual(m, m === hoveredArrow));
@@ -1316,13 +1329,28 @@
 
     function applyCameraCentering() {
       cubeGroup.position.x = 0;
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+      const panelHeight = uiPanel ? uiPanel.clientHeight : 0;
+      cubeGroup.position.y = (panelHeight / height) * 5.5;
+    //   const visibleHeight = Math.max(1, height - panelHeight);
+    //   camera.aspect = width / height;
+    //   if (panelHeight > 4) {
+    //     camera.setViewOffset(width, visibleHeight, 0, 0, width, visibleHeight);
+    //   } else {
+    //     camera.clearViewOffset();
+    //   }
       camera.lookAt(0, 0, 0);
+    //   camera.aspect = window.innerWidth / window.innerHeight;
+    //   camera.updateProjectionMatrix();
     }
 
     function onResize() {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(container.clientWidth, container.clientHeight);
+    //   const panelHeight = uiPanel ? uiPanel.clientHeight : 0;
+    //   renderer.setSize(container.clientWidth, container.clientHeight - panelHeight);
       applyCameraCentering();
     }
 
