@@ -308,8 +308,8 @@
     import * as THREEjs from 'https://unpkg.com/three@0.161.0/build/three.module.js';
 
     const container = document.getElementById('container');
-    // const renderCheck = document.getElementById('render-check');
-    // const renderer = new THREE.WebGLRenderer({ antialias: true });
+    const renderCheck = document.getElementById('render-check');
+    // const renderer = new THREEjs.WebGLRenderer({ antialias: true });
 
     async function initApp() {
       const ui = document.getElementById('ui');
@@ -367,13 +367,13 @@
     const renderer = new THREEjs.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(container.clientWidth, container.clientHeight);
+    // renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.outputEncoding = THREEjs.sRGBEncoding;
     container.appendChild(renderer.domElement);
     renderer.domElement.style.position = 'absolute';
     renderer.domElement.style.inset = '0';
     renderer.domElement.style.zIndex = '1';
     renderer.domElement.style.touchAction = 'none';
-    onResize();
 
     if (renderCheck) renderCheck.textContent = 'Render status: canvas ready';
 
@@ -384,6 +384,8 @@
 
     const cubeGroup = new THREEjs.Group();
     scene.add(cubeGroup);
+
+    onResize();
 
     const cubelets = [];
     const faceColors = {
