@@ -590,10 +590,7 @@
 
     function getIntersect(event) {
       if (!event) return null;
-      const width = container.clientWidth;
-      const height = container.clientHeight;
-      pointer.x = (event.clientX / width) * 2 - 1;
-      pointer.y = -(event.clientY / height) * 2 + 1;
+      normalizePointer(event);
       raycaster.setFromCamera(pointer, camera);
       const hits = raycaster.intersectObjects(cubelets, false);
       return hits.length ? hits[0] : null;
@@ -882,15 +879,44 @@
       return null;
     }
 
+    function normalizePointer(event) {
+      const rect = container.getBoundingClientRect();
+      pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      return { x: event.clientX - rect.left, y: event.clientY - rect.top, width: rect.width, height: rect.height };
+    }
+
     function raycastArrows(event) {
-      pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
-      pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
+      normalizePointer(event);
       raycaster.setFromCamera(pointer, camera);
       const hits = raycaster.intersectObjects(axisIndicatorsGroup.children, true);
       if (!hits.length) return null;
       const root = getArrowPickRoot(hits[0].object);
       if (!root) return null;
       return { object: root, distance: hits[0].distance, point: hits[0].point };
+    }
+
+    function getClosestLayerArrow(layer, event) {
+      const rect = container.getBoundingClientRect();
+      const mouseX = event.clientX - rect.left;
+      const mouseY = event.clientY - rect.top;
+      let closest = null;
+      let bestDist = Infinity;
+      const worldPos = new THREEjs.Vector3();
+      axisIndicatorMeshes.forEach(group => {
+        const layerInfo = group.userData?.layer;
+        if (!layerInfo || layerInfo.axis !== layer.axis || layerInfo.index !== layer.index) return;
+        group.getWorldPosition(worldPos);
+        const projected = worldPos.project(camera);
+        const screenX = ((projected.x * 0.5 + 0.5) * rect.width);
+        const screenY = ((-projected.y * 0.5 + 0.5) * rect.height);
+        const dist = Math.hypot(screenX - mouseX, screenY - mouseY);
+        if (dist < bestDist) {
+          bestDist = dist;
+          closest = group;
+        }
+      });
+      return closest;
     }
 
     function setArrowHoverVisual(group, hover) {
@@ -1163,25 +1189,6 @@
       return base.add(e1.clone().multiplyScalar(idx * g)).add(e2.clone().multiplyScalar(sh));
     }
 
-    function setArrowHoverVisual(group, hover) {
-      if (!group || !group.userData || !group.userData.materials) return;
-      if (group.userData.hovered === hover) return;
-      group.userData.hovered = hover;
-      for (const mat of group.userData.materials) {
-        if (hover) {
-          mat.color.setHex(0xea5cff);
-          mat.emissive.setHex(0x7c3aed);
-          mat.emissiveIntensity = 0.4;
-          mat.opacity = 1;
-        } else {
-          mat.color.setHex(0xa78bfa);
-          mat.emissive.setHex(0x4c1d95);
-          mat.emissiveIntensity = 0.16;
-          mat.opacity = 0.96;
-        }
-      }
-    }
-
     function updateArrowHoverFromEvent(event) {
       if (engagedCubeDrag) return;
       const ah = raycastArrows(event);
@@ -1191,20 +1198,17 @@
         hoveredArrow = ah.object;
         hoveredLayer = { ...ah.object.userData.layer };
         layerSelect.value = `${hoveredLayer.axis}:${hoveredLayer.index}`;
-        selectedLayer = hoveredLayer;
       } else if (bottomPick) {
         hoveredArrow = null;
         hoveredLayer = bottomPick;
         layerSelect.value = `${bottomPick.axis}:${bottomPick.index}`;
-        selectedLayer = bottomPick;
       } else {
         const hit = getIntersect(event);
         const layer = getLayerForHit(hit);
         if (layer) {
-          hoveredArrow = null;
+          hoveredArrow = getClosestLayerArrow(layer, event);
           hoveredLayer = layer;
           layerSelect.value = `${layer.axis}:${layer.index}`;
-          selectedLayer = layer;
         } else {
           hoveredArrow = null;
           hoveredLayer = null;
@@ -1242,7 +1246,10 @@
     }
 
     function onPointerMove(event) {
-      if (!activePointers.has(event.pointerId)) return;
+      if (!activePointers.has(event.pointerId)) {
+        updateArrowHoverFromEvent(event);
+        return;
+      }
       activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
 
       if (activePointers.size === 2) {
@@ -1353,11 +1360,11 @@
     }
 
     function onResize() {
-      camera.aspect = window.innerWidth / window.innerHeight;
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+      camera.aspect = width / height;
       camera.updateProjectionMatrix();
-      renderer.setSize(container.clientWidth, container.clientHeight);
-    //   const panelHeight = uiPanel ? uiPanel.clientHeight : 0;
-    //   renderer.setSize(container.clientWidth, container.clientHeight - panelHeight);
+      renderer.setSize(width, height);
       applyCameraCentering();
     }
 
