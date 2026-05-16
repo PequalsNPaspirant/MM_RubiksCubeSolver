@@ -486,6 +486,9 @@
       'x:-1': 'L', 'x:0': 'M', 'x:1': 'R',
       'y:-1': 'D', 'y:0': 'E', 'y:1': 'U',
       'z:-1': 'F', 'z:0': 'S', 'z:1': 'B'
+        // 'x:-1': 'L', 'x:1': 'R',
+        // 'y:-1': 'D', 'y:1': 'U',
+        // 'z:-1': 'F', 'z:1': 'B'
     };
 
     function layerCCWMoveFrom(layer) {
@@ -495,7 +498,8 @@
     }
 
     function layerCWMoveString(layer) {
-      return layerCWMove[layerKey(layer)] || 'U';
+    //   return layerCWMove[layerKey(layer)] || 'U';
+        return layerCWMove[layerKey(layer)];
     }
 
     solveModeInputs.forEach(input => {
@@ -1397,7 +1401,7 @@
     }
 
     async function executeMoves(movesStr) {
-      if (isAnimating || !movesStr.trim()) return;
+      if (isAnimating || !movesStr || !movesStr.trim()) return;
       isAnimating = true;
       try {
         const moves = movesStr.trim().split(/\s+/).filter(Boolean);
