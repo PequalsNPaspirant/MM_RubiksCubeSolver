@@ -812,7 +812,7 @@
       // const startAngles = [0, Math.PI];
       // for (const baseAngle of startAngles) {
         const arcStart = baseAngle;
-        const arcEnd = baseAngle + angleSign * Math.PI * 0.35;
+        const arcEnd = baseAngle + index * angleSign * Math.PI * 0.35;
         const path = new AxisQuarterCurve(center, u, v, radius, arcStart, arcEnd);
         // const oppositPath = new AxisQuarterCurve(center, u, v, radius, arcEnd, arcStart);
         // const pathToUse = baseAngle === 0 ? path : oppositPath;
