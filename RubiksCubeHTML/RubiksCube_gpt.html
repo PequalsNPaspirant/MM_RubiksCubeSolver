@@ -313,36 +313,6 @@
 
     async function initApp() {
       const uiPanel = document.getElementById('ui');
-      //make uiPanel resizable by dragging its top edge
-      //Also show the mouse pointer when hovering over the top edge for better UX
-      uiPanel.addEventListener('mousemove', (e) => {
-        const rect = uiPanel.getBoundingClientRect();
-        if (e.clientY - rect.top < 12) {
-          uiPanel.style.cursor = 'ns-resize';
-        } else {
-          uiPanel.style.cursor = 'default';
-        }
-      });
-      uiPanel.addEventListener('mousedown', (e) => {
-        if (e.clientY < window.innerHeight - uiPanel.offsetHeight - 4) return;
-        e.preventDefault();
-        const startY = e.clientY;
-        const startHeight = uiPanel.offsetHeight;
-
-        const mousemove = (e) => {
-          const diff = startY - e.clientY;
-          uiPanel.style.height = `${startHeight + diff}px`;
-        };
-
-        const mouseup = () => {
-          document.removeEventListener('mousemove', mousemove);
-          document.removeEventListener('mouseup', mouseup);
-        };
-
-        document.addEventListener('mousemove', mousemove);
-        document.addEventListener('mouseup', mouseup);
-      });
-
       const status = document.getElementById('status');
       const layerSelect = document.getElementById('layerSelect');
       const layerCWBtn = document.getElementById('layerCWBtn');
@@ -430,6 +400,46 @@
       blue: 0x0f4c9d,
       mid: 0x111827
     };
+
+    //make uiPanel resizable by dragging its top edge
+      //Also show the mouse pointer when hovering over the top edge for better UX
+      uiPanel.addEventListener('mousemove', (e) => {
+        const rect = uiPanel.getBoundingClientRect();
+        if (e.clientY - rect.top < 12) {
+          uiPanel.style.cursor = 'ns-resize';
+        } else {
+          uiPanel.style.cursor = 'default';
+        }
+      });
+      uiPanel.addEventListener('mousedown', (e) => {
+        if (e.clientY < window.innerHeight - uiPanel.offsetHeight - 4) return;
+        e.preventDefault();
+        const startY = e.clientY;
+        const startHeight = uiPanel.offsetHeight;
+
+        //When mouse is being dragged, automatically move the cube center to the center of redering window aavailable above uiPanel
+        const mousemove = (e) => {
+          const diff = startY - e.clientY;
+          uiPanel.style.height = `${startHeight + diff}px`;
+          // const availableHeight = window.innerHeight - uiPanel.offsetHeight;
+          // const cubeCenterY = availableHeight / 2;
+          // // const cubeGroup = scene.getObjectByName('cubeGroup');
+          // if (cubeGroup) {
+          //   cubeGroup.position.y = cubeGroup.position.y + diff / 500; // scale down the movement for better feel and add a small offset to better center the cube
+          //   //render the cube again to reflect the position change immediately
+          //   renderer.render(scene, camera);
+          // }
+          applyCameraCentering();
+        };
+
+        const mouseup = () => {
+          document.removeEventListener('mousemove', mousemove);
+          document.removeEventListener('mouseup', mouseup);
+        };
+
+        document.addEventListener('mousemove', mousemove);
+        document.addEventListener('mouseup', mouseup);
+      });
 
     function createFaceMaterial(color) {
       return new THREEjs.MeshStandardMaterial({
