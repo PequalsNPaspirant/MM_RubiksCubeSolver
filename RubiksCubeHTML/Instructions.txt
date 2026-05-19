@@ -40,5 +40,6 @@ Also remove current arrows to rotate the layers. Instead draw X, Y and Z axes, i
 1. modify RubiksCube_gpt.html to remove code which highlights layes when mouse pointer is on any layer. The layers should be highlighted only when the mouse pointer is on curved arrows. 
 2. The arrows are not highlighted easily, make it easy for user to highlight arrows and corresponding layers easily by making it highlight when the mouse pointer is near the arrow within some tolerance.
 3. Add ability to pan the cube. Currently it has feature only to zoom and rotate cube. Rotate cube does not work properly, fix it.
-4. In the UI, by defauly custom mode should be selected and all edit boxes under it should be blank. When user clicks on Auto mode, the solution for current rubics cube to solve it should apprear in the edit boxes. Make sure the solution is correct and it solves scrambled cube to get the solved state.
-5. create Rubik's Cube Solution.pdf from Rubik's Cube Solution.jpg where the cube pictures are colored, look 3D. Instead of arrows to show the moves, use some other colourful and 3D like arrows.
+4. When Reset Orientation is pressed, it should reset to closer orientation to current position instead of very first initial orientation.
+5. In the UI, by defauly custom mode should be selected and all edit boxes under it should be blank. When user clicks on Auto mode, the solution for current rubics cube to solve it should apprear in the edit boxes. Make sure the solution is correct and it solves scrambled cube to get the solved state.
+6. create Rubik's Cube Solution.pdf from Rubik's Cube Solution.jpg where the cube pictures are colored, look 3D. Instead of arrows to show the moves, use some other colourful and 3D like arrows.
