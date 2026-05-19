@@ -37,5 +37,8 @@ in file RubiksCube_gpt.html, the rubiks cube is displayed in vertically compress
 Also remove current arrows to rotate the layers. Instead draw X, Y and Z axes, in their visible direction (positive or negative whichever is visible on screen). The length of axis visible on screen should be equal to side or cube. On that axis at midpoint (between surface of cube to end) draw two quarter arc arrows showing layer rotation direction. Draw simiar pair of arrows at the end of axis. The pair at end will rotate the layer which is visible and perpendicular to that axis. The pair at center of axis will rotate the later at opposit end of axis. Do same for all 3 axes.
 
 
-
-
+1. modify RubiksCube_gpt.html to remove code which highlights layes when mouse pointer is on any layer. The layers should be highlighted only when the mouse pointer is on curved arrows. 
+2. The arrows are not highlighted easily, make it easy for user to highlight arrows and corresponding layers easily by making it highlight when the mouse pointer is near the arrow within some tolerance.
+3. Add ability to pan the cube. Currently it has feature only to zoom and rotate cube. Rotate cube does not work properly, fix it.
+4. In the UI, by defauly custom mode should be selected and all edit boxes under it should be blank. When user clicks on Auto mode, the solution for current rubics cube to solve it should apprear in the edit boxes. Make sure the solution is correct and it solves scrambled cube to get the solved state.
+5. create Rubik's Cube Solution.pdf from Rubik's Cube Solution.jpg where the cube pictures are colored, look 3D. Instead of arrows to show the moves, use some other colourful and 3D like arrows.
