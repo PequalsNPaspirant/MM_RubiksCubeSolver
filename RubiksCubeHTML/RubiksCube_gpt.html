@@ -870,7 +870,7 @@
           const progress = Math.min(elapsed / duration, 1);
           const easing = progress < 0.5 ? 2 * progress * progress : -1 + (4 - 2 * progress) * progress;
 
-          THREEjs.Quaternion.slerp(startQuat, targetQuat, cubeGroup.quaternion, easing);
+          cubeGroup.quaternion.slerpQuaternions(startQuat, targetQuat, easing);
           cameraTarget.lerpVectors(startTarget, targetTarget, easing);
           camera.position.lerpVectors(startCamPos, targetCamPos, easing);
           camera.lookAt(cameraTarget);
