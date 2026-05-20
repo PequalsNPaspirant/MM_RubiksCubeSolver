@@ -203,6 +203,9 @@
       body.mobile-coerce #portrait-hint { display: flex; }
     }
   </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://unpkg.com/cubejs/lib/cube.js"></script>
+  <script src="https://unpkg.com/cubejs/lib/solve.js"></script>
 </head>
 <body>
   <div id="portrait-hint">
@@ -304,8 +307,8 @@
     </p>
   </aside>
 
-  <script type="module">
-    import * as THREEjs from 'https://unpkg.com/three@0.161.0/build/three.module.js';
+  <script>
+    const THREEjs = THREE;
 
     const container = document.getElementById('container');
     const renderCheck = document.getElementById('render-check');
@@ -354,7 +357,7 @@
       7: 'R\' D\' R D'
     };
 
-    let solveMode = 'auto';
+    let solveMode = 'custom';
     let animationSpeed = 2;
     let isAnimating = false;
 
@@ -363,7 +366,11 @@
     const camera = new THREEjs.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
     camera.position.set(6.2, 5.4, 6.2);
     camera.position.setLength(15);
-    camera.lookAt(0, 0, 0);
+    const cameraTarget = new THREEjs.Vector3(0, 0, 0);
+    camera.lookAt(cameraTarget);
+
+    let isPanning = false;
+    let lastPinchCenter = null;
 
     const renderer = new THREEjs.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -392,12 +399,12 @@
 
     const cubelets = [];
     const faceColors = {
-      white: 0xf5f5f5,
-      yellow: 0xffea00,
-      orange: 0xffaa00,
-      green: 0x30b13a,
-      red: 0xdd1f25,
-      blue: 0x0f4c9d,
+      white: 0xffffff,
+      yellow: 0xfff200,
+      orange: 0xff5f00,
+      green: 0x00d215,
+      red: 0xe60000,
+      blue: 0x004eff,
       mid: 0x111827
     };
 
@@ -412,7 +419,8 @@
         }
       });
       uiPanel.addEventListener('mousedown', (e) => {
-        if (e.clientY < window.innerHeight - uiPanel.offsetHeight - 4) return;
+        const rect = uiPanel.getBoundingClientRect();
+        if (e.clientY - rect.top >= 12) return;
         e.preventDefault();
         const startY = e.clientY;
         const startHeight = uiPanel.offsetHeight;
@@ -472,6 +480,14 @@
           cubelet.position.set(x * 1.04, y * 1.04, z * 1.04);
           cubelet.userData.coords = { x, y, z };
           cubelet.userData.originalCoords = { x, y, z };
+          cubelet.userData.faceColors = [
+            x === 1 ? 'green' : 'mid',
+            x === -1 ? 'orange' : 'mid',
+            y === 1 ? 'white' : 'mid',
+            y === -1 ? 'yellow' : 'mid',
+            z === 1 ? 'red' : 'mid',
+            z === -1 ? 'blue' : 'mid'
+          ];
           cubeGroup.add(cubelet);
           cubelets.push(cubelet);
         }
@@ -526,10 +542,7 @@
     const layerCWMove = {
       'x:-1': 'L', 'x:0': 'M', 'x:1': 'R',
       'y:-1': 'D', 'y:0': 'E', 'y:1': 'U',
-      'z:-1': 'F', 'z:0': 'S', 'z:1': 'B'
-        // 'x:-1': 'L', 'x:1': 'R',
-        // 'y:-1': 'D', 'y:1': 'U',
-        // 'z:-1': 'F', 'z:1': 'B'
+      'z:-1': 'B', 'z:0': 'S', 'z:1': 'F'
     };
 
     function layerCCWMoveFrom(layer) {
@@ -543,10 +556,232 @@
         return layerCWMove[layerKey(layer)];
     }
 
+    // Inline Web Worker for solver
+    const solverWorkerBlob = new Blob([`
+      importScripts('https://unpkg.com/cubejs/lib/cube.js');
+      importScripts('https://unpkg.com/cubejs/lib/solve.js');
+
+      let solverReady = false;
+
+      self.onmessage = function(e) {
+        if (e.data.action === 'init') {
+          Cube.initSolver();
+          solverReady = true;
+          self.postMessage({ action: 'ready' });
+        } else if (e.data.action === 'solve') {
+          if (!solverReady) {
+            self.postMessage({ action: 'error', error: 'Solver not ready' });
+            return;
+          }
+          try {
+            const cube = Cube.fromString(e.data.state);
+            const solution = cube.solve();
+            self.postMessage({ action: 'solution', solution: solution });
+          } catch(err) {
+            self.postMessage({ action: 'error', error: err.message });
+          }
+        }
+      };
+    `], { type: 'application/javascript' });
+
+    let solverWorker = null;
+    let solverIsReady = false;
+
+    try {
+      solverWorker = new Worker(URL.createObjectURL(solverWorkerBlob));
+      solverWorker.onmessage = function(e) {
+        if (e.data.action === 'ready') {
+          solverIsReady = true;
+          updateStatus('Solver ready');
+          if (solveMode === 'auto') {
+            recalculateAutoSolution();
+          }
+        } else if (e.data.action === 'solution') {
+          const solution = e.data.solution;
+          distributeAutoSolution(solution);
+        } else if (e.data.action === 'error') {
+          console.error('Solver error:', e.data.error);
+          if (e.data.error === 'Solver not ready') {
+            updateStatus('Solver initializing...');
+          } else {
+            updateStatus('Cube state invalid or error solving');
+          }
+        }
+      };
+      // Initialize solver
+      solverWorker.postMessage({ action: 'init' });
+    } catch (workerErr) {
+      console.warn('Web Worker creation failed, using main thread fallback:', workerErr);
+      try {
+        Cube.initSolver();
+        solverIsReady = true;
+        updateStatus('Solver ready (main thread)');
+      } catch (mainErr) {
+        console.error('Failed to initialize solver on main thread:', mainErr);
+        updateStatus('Solver initialization failed');
+      }
+    }
+
+    function distributeAutoSolution(solution) {
+      const movesInputIds = Array.from({ length: 7 }, (_, i) => `moves${i + 1}`);
+      
+      if (!solution || !solution.trim()) {
+        movesInputIds.forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.value = '';
+        });
+        updateStatus('Cube solved!');
+        return;
+      }
+
+      const moves = solution.trim().split(/\s+/).filter(Boolean);
+      const numMoves = moves.length;
+      const base = Math.floor(numMoves / 7);
+      const remainder = numMoves % 7;
+
+      let moveIdx = 0;
+      for (let i = 0; i < 7; i++) {
+        const count = base + (i < remainder ? 1 : 0);
+        const stepMoves = moves.slice(moveIdx, moveIdx + count);
+        moveIdx += count;
+        const el = document.getElementById(movesInputIds[i]);
+        if (el) {
+          el.value = stepMoves.join(' ');
+        }
+      }
+      updateStatus(`Solution generated (${numMoves} moves)`);
+    }
+
+    function recalculateAutoSolution() {
+      if (!solverIsReady) {
+        updateStatus('Solver initializing, please wait...');
+        return;
+      }
+      const state = getCubeStateString();
+      if (solverWorker) {
+        solverWorker.postMessage({ action: 'solve', state: state });
+      } else {
+        try {
+          const cube = Cube.fromString(state);
+          const solution = cube.solve();
+          distributeAutoSolution(solution);
+        } catch (err) {
+          console.error('Main thread solving error:', err);
+          updateStatus('Cube state invalid or error solving');
+        }
+      }
+    }
+
+    function getCubeStateString() {
+      const colorToKociemba = {
+        'white': 'U',
+        'green': 'R',
+        'red': 'F',
+        'yellow': 'D',
+        'orange': 'L',
+        'blue': 'B'
+      };
+      
+      const faceNormals = {
+        U: new THREEjs.Vector3(0, 1, 0),
+        R: new THREEjs.Vector3(1, 0, 0),
+        F: new THREEjs.Vector3(0, 0, 1),
+        D: new THREEjs.Vector3(0, -1, 0),
+        L: new THREEjs.Vector3(-1, 0, 0),
+        B: new THREEjs.Vector3(0, 0, -1)
+      };
+
+      function findCubelet(x, y, z) {
+        return cubelets.find(c => 
+          c.userData.coords.x === x && 
+          c.userData.coords.y === y && 
+          c.userData.coords.z === z
+        );
+      }
+
+      function getCubeletColorFacing(cubelet, targetNormal) {
+        const localNormals = [
+          new THREEjs.Vector3(1, 0, 0),  // +X (Right)
+          new THREEjs.Vector3(-1, 0, 0), // -X (Left)
+          new THREEjs.Vector3(0, 1, 0),  // +Y (Up)
+          new THREEjs.Vector3(0, -1, 0), // -Y (Down)
+          new THREEjs.Vector3(0, 0, 1),  // +Z (Front)
+          new THREEjs.Vector3(0, 0, -1)  // -Z (Back)
+        ];
+        for (let i = 0; i < 6; i++) {
+          const norm = localNormals[i].clone().applyQuaternion(cubelet.quaternion);
+          if (norm.dot(targetNormal) > 0.5) {
+            return cubelet.userData.faceColors[i];
+          }
+        }
+        return 'mid';
+      }
+
+      let stateStr = '';
+
+      // U Face
+      for (let z = -1; z <= 1; z++) {
+        for (let x = -1; x <= 1; x++) {
+          const c = findCubelet(x, 1, z);
+          stateStr += colorToKociemba[getCubeletColorFacing(c, faceNormals.U)] || '?';
+        }
+      }
+
+      // R Face
+      for (let y = 1; y >= -1; y--) {
+        for (let z = 1; z >= -1; z--) {
+          const c = findCubelet(1, y, z);
+          stateStr += colorToKociemba[getCubeletColorFacing(c, faceNormals.R)] || '?';
+        }
+      }
+
+      // F Face
+      for (let y = 1; y >= -1; y--) {
+        for (let x = -1; x <= 1; x++) {
+          const c = findCubelet(x, y, 1);
+          stateStr += colorToKociemba[getCubeletColorFacing(c, faceNormals.F)] || '?';
+        }
+      }
+
+      // D Face
+      for (let z = 1; z >= -1; z--) {
+        for (let x = -1; x <= 1; x++) {
+          const c = findCubelet(x, -1, z);
+          stateStr += colorToKociemba[getCubeletColorFacing(c, faceNormals.D)] || '?';
+        }
+      }
+
+      // L Face
+      for (let y = 1; y >= -1; y--) {
+        for (let z = -1; z <= 1; z++) {
+          const c = findCubelet(-1, y, z);
+          stateStr += colorToKociemba[getCubeletColorFacing(c, faceNormals.L)] || '?';
+        }
+      }
+
+      // B Face
+      for (let y = 1; y >= -1; y--) {
+        for (let x = 1; x >= -1; x--) {
+          const c = findCubelet(x, y, -1);
+          stateStr += colorToKociemba[getCubeletColorFacing(c, faceNormals.B)] || '?';
+        }
+      }
+
+      return stateStr;
+    }
+
     solveModeInputs.forEach(input => {
       input.addEventListener('change', () => {
         solveMode = input.value;
-        if (solveMode === 'auto') populateAutoMoves();
+        if (solveMode === 'auto') {
+          recalculateAutoSolution();
+        } else {
+          for (let i = 1; i <= 7; i++) {
+            const el = document.getElementById(`moves${i}`);
+            if (el) el.value = '';
+          }
+          updateStatus('Custom mode active');
+        }
       });
     });
 
@@ -575,10 +810,57 @@
       }
     }
 
+    // Generate 24 orthogonal quaternions for snapping
+    const orthogonalQuaternions = [];
+    for (let x = 0; x < 4; x++) {
+      for (let y = 0; y < 4; y++) {
+        for (let z = 0; z < 4; z++) {
+          const q = new THREEjs.Quaternion()
+            .setFromEuler(new THREEjs.Euler(x * Math.PI / 2, y * Math.PI / 2, z * Math.PI / 2));
+          if (!orthogonalQuaternions.some(existing => Math.abs(existing.dot(q)) > 0.999)) {
+            orthogonalQuaternions.push(q);
+          }
+        }
+      }
+    }
+
+    function getClosestOrthogonalQuaternion(currentQ) {
+      let maxDot = -Infinity;
+      let bestQuat = null;
+      orthogonalQuaternions.forEach(q => {
+        const d = Math.abs(currentQ.dot(q));
+        if (d > maxDot) {
+          maxDot = d;
+          bestQuat = q;
+        }
+      });
+      if (currentQ.dot(bestQuat) < 0) {
+        const q = bestQuat.clone();
+        q.x = -q.x;
+        q.y = -q.y;
+        q.z = -q.z;
+        q.w = -q.w;
+        return q;
+      }
+      return bestQuat.clone();
+    }
+
     resetBtn.addEventListener('click', async () => {
       if (isAnimating) return;
       isAnimating = true;
-      const startRotation = { x: cubeGroup.rotation.x, y: cubeGroup.rotation.y, z: cubeGroup.rotation.z };
+      
+      const startQuat = cubeGroup.quaternion.clone();
+      const targetQuat = getClosestOrthogonalQuaternion(startQuat);
+      
+      const startTarget = cameraTarget.clone();
+      const targetTarget = new THREEjs.Vector3(0, 0, 0);
+      
+      const startCamPos = camera.position.clone();
+      const currentDist = startCamPos.distanceTo(startTarget);
+      
+      const defaultDir = new THREEjs.Vector3(6.2, 5.4, 6.2).normalize();
+      const targetCamPos = defaultDir.clone().multiplyScalar(currentDist);
+      
       const duration = 600 / effectiveSpeedFactor();
       const startTime = Date.now();
 
@@ -588,13 +870,17 @@
           const progress = Math.min(elapsed / duration, 1);
           const easing = progress < 0.5 ? 2 * progress * progress : -1 + (4 - 2 * progress) * progress;
 
-          cubeGroup.rotation.x = startRotation.x + (0 - startRotation.x) * easing;
-          cubeGroup.rotation.y = startRotation.y + (0 - startRotation.y) * easing;
-          cubeGroup.rotation.z = startRotation.z + (0 - startRotation.z) * easing;
+          THREEjs.Quaternion.slerp(startQuat, targetQuat, cubeGroup.quaternion, easing);
+          cameraTarget.lerpVectors(startTarget, targetTarget, easing);
+          camera.position.lerpVectors(startCamPos, targetCamPos, easing);
+          camera.lookAt(cameraTarget);
 
           if (progress < 1) requestAnimationFrame(animate);
           else {
-            cubeGroup.rotation.set(0, 0, 0);
+            cubeGroup.quaternion.copy(targetQuat);
+            cameraTarget.copy(targetTarget);
+            camera.position.copy(targetCamPos);
+            camera.lookAt(cameraTarget);
             resolve();
           }
         };
@@ -766,32 +1052,32 @@
     let lastAxisVisSig = '';
 
     const moveMap = {
-      'R': { axis: 'x', index: 1, angle: Math.PI / 2 },
-      'R\'': { axis: 'x', index: 1, angle: -Math.PI / 2 },
+      'R': { axis: 'x', index: 1, angle: -Math.PI / 2 },
+      'R\'': { axis: 'x', index: 1, angle: Math.PI / 2 },
       'R2': { axis: 'x', index: 1, angle: Math.PI },
-      'L': { axis: 'x', index: -1, angle: -Math.PI / 2 },
-      'L\'': { axis: 'x', index: -1, angle: Math.PI / 2 },
+      'L': { axis: 'x', index: -1, angle: Math.PI / 2 },
+      'L\'': { axis: 'x', index: -1, angle: -Math.PI / 2 },
       'L2': { axis: 'x', index: -1, angle: Math.PI },
-      'M': { axis: 'x', index: 0, angle: -Math.PI / 2 },
-      'M\'': { axis: 'x', index: 0, angle: Math.PI / 2 },
+      'M': { axis: 'x', index: 0, angle: Math.PI / 2 },
+      'M\'': { axis: 'x', index: 0, angle: -Math.PI / 2 },
       'M2': { axis: 'x', index: 0, angle: Math.PI },
-      'U': { axis: 'y', index: 1, angle: Math.PI / 2 },
-      'U\'': { axis: 'y', index: 1, angle: -Math.PI / 2 },
+      'U': { axis: 'y', index: 1, angle: -Math.PI / 2 },
+      'U\'': { axis: 'y', index: 1, angle: Math.PI / 2 },
       'U2': { axis: 'y', index: 1, angle: Math.PI },
-      'D': { axis: 'y', index: -1, angle: -Math.PI / 2 },
-      'D\'': { axis: 'y', index: -1, angle: Math.PI / 2 },
+      'D': { axis: 'y', index: -1, angle: Math.PI / 2 },
+      'D\'': { axis: 'y', index: -1, angle: -Math.PI / 2 },
       'D2': { axis: 'y', index: -1, angle: Math.PI },
-      'E': { axis: 'y', index: 0, angle: -Math.PI / 2 },
-      'E\'': { axis: 'y', index: 0, angle: Math.PI / 2 },
+      'E': { axis: 'y', index: 0, angle: Math.PI / 2 },
+      'E\'': { axis: 'y', index: 0, angle: -Math.PI / 2 },
       'E2': { axis: 'y', index: 0, angle: Math.PI },
-      'F': { axis: 'z', index: -1, angle: Math.PI / 2 },
-      'F\'': { axis: 'z', index: -1, angle: -Math.PI / 2 },
-      'F2': { axis: 'z', index: -1, angle: Math.PI },
-      'B': { axis: 'z', index: 1, angle: -Math.PI / 2 },
-      'B\'': { axis: 'z', index: 1, angle: Math.PI / 2 },
-      'B2': { axis: 'z', index: 1, angle: Math.PI },
-      'S': { axis: 'z', index: 0, angle: Math.PI / 2 },
-      'S\'': { axis: 'z', index: 0, angle: -Math.PI / 2 },
+      'F': { axis: 'z', index: 1, angle: -Math.PI / 2 },
+      'F\'': { axis: 'z', index: 1, angle: Math.PI / 2 },
+      'F2': { axis: 'z', index: 1, angle: Math.PI },
+      'B': { axis: 'z', index: -1, angle: Math.PI / 2 },
+      'B\'': { axis: 'z', index: -1, angle: -Math.PI / 2 },
+      'B2': { axis: 'z', index: -1, angle: Math.PI },
+      'S': { axis: 'z', index: 0, angle: -Math.PI / 2 },
+      'S\'': { axis: 'z', index: 0, angle: Math.PI / 2 },
       'S2': { axis: 'z', index: 0, angle: Math.PI },
     };
 
@@ -841,6 +1127,14 @@
         polygonOffsetUnits: -2,
       });
 
+      const arcStart = baseAngle;
+      const arcEnd = baseAngle + index * angleSign * Math.PI * 0.35;
+      const path = new AxisQuarterCurve(center, u, v, radius, arcStart, arcEnd);
+      const midAngle = arcStart + (arcEnd - arcStart) * 0.5;
+      const midArcPoint = center.clone()
+        .add(u.clone().multiplyScalar(radius * Math.cos(midAngle)))
+        .add(v.clone().multiplyScalar(radius * Math.sin(midAngle)));
+
       const group = new THREEjs.Group();
       group.userData = {
         type: 'axisArrow',
@@ -848,29 +1142,22 @@
         angleSign,
         materials: [material],
         hovered: false,
+        center: midArcPoint,
       };
 
-      // const startAngles = [0, Math.PI];
-      // for (const baseAngle of startAngles) {
-        const arcStart = baseAngle;
-        const arcEnd = baseAngle + index * angleSign * Math.PI * 0.35;
-        const path = new AxisQuarterCurve(center, u, v, radius, arcStart, arcEnd);
-        // const oppositPath = new AxisQuarterCurve(center, u, v, radius, arcEnd, arcStart);
-        // const pathToUse = baseAngle === 0 ? path : oppositPath;
-        const pathToUse = path;
-        const tube = new THREEjs.Mesh(new THREEjs.TubeGeometry(pathToUse, 32, 0.04, 6, false), material);
-        tube.renderOrder = 20;
-        group.add(tube);
+      const pathToUse = path;
+      const tube = new THREEjs.Mesh(new THREEjs.TubeGeometry(pathToUse, 32, 0.04, 6, false), material);
+      tube.renderOrder = 20;
+      group.add(tube);
 
-        const pointA = pathToUse.getPoint(0.98);
-        const pointB = pathToUse.getPoint(1);
-        const dir = pointB.clone().sub(pointA).normalize();
-        const cone = new THREEjs.Mesh(new THREEjs.ConeGeometry(0.08, 0.24, 8), material);
-        cone.position.copy(pointB).add(dir.clone().multiplyScalar(0.14));
-        cone.quaternion.setFromUnitVectors(new THREEjs.Vector3(0, 1, 0), dir);
-        cone.renderOrder = 20;
-        group.add(cone);
-      // }
+      const pointA = pathToUse.getPoint(0.98);
+      const pointB = pathToUse.getPoint(1);
+      const dir = pointB.clone().sub(pointA).normalize();
+      const cone = new THREEjs.Mesh(new THREEjs.ConeGeometry(0.08, 0.24, 8), material);
+      cone.position.copy(pointB).add(dir.clone().multiplyScalar(0.14));
+      cone.quaternion.setFromUnitVectors(new THREEjs.Vector3(0, 1, 0), dir);
+      cone.renderOrder = 20;
+      group.add(cone);
 
       return group;
     }
@@ -1235,30 +1522,51 @@
       return base.add(e1.clone().multiplyScalar(idx * g)).add(e2.clone().multiplyScalar(sh));
     }
 
+    function getArrowNearPointer(event, threshold = 80) {
+      if (!event) return null;
+      const rect = container.getBoundingClientRect();
+      const mouseX = event.clientX - rect.left;
+      const mouseY = event.clientY - rect.top;
+      
+      let closest = null;
+      let bestDist = Infinity;
+      
+      axisIndicatorMeshes.forEach(group => {
+        if (!group.userData || !group.userData.center) return;
+        const worldPos = group.userData.center.clone().applyMatrix4(cubeGroup.matrixWorld);
+        const projected = worldPos.project(camera);
+        const screenX = ((projected.x * 0.5 + 0.5) * rect.width);
+        const screenY = ((-projected.y * 0.5 + 0.5) * rect.height);
+        const dist = Math.hypot(screenX - mouseX, screenY - mouseY);
+        if (dist < bestDist) {
+          bestDist = dist;
+          closest = group;
+        }
+      });
+      
+      if (bestDist <= threshold) {
+        return closest;
+      }
+      return null;
+    }
+
     function updateArrowHoverFromEvent(event) {
       if (engagedCubeDrag) return;
-      const ah = raycastArrows(event);
-      const bottomPick = !ah ? pickBottomBelowPointer(event) : null;
+      
+      const arrowNear = getArrowNearPointer(event, 80);
+      const bottomPick = !arrowNear ? pickBottomBelowPointer(event) : null;
 
-      if (ah) {
-        hoveredArrow = ah.object;
-        hoveredLayer = { ...ah.object.userData.layer };
+      if (arrowNear) {
+        hoveredArrow = arrowNear;
+        hoveredLayer = { ...arrowNear.userData.layer };
         layerSelect.value = `${hoveredLayer.axis}:${hoveredLayer.index}`;
       } else if (bottomPick) {
         hoveredArrow = null;
         hoveredLayer = bottomPick;
         layerSelect.value = `${bottomPick.axis}:${bottomPick.index}`;
       } else {
-        const hit = getIntersect(event);
-        const layer = getLayerForHit(hit);
-        if (layer) {
-          hoveredArrow = getClosestLayerArrow(layer, event);
-          hoveredLayer = layer;
-          layerSelect.value = `${layer.axis}:${layer.index}`;
-        } else {
-          hoveredArrow = null;
-          hoveredLayer = null;
-        }
+        hoveredArrow = null;
+        hoveredLayer = null;
       }
 
       axisIndicatorMeshes.forEach(m => setArrowHoverVisual(m, m === hoveredArrow));
@@ -1273,8 +1581,18 @@
       return Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y);
     }
 
+    function getPointersCenter() {
+      const points = Array.from(activePointers.values());
+      if (points.length !== 2) return null;
+      return {
+        x: (points[0].x + points[1].x) / 2,
+        y: (points[0].y + points[1].y) / 2
+      };
+    }
+
     function onPointerDown(event) {
-      if (event.pointerType === 'mouse' && event.button !== 0) return;
+      if (uiPanel && uiPanel.contains(event.target)) return;
+      if (event.pointerType === 'mouse' && event.button !== 0 && event.button !== 2) return;
       if (isAnimating) return;
       activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
       try { renderer.domElement.setPointerCapture(event.pointerId); } catch (err) {}
@@ -1282,12 +1600,14 @@
       if (activePointers.size === 1) {
         pointerDown = true;
         engagedCubeDrag = false;
+        isPanning = (event.button === 2) || (event.button === 0 && event.shiftKey);
         opStartClient = { x: event.clientX, y: event.clientY };
         lastPointerClient = { x: event.clientX, y: event.clientY };
       }
 
       if (activePointers.size === 2) {
         lastPinchDistance = getPinchDistance();
+        lastPinchCenter = getPointersCenter();
       }
     }
 
@@ -1299,12 +1619,34 @@
       activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
 
       if (activePointers.size === 2) {
-        const distance = getPinchDistance();
-        if (distance && lastPinchDistance) {
-          const scale = lastPinchDistance / distance;
-          const newDistance = THREEjs.MathUtils.clamp(camera.position.length() * scale, 3, 22);
-          camera.position.setLength(newDistance);
-          lastPinchDistance = distance;
+        const dist = getPinchDistance();
+        const center = getPointersCenter();
+        if (dist && lastPinchDistance && center && lastPinchCenter) {
+          // Zoom
+          const scale = lastPinchDistance / dist;
+          const currentDistance = camera.position.distanceTo(cameraTarget);
+          const newDistance = THREEjs.MathUtils.clamp(currentDistance * scale, 3, 100);
+          
+          const camDir = new THREEjs.Vector3().subVectors(camera.position, cameraTarget).normalize();
+          camera.position.copy(cameraTarget).addScaledVector(camDir, newDistance);
+          
+          // Pan
+          const mdx = center.x - lastPinchCenter.x;
+          const mdy = center.y - lastPinchCenter.y;
+          
+          const cameraRight = new THREEjs.Vector3(1, 0, 0).applyQuaternion(camera.quaternion);
+          const cameraUp = new THREEjs.Vector3(0, 1, 0).applyQuaternion(camera.quaternion);
+          
+          const factor = (newDistance * Math.tan((camera.fov * Math.PI) / 360)) / (container.clientHeight * 0.5);
+          const panOffset = new THREEjs.Vector3()
+            .addScaledVector(cameraRight, -mdx * factor)
+            .addScaledVector(cameraUp, mdy * factor);
+            
+          camera.position.add(panOffset);
+          cameraTarget.add(panOffset);
+          
+          lastPinchDistance = dist;
+          lastPinchCenter = center;
         }
         return;
       }
@@ -1325,8 +1667,31 @@
       if (engagedCubeDrag) {
         const mdx = event.clientX - lastPointerClient.x;
         const mdy = event.clientY - lastPointerClient.y;
-        cubeGroup.rotation.y += mdx * 0.004;
-        cubeGroup.rotation.x += mdy * 0.004;
+        
+        if (isPanning) {
+          const cameraRight = new THREEjs.Vector3(1, 0, 0).applyQuaternion(camera.quaternion);
+          const cameraUp = new THREEjs.Vector3(0, 1, 0).applyQuaternion(camera.quaternion);
+          
+          const distance = camera.position.distanceTo(cameraTarget);
+          const factor = (distance * Math.tan((camera.fov * Math.PI) / 360)) / (container.clientHeight * 0.5);
+          
+          const panOffset = new THREEjs.Vector3()
+            .addScaledVector(cameraRight, -mdx * factor)
+            .addScaledVector(cameraUp, mdy * factor);
+            
+          camera.position.add(panOffset);
+          cameraTarget.add(panOffset);
+        } else {
+          const cameraRight = new THREEjs.Vector3(1, 0, 0).applyQuaternion(camera.quaternion);
+          const cameraUp = new THREEjs.Vector3(0, 1, 0).applyQuaternion(camera.quaternion);
+          
+          const qX = new THREEjs.Quaternion().setFromAxisAngle(cameraUp, mdx * 0.005);
+          const qY = new THREEjs.Quaternion().setFromAxisAngle(cameraRight, mdy * 0.005);
+          
+          const deltaQ = new THREEjs.Quaternion().multiplyQuaternions(qY, qX);
+          cubeGroup.quaternion.premultiply(deltaQ);
+        }
+        
         lastPointerClient = { x: event.clientX, y: event.clientY };
         return;
       }
@@ -1338,18 +1703,27 @@
       if (!activePointers.has(event.pointerId)) return;
       activePointers.delete(event.pointerId);
       try { renderer.domElement.releasePointerCapture(event.pointerId); } catch (err) {}
-      if (activePointers.size < 2) lastPinchDistance = null;
+      if (activePointers.size < 2) {
+        lastPinchDistance = null;
+        lastPinchCenter = null;
+      }
 
       if (pointerDown && activePointers.size === 0) {
         const travel = Math.hypot(event.clientX - opStartClient.x, event.clientY - opStartClient.y);
         if (!engagedCubeDrag && travel < CLICK_MAX_PX) {
-          const ah = raycastArrows(event);
+          let ah = raycastArrows(event);
+          if (!ah) {
+            const nearArrow = getArrowNearPointer(event, 80);
+            if (nearArrow) {
+              ah = { object: nearArrow };
+            }
+          }
           if (ah) {
             const o = ah.object;
             const layer = o.userData.layer;
             const cw = layerCWMoveString(layer);
             const ccw = layerCCWMoveFrom(layer);
-            const move = o.userData.angleSign > 0 ? cw : ccw;
+            const move = o.userData.angleSign < 0 ? cw : ccw;
             if (move) executeMoves(move);
           } else {
             const bottomPick = pickBottomBelowPointer(event);
@@ -1383,8 +1757,11 @@
     function onWheel(event) {
       event.preventDefault();
       const factor = 1 + event.deltaY * 0.003;
-      const newDistance = THREEjs.MathUtils.clamp(camera.position.length() * factor, 3, 100);
-      camera.position.setLength(newDistance);
+      const currentDistance = camera.position.distanceTo(cameraTarget);
+      const newDistance = THREEjs.MathUtils.clamp(currentDistance * factor, 3, 100);
+      
+      const camDir = new THREEjs.Vector3().subVectors(camera.position, cameraTarget).normalize();
+      camera.position.copy(cameraTarget).addScaledVector(camDir, newDistance);
     }
 
     function applyCameraCentering() {
@@ -1393,16 +1770,7 @@
       const height = container.clientHeight;
       const panelHeight = uiPanel ? uiPanel.clientHeight : 0;
       cubeGroup.position.y = (panelHeight / height) * 5.5;
-    //   const visibleHeight = Math.max(1, height - panelHeight);
-    //   camera.aspect = width / height;
-    //   if (panelHeight > 4) {
-    //     camera.setViewOffset(width, visibleHeight, 0, 0, width, visibleHeight);
-    //   } else {
-    //     camera.clearViewOffset();
-    //   }
-      camera.lookAt(0, 0, 0);
-    //   camera.aspect = window.innerWidth / window.innerHeight;
-    //   camera.updateProjectionMatrix();
+      camera.lookAt(cameraTarget);
     }
 
     function onResize() {
@@ -1429,9 +1797,12 @@
       updateHighlight();
       updateSelectionBox();
     });
+    window.addEventListener('pointerdown', onPointerDown);
+    window.addEventListener('pointermove', onPointerMove);
     window.addEventListener('pointerup', onPointerUp);
     renderer.domElement.addEventListener('pointercancel', onPointerUp);
     renderer.domElement.addEventListener('wheel', onWheel, { passive: false });
+    renderer.domElement.addEventListener('contextmenu', e => e.preventDefault());
 
     async function performMove(moveStr) {
       const move = moveMap[moveStr];
@@ -1460,6 +1831,8 @@
       });
     }
 
+    let isExecutingSolutionStep = false;
+
     async function executeMoves(movesStr) {
       if (isAnimating || !movesStr || !movesStr.trim()) return;
       isAnimating = true;
@@ -1477,6 +1850,9 @@
         updateStatus('Moves completed');
       } finally {
         isAnimating = false;
+        if (solveMode === 'auto' && !isExecutingSolutionStep) {
+          recalculateAutoSolution();
+        }
       }
     }
 
@@ -1485,12 +1861,17 @@
         if (isAnimating) return;
         const movesInput = document.getElementById(`moves${i}`);
         let movesToExecute = movesInput.value.trim();
-        if (solveMode === 'auto') movesToExecute = (solvingMoves[i] || '').trim();
-        executeMoves(movesToExecute);
+        if (!movesToExecute) return;
+        isExecutingSolutionStep = true;
+        executeMoves(movesToExecute).finally(() => {
+          isExecutingSolutionStep = false;
+        });
       });
     }
 
-    populateAutoMoves();
+    if (solveMode === 'auto') {
+      populateAutoMoves();
+    }
 
     function updateDirections() {
       const camDir = camera.position.clone().normalize();
